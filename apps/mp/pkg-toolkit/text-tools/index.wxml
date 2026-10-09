@@ -1,0 +1,137 @@
+<!-- 字数统计与文本整理（校园小工具）
+     视觉：工具主题 · 输入 → 统计 → 整理 → 结果 四段，纯本地计算，无网络请求
+     装饰签名（见 docs/dev/MP-VISUAL-SYSTEM.md）：blob-a + shine -->
+<view
+  class="qz-page th-toolkit text-tools"
+  bindtouchstart="onFxStart"
+  bindtouchmove="onFxMove"
+  bindtouchend="onFxEnd"
+  bindtouchcancel="onFxEnd"
+>
+  <!-- 装饰层（不拦截点击；只有装饰层跟随指针，内容区不跟随） -->
+  <view class="qz-deco">
+    <view class="qz-fx" style="{{fxStyle}}">
+      <view class="qz-blob qz-blob-a"></view>
+      <view class="tt-shine qz-shine qz-shine-slow"></view>
+    </view>
+  </view>
+
+  <view class="qz-content">
+    <view class="qz-head">
+      <view class="qz-head-row">
+        <view class="qz-ico qz-ico-l qz-ico-float">
+          <view class="qz-i qz-i-doc"></view>
+        </view>
+        <view class="qz-head-main">
+          <text class="qz-head-title">字数统计</text>
+          <text class="qz-head-sub">粘贴即统计 · 本地计算，文本不上传、不占额度</text>
+        </view>
+      </view>
+    </view>
+
+    <view class="qz-container">
+      <!-- ---------- 输入 ---------- -->
+      <view class="qz-card qz-an-in qz-d1">
+        <view class="card-title">
+          <text>你的文字</text>
+          <text class="card-title-hint">字数 {{wordTotal}}</text>
+        </view>
+
+        <textarea
+          class="body"
+          value="{{text}}"
+          placeholder="粘贴一段文字…"
+          placeholder-class="body-ph"
+          maxlength="-1"
+          auto-height
+          show-confirm-bar="{{false}}"
+          bindinput="onTextInput"
+        />
+
+        <view class="actions">
+          <view class="btn btn-ghost qz-press" bindtap="onClearText">清空</view>
+        </view>
+
+        <text class="hint" wx:if="{{long}}">
+          文本较长（超过 3000 字符），统计会照常算完，只是输入框可能显示不全。
+        </text>
+      </view>
+
+      <!-- ---------- 统计 ---------- -->
+      <view class="qz-card qz-card-tint qz-an-in qz-d2">
+        <view class="card-title">
+          <text>统计</text>
+          <text class="card-title-hint">口径写在各格下方，数字实时刷新</text>
+        </view>
+
+        <view class="stat-grid">
+          <view class="stat" wx:for="{{stats}}" wx:key="key">
+            <text class="stat-value">{{item.value}}</text>
+            <text class="stat-label">{{item.label}}</text>
+          </view>
+        </view>
+
+        <!-- 字数要求：填了就提示，没填这一行不出现 -->
+        <view class="limit-row">
+          <text class="limit-label">字数要求</text>
+          <input
+            class="limit-input"
+            type="digit"
+            value="{{limitRaw}}"
+            placeholder="如 800"
+            placeholder-class="limit-ph"
+            bindinput="onLimitInput"
+          />
+        </view>
+        <text class="limit-hint" wx:if="{{limitHint}}">{{limitHint}}</text>
+
+        <text class="hint">
+          「字数」按汉字数 + 英文单词数计（与 Word 状态栏同口径），标点与空白不计入；
+          字符数另算，两者不是一回事。
+        </text>
+      </view>
+
+      <!-- ---------- 整理 ---------- -->
+      <view class="qz-card qz-an-in qz-d3">
+        <view class="card-title">
+          <text>一键整理</text>
+          <text class="card-title-hint">结果另放，不覆盖原文</text>
+        </view>
+
+        <view class="ops {{hasText ? '' : 'ops-off'}}">
+          <view
+            class="qz-chip qz-press op"
+            wx:for="{{ops}}"
+            wx:key="key"
+            data-op="{{item.key}}"
+            bindtap="onOpTap"
+          >
+            <text>{{item.label}}</text>
+          </view>
+        </view>
+      </view>
+
+      <!-- ---------- 结果（没有结果时整卡不显示） ---------- -->
+      <view class="qz-card qz-card-glow qz-card-bar qz-an-in" wx:if="{{hasResult}}">
+        <view class="card-title">
+          <text>整理结果</text>
+          <text class="card-title-hint">{{resultTitle}}</text>
+        </view>
+
+        <!-- 结果整段显示，不套 scroll-view：卡片自己长高，跟上面的 textarea 一样
+             让整页滚。内嵌一层 scroll-y 在真机上会和页面滚动打架（仓库里 scroll-y
+             只用在整屏 flex 布局的页面，没有"卡片内小滚动区"的先例）。 -->
+        <view class="result-body">
+          <text class="result-text">{{resultText}}</text>
+        </view>
+
+        <text class="hint">结果字数 {{resultCount}}</text>
+
+        <view class="actions">
+          <view class="btn btn-ghost qz-press" bindtap="onCopyResult">复制结果</view>
+          <view class="btn btn-solid qz-press" bindtap="onUseResult">用结果替换原文</view>
+        </view>
+      </view>
+    </view>
+  </view>
+</view>

@@ -1,0 +1,125 @@
+<!-- 我上架的服务：服务者的资产清单（**含已下架**，这是找回它们的唯一入口）
+     视觉：葡萄紫主题（与服务者主页/服务详情同一套色板）· 圆角 28 + 光斑 + 扇贝波浪 -->
+<view
+  class="qz-page th-provider my-service"
+  bindtouchstart="onFxStart"
+  bindtouchmove="onFxMove"
+  bindtouchend="onFxEnd"
+  bindtouchcancel="onFxEnd"
+>
+  <!-- 装饰层（不拦截点击）：光斑 + 扇贝波浪，与详情页同一签名、位置错开 -->
+  <view class="qz-deco">
+    <view class="qz-fx" style="{{fxStyle}}">
+      <view class="qz-dot qz-dot-b"></view>
+      <view class="ms-wave qz-wave"></view>
+    </view>
+  </view>
+
+  <view class="qz-content">
+    <view class="qz-head">
+      <view class="qz-head-row qz-an-in">
+        <view class="qz-ico qz-ico-l qz-ico-float">
+          <view class="qz-i qz-i-skill"></view>
+        </view>
+        <view class="qz-head-main">
+          <text class="qz-head-title">我上架的服务</text>
+          <text class="qz-head-sub">含已下架的服务，随时可以重新上架</text>
+        </view>
+      </view>
+      <view class="ms-flow qz-flow qz-flow-soft"></view>
+    </view>
+
+    <view class="qz-container ms-body">
+      <!-- 档位筛选：已下架的也要能单独捞出来 -->
+      <view class="ms-tabs qz-an-in">
+        <view
+          class="ms-tab qz-press {{filter === 'all' ? 'on' : ''}}"
+          data-filter="all"
+          bindtap="onFilter"
+          >全部 {{counts.all}}</view
+        >
+        <view
+          class="ms-tab qz-press {{filter === 'on' ? 'on' : ''}}"
+          data-filter="on"
+          bindtap="onFilter"
+          >在架 {{counts.on}}</view
+        >
+        <view
+          class="ms-tab qz-press {{filter === 'off' ? 'on' : ''}}"
+          data-filter="off"
+          bindtap="onFilter"
+          >已下架 {{counts.off}}</view
+        >
+      </view>
+
+      <!-- 错误分支（放在筛选之后：加载失败时筛选也不该给假数字） -->
+      <view wx:if="{{error}}" class="qz-err qz-an-in">
+        <text class="qz-err-text">{{error}}</text>
+        <view class="qz-err-btn qz-press" bindtap="onRetry">重试</view>
+      </view>
+
+      <!-- 加载分支 -->
+      <view wx:elif="{{loading}}" class="qz-card qz-card-line">
+        <view class="qz-skeleton qz-skeleton-line"></view>
+        <view class="qz-skeleton qz-skeleton-line qz-skeleton-line-short"></view>
+      </view>
+
+      <!-- 空态：文案区分"一条都没有"与"这个档位下没有" -->
+      <view wx:elif="{{empty}}" class="qz-empty qz-an-in qz-d1">
+        <view class="qz-empty-ico qz-ico qz-ico-xl qz-ico-float">
+          <view class="qz-i qz-i-gift"></view>
+        </view>
+        <text class="qz-empty-title">{{emptyHint}}</text>
+        <text class="qz-empty-text"
+          >把你的技能写成一项服务，同学就能在市场里搜到你，接单、交付、结算都在平台里走。</text
+        >
+        <view class="qz-empty-flow qz-flow"></view>
+        <view class="qz-btn-main qz-press" bindtap="onNew">上架一项服务</view>
+      </view>
+
+      <!-- 内容分支 -->
+      <view wx:else class="ms-list-body">
+        <view
+          class="ms-item qz-card qz-card-line qz-lift qz-an-in"
+          wx:for="{{list}}"
+          wx:key="id"
+          data-id="{{item.id}}"
+          bindtap="onOpen"
+        >
+          <view class="ms-top">
+            <text class="ms-status {{item.onSale ? 'is-on' : 'is-off'}}">{{item.statusText}}</text>
+            <text wx:if="{{item.categoryName}}" class="ms-cat">{{item.categoryName}}</text>
+          </view>
+          <text class="ms-title">{{item.title}}</text>
+          <view class="ms-tags" wx:if="{{item.skillTags.length}}">
+            <text class="ms-tag" wx:for="{{item.skillTags}}" wx:for-item="tag" wx:key="*this"
+              >{{tag}}</text
+            >
+          </view>
+          <view class="ms-bottom">
+            <text class="ms-price">{{item.priceText}}</text>
+            <text class="ms-meta">{{item.metaText}}</text>
+          </view>
+        </view>
+
+        <view class="qz-btn-sub qz-press ms-new" bindtap="onNew">+ 上架新服务</view>
+      </view>
+    </view>
+
+    <view class="qz-sec qz-an-in qz-d3">
+      <view class="qz-sec-bar"></view>
+      <text class="qz-sec-title">下架不等于删除</text>
+      <text class="qz-sec-sub">随时能回来</text>
+    </view>
+    <view class="qz-container">
+      <view class="qz-card qz-card-tint qz-an-in qz-d4">
+        <text class="ms-tip"
+          >下架只是把服务从市场里收起来，邀约与历史订单不受影响。想重新上架时，回到这里点进详情即可。</text
+        >
+        <view class="qz-btn-sub qz-press ms-tip-btn" bindtap="onGoWorkbench"
+          >去服务者工作台</view
+        >
+      </view>
+    </view>
+  </view>
+</view>

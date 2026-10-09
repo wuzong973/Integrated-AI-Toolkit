@@ -1,0 +1,177 @@
+<!-- 抽签 · 点名 · 随机分组（校园小工具）
+     视觉：工具主题 · 名单 → 模式 → 结果 三段式，纯本地随机，无网络请求
+     装饰签名（见 docs/dev/MP-VISUAL-SYSTEM.md）：flow-thick + dot-c -->
+<view
+  class="qz-page th-toolkit lottery"
+  bindtouchstart="onFxStart"
+  bindtouchmove="onFxMove"
+  bindtouchend="onFxEnd"
+  bindtouchcancel="onFxEnd"
+>
+  <!-- 装饰层（不拦截点击；只有装饰层跟随指针，内容区不跟随） -->
+  <view class="qz-deco">
+    <view class="qz-fx" style="{{fxStyle}}">
+      <view class="qz-flow qz-flow-thick"></view>
+      <view class="qz-dot qz-dot-c"></view>
+    </view>
+  </view>
+
+  <view class="qz-content">
+    <view class="head qz-an-in">
+      <text class="title">抽签</text>
+      <text class="sub">点名 · 抽签 · 分组，全部本地随机，名单不上传</text>
+    </view>
+
+    <!-- ---------- 名单 ---------- -->
+    <view class="qz-card qz-an-in qz-d1">
+      <view class="card-title">
+        <text>名单</text>
+        <text class="card-title-hint">一行一个，可直接粘贴</text>
+      </view>
+
+      <textarea
+        class="roster"
+        value="{{rosterText}}"
+        placeholder="张三&#10;李四&#10;王五"
+        placeholder-class="roster-ph"
+        maxlength="-1"
+        auto-height
+        bindinput="onRosterInput"
+      />
+
+      <view class="actions">
+        <view class="btn btn-ghost qz-press" bindtap="applyRoster">用这份名单</view>
+        <view class="btn btn-ghost qz-press" bindtap="onRosterClear">清空</view>
+      </view>
+
+      <text class="hint" wx:if="{{rosterHint}}">{{rosterHint}}</text>
+    </view>
+
+    <!-- ---------- 模式 ---------- -->
+    <view class="qz-card qz-an-in qz-d2">
+      <view class="card-title">
+        <text>怎么抽</text>
+      </view>
+
+      <view class="tabs">
+        <view
+          class="tab qz-press {{mode === item.key ? 'tab-on' : ''}}"
+          wx:for="{{modes}}"
+          wx:key="key"
+          data-key="{{item.key}}"
+          bindtap="onModeTap"
+        >
+          <text class="tab-label">{{item.label}}</text>
+          <text class="tab-hint">{{item.hint}}</text>
+        </view>
+      </view>
+
+      <view class="stepper" wx:if="{{mode === 'draw'}}">
+        <text class="stepper-label">一次抽几个</text>
+        <view class="step qz-press" data-field="drawCount" data-delta="-1" bindtap="onCountStep">−</view>
+        <text class="step-value">{{drawCount}}</text>
+        <view class="step qz-press" data-field="drawCount" data-delta="1" bindtap="onCountStep">+</view>
+      </view>
+
+      <view class="stepper" wx:if="{{mode === 'group'}}">
+        <text class="stepper-label">分成几组</text>
+        <view class="step qz-press" data-field="groupCount" data-delta="-1" bindtap="onCountStep">−</view>
+        <text class="step-value">{{groupCount}}</text>
+        <view class="step qz-press" data-field="groupCount" data-delta="1" bindtap="onCountStep">+</view>
+      </view>
+
+      <view class="switch-row" wx:if="{{mode === 'pick'}}">
+        <view class="switch-body">
+          <text class="switch-label">不重复点名</text>
+          <text class="switch-hint">抽过的人不再进候选池</text>
+        </view>
+        <view class="toggle qz-press {{noRepeat ? 'toggle-on' : ''}}" bindtap="onToggleNoRepeat">
+          <view class="knob"></view>
+        </view>
+      </view>
+
+      <view class="switch-row" wx:if="{{mode === 'pick' && history.length}}">
+        <text class="switch-label">已经抽过 {{history.length}} 人</text>
+        <view class="link qz-press" bindtap="onResetHistory">重置</view>
+      </view>
+    </view>
+
+    <view class="btn btn-solid qz-press qz-an-in qz-d3" bindtap="onStart">开始抽</view>
+
+    <!-- ---------- 结果 ---------- -->
+    <view class="qz-card result qz-an-in" wx:if="{{error}}">
+      <text class="err-title">这次抽不了</text>
+      <text class="hint">{{error}}</text>
+    </view>
+
+    <block wx:elif="{{hasResult}}">
+      <view class="qz-card result qz-an-in" wx:if="{{picked.length}}">
+        <view class="card-title">
+          <text>抽中了</text>
+          <text class="card-title-hint">{{strong ? '设备安全随机' : '普通随机'}}</text>
+        </view>
+
+        <view class="picked">
+          <text class="picked-name" wx:for="{{picked}}" wx:key="*this">{{item}}</text>
+        </view>
+
+        <text class="hint" wx:if="{{!strong}}">
+          这台设备取不到密码学随机数，本次结果由 Math.random 生成 ——
+          日常点名够用，但理论上可被预测。
+        </text>
+
+        <view class="actions">
+          <view class="btn btn-ghost qz-press" bindtap="onCopyResult">复制结果</view>
+          <view
+            class="btn btn-ghost qz-press"
+            wx:if="{{mode === 'pick' && noRepeat}}"
+            bindtap="onResetHistory"
+          >
+            重置已抽
+          </view>
+        </view>
+      </view>
+
+      <view class="qz-card result qz-an-in" wx:if="{{groups.length}}">
+        <view class="card-title">
+          <text>分组结果</text>
+          <text class="card-title-hint">{{strong ? '设备安全随机' : '普通随机'}}</text>
+        </view>
+
+        <view class="group qz-card-tint" wx:for="{{groups}}" wx:key="key">
+          <text class="group-title">{{item.title}}</text>
+          <view class="group-members">
+            <text class="group-name" wx:for="{{item.members}}" wx:for-item="m" wx:key="*this">
+              {{m}}
+            </text>
+          </view>
+        </view>
+
+        <text class="hint" wx:if="{{!strong}}">
+          这台设备取不到密码学随机数，本次结果由 Math.random 生成 ——
+          日常分组够用，但理论上可被预测。
+        </text>
+
+        <view class="actions">
+          <view class="btn btn-ghost qz-press" bindtap="onCopyResult">复制结果</view>
+        </view>
+      </view>
+    </block>
+
+    <view class="qz-card empty qz-an-in" wx:elif="{{!names.length}}">
+      <text class="empty-title">把名字粘进来就能抽</text>
+      <text class="hint">
+        一行一个名字；从 Excel 或学号表直接复制也行，行首的序号会自动去掉。
+        名单只存在这台手机上，不联网、不上传。
+      </text>
+    </view>
+
+    <view class="qz-card empty qz-an-in" wx:else>
+      <text class="empty-title">点上面的「开始抽」</text>
+      <text class="hint">
+        抽签用设备安全随机数，每次结果独立；分组只保证人数尽量平均，
+        不保证性别、宿舍等任何维度的均衡。
+      </text>
+    </view>
+  </view>
+</view>

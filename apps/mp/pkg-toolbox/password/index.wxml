@@ -1,0 +1,88 @@
+<!-- 密码生成 —— 长度滑块 + 四类字符集开关，纯本地随机，不上传
+     视觉：星蓝主题（th-toolbox）· 装饰签名：blob-c + dot-a -->
+<view
+  class="qz-page th-toolbox pwd-page"
+  bindtouchstart="onFxStart"
+  bindtouchmove="onFxMove"
+  bindtouchend="onFxEnd"
+  bindtouchcancel="onFxEnd"
+>
+  <view class="qz-deco">
+    <view class="qz-fx" style="{{fxStyle}}">
+      <view class="qz-blob qz-blob-c"></view>
+      <view class="qz-dot qz-dot-a"></view>
+    </view>
+  </view>
+
+  <view class="qz-content">
+    <view class="qz-head">
+      <view class="qz-head-row qz-an-in">
+        <view class="qz-ico qz-ico-l qz-ico-float">
+          <view class="qz-i qz-i-lock"></view>
+        </view>
+        <view class="qz-head-main">
+          <text class="qz-head-title">密码生成</text>
+          <text class="qz-head-sub">本地随机生成，可复制去用</text>
+        </view>
+      </view>
+    </view>
+
+    <view class="qz-container">
+      <!-- 规则 -->
+      <view class="qz-card qz-an-in qz-d1">
+        <view class="card-title">
+          <text>规则</text>
+          <text class="card-title-hint">至少选一类字符</text>
+        </view>
+
+        <view class="len-row">
+          <text class="len-label">长度</text>
+          <slider
+            class="len-slider"
+            min="{{minLength}}"
+            max="{{maxLength}}"
+            value="{{length}}"
+            block-size="24"
+            bindchanging="onLength"
+            bindchange="onLength"
+          />
+          <text class="len-value">{{length}} 位</text>
+        </view>
+
+        <view class="chips">
+          <view
+            wx:for="{{charSets}}"
+            wx:key="key"
+            class="qz-chip qz-press {{opts[item.key] ? 'qz-chip-on' : ''}}"
+            data-key="{{item.key}}"
+            bindtap="onToggle"
+          >
+            {{item.label}}
+          </view>
+        </view>
+      </view>
+
+      <!-- 结果 -->
+      <view class="qz-card qz-card-glow qz-an-in qz-d2">
+        <view class="card-title">
+          <text>结果</text>
+          <view wx:if="{{strength}}" class="qz-chip qz-chip-on">{{strength}}</view>
+        </view>
+
+        <view wx:if="{{password}}" class="pwd-box">
+          <text class="pwd-text" user-select="{{true}}">{{password}}</text>
+        </view>
+        <view wx:else class="pwd-box pwd-empty">
+          <text class="pwd-hint">点下面「生成一个」出新密码</text>
+        </view>
+
+        <view class="btn-row">
+          <view class="btn-regen qz-btn-main qz-press" bindtap="onGenerate">生成一个</view>
+          <view class="btn-copy qz-btn-sub qz-press" bindtap="onCopy">复制</view>
+        </view>
+
+        <text class="hint">生成的密码只在这台手机上出现，不联网、不保存。</text>
+      </view>
+    </view>
+  </view>
+</view>

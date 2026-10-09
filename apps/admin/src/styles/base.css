@@ -1,0 +1,156 @@
+/**
+ * 基础层：reset + 排版 + 通用原子类。
+ * 取色一律走 tokens.css 的变量（见该文件顶部纪律说明）。
+ */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--bg-page);
+  color: var(--text-1);
+  font-size: var(--fs-body);
+  line-height: 1.6;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB',
+    'Microsoft YaHei', 'Helvetica Neue', Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3,
+h4,
+p,
+figure {
+  margin: 0;
+}
+
+ul,
+ol {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+a {
+  color: var(--brand-600);
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+
+table {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+:focus-visible {
+  outline: 2px solid var(--brand-500);
+  outline-offset: 1px;
+}
+
+/* ---------- 排版原子 ---------- */
+.qz-muted {
+  color: var(--text-2);
+}
+
+.qz-dim {
+  color: var(--text-3);
+}
+
+.qz-mono {
+  font-family: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace;
+  font-size: var(--fs-aux);
+}
+
+.qz-truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.qz-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* ---------- 布局原子 ---------- */
+.qz-row {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+}
+
+.qz-row-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-3);
+}
+
+.qz-col {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+}
+
+.qz-wrap {
+  flex-wrap: wrap;
+}
+
+.qz-grow {
+  flex: 1;
+  min-width: 0;
+}
+
+/* ---------- 间距原子（只保留高频档位，避免原子类爆炸） ---------- */
+.qz-mt-2 {
+  margin-top: var(--sp-2);
+}
+
+.qz-mt-4 {
+  margin-top: var(--sp-4);
+}
+
+.qz-mt-6 {
+  margin-top: var(--sp-6);
+}
+
+.qz-mb-4 {
+  margin-bottom: var(--sp-4);
+}
+
+/* ---------- 无障碍 ---------- */
+.qz-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}

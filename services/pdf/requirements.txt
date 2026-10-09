@@ -1,0 +1,35 @@
+# qz-pdf：PDF 能力服务依赖
+#
+# ---------- PyMuPDF：AGPL，**不在**本文件里 ----------
+#
+# PDF 引擎 PyMuPDF 是 **AGPL-3.0**（Artifex 双许可：AGPL 或商业授权）。
+# 按 docs/compliance/OPEN_SOURCE_LICENSES.md 的 B 级清单：
+#   **AGPL / GPL 组件一律独立服务 + 只调 API，不链接、不修改、不分发。**
+#
+# 所以 merge/split/compress/text 四个能力只用 Python 标准库（subprocess 调 CLI），
+# 真正要装的是**仓库之外**的 PyMuPDF，由部署方安装：
+#
+#   pip install PyMuPDF        # 装进任意一个 Python 解释器（推荐独立的 venv）
+#
+# 装好后把这个解释器写进环境变量（.env）：
+#
+#   PYMUPDF_BIN=C:/path/to/python.exe        # 会自动追加 -m pymupdf
+#   # 若 pip 安装时生成了 pymupdf 命令且已加入 PATH，也可留空
+#
+# 为什么不能 import fitz：那会把 AGPL 代码链接进本服务进程、并把依赖写进
+# requirements.txt —— 正是 B 级清单禁止的形态。CLI 调用与 GPL 版 LibreOffice
+# 的用法完全同构（见 services/convert/requirements.txt 的同类说明）。
+#
+# ---------- docling：MIT，可直接进依赖 ----------
+#
+# 文档解析引擎（`DOC_PARSER_PROVIDER=docling` 时由主工程装配，端点
+# /pdf/parse-docling）：版面/表格/阅读顺序理解，输出 Markdown。
+# MIT 许可，与上面的 AGPL 约束无关，可作为正常 pip 依赖安装：
+#
+#   pip install docling
+#
+# ⚠️ 模型约数百 MB，首次解析自动下载到 `DOCLING_ARTIFACTS_PATH`
+#    （默认 ./data/models/docling，侧车首次解析时自动建目录）。
+docling>=2.0
+#
+# 许可登记：docs/compliance/OPEN_SOURCE_LICENSES.md（新增引擎前必须先登记）

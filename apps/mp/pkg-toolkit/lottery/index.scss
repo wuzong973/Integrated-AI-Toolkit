@@ -1,0 +1,295 @@
+@import '../../styles/tokens.scss';
+
+/* 抽签 —— 只用 Design Token 取色，禁止硬编码色值 */
+.lottery {
+  padding-bottom: 40rpx;
+
+  /* ---------- 装饰签名：flow-thick + dot-c ----------
+     ⚠️ 库内 `.qz-flow` 只带动效、不带定位（见 styles/deco.scss），它在 `.qz-fx` 里
+        按普通流排到视差层顶边，而 `.qz-fx` 相对 `.qz-deco` 外扩了 40rpx ——
+        那条 6rpx 高的行进虚线会整条落到 `overflow: hidden` 的裁切区之外（不报错、只是看不见）。
+        这里按外扩补 40rpx 回到包装前的屏幕位置；左右 0 仍是 `.qz-fx` 的整宽，与原先一致。 */
+  .qz-flow {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 40rpx;
+  }
+
+  .head {
+    padding: 24rpx 8rpx 16rpx;
+
+    .title {
+      display: block;
+      font-size: 44rpx;
+      font-weight: 600;
+      color: var(--mt);
+    }
+
+    .sub {
+      display: block;
+      margin-top: 8rpx;
+      font-size: 24rpx;
+      color: $text-3;
+    }
+  }
+
+  /* ⚠️ 卡片标题类名是 `.card-title`，**不是** `qz-card-title`。
+     后者在 styles/ 与页面 scss 里都没有定义 —— split-bill 写了 8 处
+     `qz-card-title`，样式一行都没生效，而编译、tsc、守卫全都不报。
+     这是"编译器查不出的静默失效"的第三类（前两类见 MP-VISUAL-SYSTEM 第 2 节）。 */
+  .card-title {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: 16rpx;
+    font-size: 30rpx;
+    font-weight: 600;
+    color: var(--mt);
+
+    &-hint {
+      font-size: 22rpx;
+      font-weight: 400;
+      color: $text-3;
+    }
+  }
+
+  .hint {
+    display: block;
+    margin-top: 12rpx;
+    font-size: 22rpx;
+    line-height: 1.5;
+    color: $text-3;
+  }
+
+  /* ---------- 名单 ---------- */
+  .roster {
+    box-sizing: border-box;
+    width: 100%;
+    min-height: 200rpx;
+    padding: 18rpx;
+    font-size: 28rpx;
+    line-height: 1.6;
+    color: var(--mt);
+    background: var(--ms);
+    border-radius: var(--r-card);
+  }
+
+  .roster-ph {
+    font-size: 28rpx;
+    color: $text-3;
+  }
+
+  /* ---------- 模式 ---------- */
+  .tabs {
+    display: flex;
+    gap: 14rpx;
+  }
+
+  .tab {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    align-items: center;
+    padding: 16rpx 0;
+    border: 1rpx solid var(--ms);
+    border-radius: var(--r-card);
+
+    &-on {
+      background: var(--ms);
+      border-color: var(--m1);
+    }
+
+    &-label {
+      font-size: 28rpx;
+      font-weight: 600;
+      color: var(--mt);
+    }
+
+    &-hint {
+      margin-top: 4rpx;
+      font-size: 20rpx;
+      color: $text-3;
+    }
+  }
+
+  .stepper {
+    display: flex;
+    align-items: center;
+    margin-top: 20rpx;
+  }
+
+  .stepper-label {
+    flex: 1;
+    font-size: 26rpx;
+    color: var(--mt);
+  }
+
+  .step {
+    width: 64rpx;
+    height: 64rpx;
+    line-height: 60rpx;
+    text-align: center;
+    font-size: 36rpx;
+    color: var(--m1);
+    border: 1rpx solid var(--m1);
+    border-radius: 50%;
+  }
+
+  .step-value {
+    min-width: 80rpx;
+    text-align: center;
+    font-size: 32rpx;
+    font-weight: 700;
+    color: var(--m1);
+  }
+
+  /* ---------- 不重复点名 ----------
+     自建开关而不用 `<switch>`：switch 的 `color` 属性**只接受硬编码色值**，
+     拿不到 `var(--m1)`，会直接把红线 5（样式只用 Design Token）破一个口子。 */
+  .switch-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 20rpx;
+  }
+
+  .switch-body {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .switch-label {
+    font-size: 26rpx;
+    color: var(--mt);
+  }
+
+  .switch-hint {
+    margin-top: 4rpx;
+    font-size: 20rpx;
+    color: $text-3;
+  }
+
+  .toggle {
+    position: relative;
+    width: 84rpx;
+    height: 48rpx;
+    background: var(--ms);
+    border-radius: 999rpx;
+    transition: background $dur-base $ease-out;
+
+    .knob {
+      position: absolute;
+      top: 4rpx;
+      left: 4rpx;
+      width: 40rpx;
+      height: 40rpx;
+      background: var(--mt);
+      border-radius: 50%;
+      transition: transform $dur-base $ease-out;
+    }
+
+    &-on {
+      background: var(--m1);
+
+      .knob {
+        background: $text-inverse;
+        transform: translateX(36rpx);
+      }
+    }
+  }
+
+  .link {
+    font-size: 24rpx;
+    color: var(--m1);
+  }
+
+  /* ---------- 按钮 ---------- */
+  .actions {
+    display: flex;
+    gap: 16rpx;
+    margin-top: 16rpx;
+  }
+
+  .btn {
+    padding: 18rpx 0;
+    text-align: center;
+    font-size: 26rpx;
+    border-radius: var(--r-card);
+
+    &-ghost {
+      flex: 1;
+      color: var(--m1);
+      border: 1rpx solid var(--m1);
+    }
+
+    &-solid {
+      margin: 24rpx 0 8rpx;
+      font-weight: 600;
+      color: $text-inverse;
+      background: var(--m1);
+    }
+  }
+
+  /* ---------- 结果 ---------- */
+  .result {
+    .picked {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16rpx;
+      padding: 8rpx 0;
+    }
+
+    .picked-name {
+      padding: 12rpx 28rpx;
+      font-size: 40rpx;
+      font-weight: 700;
+      color: var(--m1);
+      background: var(--ms);
+      border-radius: var(--r-card);
+    }
+
+    /* 每组用库内 .qz-card-tint 给主题浅底，这里只补内边距与间距 */
+    .group {
+      margin-bottom: 16rpx;
+      padding: 16rpx;
+      border-radius: var(--r-card);
+    }
+
+    .group-title {
+      display: block;
+      font-size: 24rpx;
+      color: $text-3;
+    }
+
+    .group-members {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12rpx;
+      margin-top: 10rpx;
+    }
+
+    .group-name {
+      font-size: 28rpx;
+      font-weight: 600;
+      color: var(--mt);
+    }
+  }
+
+  .err-title {
+    display: block;
+    font-size: 28rpx;
+    font-weight: 600;
+    color: var(--m3);
+  }
+
+  .empty {
+    text-align: center;
+
+    .empty-title {
+      display: block;
+      font-size: 28rpx;
+      color: var(--mt);
+    }
+  }
+}

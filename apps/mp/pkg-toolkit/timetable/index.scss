@@ -1,0 +1,280 @@
+@import '../../styles/tokens.scss';
+
+/* 课程表 —— 只用 Design Token 取色，禁止硬编码色值
+   ⚠️ 网格高度是**唯一**决定课程块位置的地方：块用 top/height 百分比定位，
+      所以只要改 $grid-h，整张表（左列节次与 7 个日列）一起对齐。 */
+$grid-h: 880rpx;
+$grid-cols: 7;
+
+.timetable {
+  padding-bottom: 40rpx;
+
+  .head {
+    padding: 24rpx 8rpx 16rpx;
+
+    .title {
+      display: block;
+      font-size: 44rpx;
+      font-weight: 600;
+      color: var(--mt);
+    }
+
+    .sub {
+      display: block;
+      margin-top: 8rpx;
+      font-size: 24rpx;
+      color: $text-3;
+    }
+  }
+
+  .hint {
+    display: block;
+    margin-top: 12rpx;
+    font-size: 22rpx;
+    line-height: 1.5;
+    color: $text-3;
+  }
+
+  .grid-hint {
+    margin: 0 8rpx 24rpx;
+  }
+
+  /* 横向流水（装饰签名 "water"）。
+     ⚠️ 库内 `.qz-water` **只带动效不带定位**（见 deco.scss 与 files 页的注释）——
+        必须由页面给位置与尺寸，否则水带高度为 0，等于没放。
+     ⚠️ 这里的坐标是按 `.qz-fx` 算的：`.qz-fx` 相对 `.qz-deco` 向外扩了 40rpx
+        （见 deco.scss），所以左右归零、bottom 比原先多 40rpx，落回原来的屏幕位置。 */
+  .tb-water {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 240rpx;
+    height: 140rpx;
+  }
+
+  /* 顶部渐变流动线（装饰签名 "topline"）。
+     ⚠️ 库内 `.qz-topline` 是 `top: 0`，包进 `.qz-fx` 之后那个 0 落在外扩 40rpx 的
+        视差层顶边，正好被 `.qz-deco` 的 `overflow: hidden` 整条裁掉（不报错、只是看不见）。
+        按外扩补 40rpx 才回到原来的屏幕位置 —— 与 workbench 的 `.wb-topline` 同解。 */
+  .qz-topline {
+    top: 40rpx;
+  }
+
+  /* ---------- 学期设置引导 ---------- */
+  .setup {
+    .setup-title {
+      display: block;
+      font-size: 30rpx;
+      font-weight: 600;
+      color: var(--mt);
+    }
+  }
+
+  .btn {
+    margin-top: 16rpx;
+    padding: 18rpx 0;
+    text-align: center;
+    font-size: 28rpx;
+    border-radius: var(--r-card);
+
+    &-solid {
+      color: $text-inverse;
+      background: var(--m1);
+    }
+  }
+
+  /* ---------- 周次切换 ---------- */
+  .week-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16rpx 24rpx;
+  }
+
+  .step {
+    width: 64rpx;
+    text-align: center;
+    font-size: 44rpx;
+    color: var(--m1);
+  }
+
+  .week-center {
+    text-align: center;
+  }
+
+  .week-no {
+    display: block;
+    font-size: 32rpx;
+    font-weight: 600;
+    color: var(--mt);
+  }
+
+  .week-range {
+    display: block;
+    margin-top: 4rpx;
+    font-size: 22rpx;
+    color: $text-3;
+  }
+
+  .week-actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin: -8rpx 8rpx 20rpx;
+  }
+
+  .week-state {
+    font-size: 24rpx;
+    color: $text-3;
+  }
+
+  .link {
+    padding: 6rpx 0;
+    font-size: 24rpx;
+    color: var(--m1);
+  }
+
+  /* ---------- 网格 ---------- */
+  .grid {
+    margin-bottom: 20rpx;
+    padding: 12rpx;
+    border-radius: var(--r-card);
+    background: $bg-card;
+    box-shadow: $shadow-soft;
+  }
+
+  .grid-head {
+    display: flex;
+    padding-bottom: 8rpx;
+  }
+
+  .corner {
+    width: 64rpx;
+  }
+
+  .day-head {
+    flex: 1;
+    text-align: center;
+    font-size: 24rpx;
+    color: $text-3;
+  }
+
+  .grid-body {
+    display: flex;
+    height: $grid-h;
+  }
+
+  .period-col {
+    width: 64rpx;
+  }
+
+  .period-cell {
+    display: flex;
+    align-items: center;
+    height: calc(#{$grid-h} / 8);
+    font-size: 20rpx;
+    color: $text-3;
+  }
+
+  .day-col {
+    position: relative;
+    flex: 1;
+  }
+
+  .slot {
+    height: calc(#{$grid-h} / 8);
+    border-top: 1rpx solid var(--ms);
+    border-left: 1rpx solid var(--ms);
+  }
+
+  .block {
+    position: absolute;
+    left: 2rpx;
+    right: 2rpx;
+    padding: 6rpx;
+    overflow: hidden;
+    border-radius: 10rpx;
+    /* 课程块用主题浅底 + 主色左边线：一眼区分相邻课程，又不抢文字 */
+    background: var(--ms);
+    border-left: 4rpx solid var(--m1);
+  }
+
+  .block-name {
+    display: block;
+    font-size: 20rpx;
+    font-weight: 600;
+    line-height: 1.25;
+    color: var(--mt);
+  }
+
+  .block-meta {
+    display: block;
+    font-size: 18rpx;
+    line-height: 1.3;
+    color: $text-3;
+  }
+
+  /* ---------- 添加表单 ---------- */
+  .add-toggle {
+    padding: 8rpx 0;
+    text-align: center;
+    font-size: 28rpx;
+    font-weight: 600;
+    color: var(--m1);
+  }
+
+  .field {
+    margin-top: 16rpx;
+    padding: 16rpx 12rpx;
+    font-size: 28rpx;
+    color: var(--mt);
+    border-bottom: 1rpx solid var(--ms);
+  }
+
+  .field-num {
+    flex: 1;
+    text-align: center;
+  }
+
+  .picker-row {
+    display: flex;
+    align-items: center;
+    gap: 12rpx;
+    margin-top: 16rpx;
+  }
+
+  .pick {
+    flex: 1;
+  }
+
+  .pick-box {
+    padding: 12rpx;
+    border-radius: var(--r-card);
+    background: var(--ms);
+    text-align: center;
+  }
+
+  .pick-label {
+    display: block;
+    font-size: 20rpx;
+    color: $text-3;
+  }
+
+  .pick-value {
+    display: block;
+    margin-top: 2rpx;
+    font-size: 24rpx;
+    font-weight: 600;
+    color: var(--mt);
+  }
+
+  .empty {
+    text-align: center;
+
+    .empty-title {
+      display: block;
+      font-size: 28rpx;
+      color: var(--mt);
+    }
+  }
+}

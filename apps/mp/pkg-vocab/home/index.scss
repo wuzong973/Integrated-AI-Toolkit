@@ -1,0 +1,128 @@
+@import '../../styles/tokens.scss';
+
+/* 记单词 · 首页（模块色板见 styles/themes.scss 的 .th-vocab）
+   造型语言：30rpx 中圆角 + 书页曲线 + 苔绿，一页两态（选词书 / 今日计划） */
+
+.vocab { padding-bottom: 120rpx; }
+
+/* ---------- 装饰签名：curve + blobs（书页曲线） ----------
+   两团光斑从左下与右上探入，一条大弧横在页头下方当"翻开的书脊"。
+   ⚠️ `.qz-blob` 只给形状与径向渐变，**不带宽高**（见 styles/deco.scss）——
+   这里必须自己给尺寸，否则就是一个跟着指针动、但 0×0 看不见的元素 */
+.vocab-blob-a { width: 320rpx; height: 320rpx; right: -110rpx; top: 30rpx; }
+.vocab-blob-b {
+  width: 220rpx; height: 220rpx;
+  left: -90rpx; top: 380rpx;
+  opacity: .12; animation-delay: -3.4s;
+}
+.vocab-curve { position: absolute; left: -40rpx; right: -40rpx; top: 260rpx; opacity: .28; }
+
+.head-flow { margin-top: $sp-4; }
+
+/* ---------- 骨架 ---------- */
+.vocab-sk { padding: $card-padding; }
+
+/* ---------- ① 词书列表 ---------- */
+/* 23 本平铺太长：按分类分组，每组一个标题 + 一张卡 */
+.vocab-group { margin-bottom: $sp-4; }
+.vocab-group-head {
+  display: flex; align-items: baseline; justify-content: space-between;
+  margin: 0 $sp-2 $sp-2;
+}
+.vocab-group-title {
+  font-size: $fs-body; font-weight: $fw-semi; color: $text-1;
+}
+.vocab-group-count { font-size: $fs-tag; color: $text-3; }
+
+/* 卡片自带 padding，行内自带 padding —— 两者叠加会让左右留白翻倍（历史页同样处理） */
+.vocab-books { padding: 0; }
+.vocab-books .qz-item { padding-left: $card-padding; padding-right: $card-padding; }
+
+/* 状态标签：正在学（实心主题色）/ 可选（描边）/ 建设中（灰）
+   三者必须一眼可分：分不清就会出现"一直在点那本不能选的" */
+.vocab-books-tag {
+  flex-shrink: 0; margin-left: $sp-3;
+  padding: 4rpx $sp-3;
+  border-radius: $radius-pill;
+  font-size: $fs-tag; font-weight: $fw-medium;
+}
+.vocab-on { background: var(--ms); color: var(--mt); border: 1rpx solid var(--m2); }
+/* 正在学：实心主题色 + 白字，与"可选"的浅底描边**强度不同** */
+.vocab-active { background: var(--m1); color: $text-inverse; border: 1rpx solid var(--m1); }
+/* 建设中：不上主题色 —— 它和"可选"必须一眼区分，否则会一直点它 */
+.vocab-off { background: $bg-page; color: $text-3; border: 1rpx solid $border-strong; }
+/* 正在学那一行：左侧一道主题色竖条，长列表里滚过去也知道哪本是当前的 */
+.vocab-books-on {
+  background: var(--ms);
+  box-shadow: inset 6rpx 0 0 var(--m1);
+}
+
+.vocab-cancel { margin-top: $sp-2; }
+
+/* ---------- ② 今日计划 ---------- */
+/* 渐变卡 + 顶部彩线 + 扫光：让"今天该背多少"成为页面上最亮的一块 */
+.vocab-hero {
+  padding: $sp-6 $card-padding $sp-8;
+  background: linear-gradient(148deg, $bg-card 46%, var(--ms) 100%);
+  border: 1rpx solid $line-soft;
+  box-shadow: 0 8rpx 26rpx var(--sh);
+}
+.vocab-hero-book {
+  display: block;
+  font-size: $fs-aux; font-weight: $fw-semi; color: var(--mt);
+  letter-spacing: .4rpx;
+}
+
+/* 三个指标：等分，竖排数字在上、标签在下 */
+.vocab-hero-nums { display: flex; margin: $sp-4 0 $sp-2; }
+.vocab-num { flex: 1; text-align: center; }
+.vocab-num-v {
+  display: block;
+  font-size: $fs-display; font-weight: $fw-black; color: var(--m1);
+  line-height: 1.15;
+}
+.vocab-num-k { display: block; font-size: $fs-tag; color: $text-3; margin-top: 2rpx; }
+
+/* 进度条：底槽用中性边色，填充走主题渐变 */
+.vocab-bar {
+  height: 16rpx;
+  margin-top: $sp-4;
+  border-radius: $radius-pill;
+  background: $border;
+  overflow: hidden;
+}
+.vocab-bar-fill {
+  height: 100%;
+  border-radius: $radius-pill;
+  background: linear-gradient(90deg, var(--m1), var(--m2));
+  transition: width $dur-base $ease-out;
+}
+.vocab-bar-text { display: block; margin-top: $sp-2; font-size: $fs-tag; color: $text-3; }
+
+/* 队列为空的原因：三种"空"意义不同（已完成 / 还没到期 / 词表建设中），原样居中显示 */
+.vocab-reason {
+  display: block;
+  margin-top: $sp-4;
+  padding: $sp-3 $sp-4;
+  border-radius: $radius-md;
+  background: $warning-veil;
+  font-size: $fs-tag; color: $warning; line-height: 1.6;
+  text-align: center;
+}
+
+.vocab-start { margin-top: $sp-6; }
+/* 没得学时按钮改去统计页：降饱和，避免它看起来还是"开始学习" */
+.vocab-start-dim { opacity: .82; }
+
+/* ---------- 今日已答 ---------- */
+.vocab-today { padding: 0; }
+.vocab-today-row { display: flex; align-items: center; padding: $card-padding; }
+
+/* ---------- 页脚双按钮 ---------- */
+.vocab-links { display: flex; margin-top: $sp-2; }
+.vocab-link {
+  flex: 1;
+  display: flex; align-items: center; justify-content: center;
+}
+.vocab-link + .vocab-link { margin-left: $sp-3; }
+.vocab-link-ico { margin-right: $sp-2; }

@@ -1,0 +1,173 @@
+<!-- AI 工具箱（文档 5.3.4）
+     视觉：星蓝主题 · 方正利落的小圆角 · 左轨分类 + 右列卡片 -->
+<view
+  class="qz-page th-toolbox toolbox"
+  bindtouchstart="onFxStart"
+  bindtouchmove="onFxMove"
+  bindtouchend="onFxEnd"
+  bindtouchcancel="onFxEnd"
+>
+  <!-- 装饰签名（第十一节 · toolbox）：行进流线 + 光点，不用光斑，
+       和首页 / 驿站的水波、光斑组合刻意错开，避免"每页同一套" -->
+  <view class="qz-deco">
+    <view class="qz-fx" style="{{fxStyle}}">
+      <view class="deco-flow deco-flow-a qz-flow qz-flow-soft"></view>
+      <view class="deco-flow deco-flow-b qz-flow qz-flow-rev qz-flow-soft"></view>
+      <view class="qz-dot qz-dot-b"></view>
+    </view>
+  </view>
+
+  <view class="qz-content toolbox-inner">
+    <!-- 校园小工具入口
+         ⚠️ 与下面的 AI 工具刻意分开：这些是**纯本地计算**（不建作业、不消耗额度、离线可用），
+         混进工具列表会让用户以为"算个绩点也要花钱"。
+         ⚠️ 本文件（含注释）都不能出现计费相关的那个词，由 npm run check:points 兜底。
+
+         视觉上刻意"不像 AI 工具卡"：挂 `th-toolkit`（柠黄主题）+ 糖果图标 + 主题浅底，
+         一眼就能和下面清一色的白底 AI 工具卡分开 —— 否则它只是列表顶部又一张白卡，
+         用户会直接划过去（第一版就是这样，实测找不到入口）。 -->
+    <view
+      class="toolkit-entry qz-card qz-card-tint th-toolkit qz-press"
+      bindtap="onOpenToolkit"
+    >
+      <view class="qz-ico qz-ico-m">
+        <view class="qz-i qz-i-toolbox"></view>
+      </view>
+      <view class="toolkit-entry-main">
+        <view class="toolkit-entry-line">
+          <text class="toolkit-entry-title">校园小工具</text>
+          <text class="toolkit-entry-chip">本地</text>
+        </view>
+        <text class="toolkit-entry-sub">绩点 · AA 分账 · 倒计时 · 课表</text>
+      </view>
+      <text class="toolkit-entry-arrow">›</text>
+    </view>
+
+    <!-- 本地小工具（纯前端计算 · 离线可用）：入口卡横排一行，与上面"校园小工具"、
+         下面服务端驱动的 AI 工具列表互相独立；url 整条写在 TS 的 LOCAL_TOOLS 里 -->
+    <view class="local-sec qz-an-in qz-d1">
+      <view class="local-head">
+        <text class="local-title">本地小工具</text>
+        <text class="local-sub">离线可用 · 即开即用</text>
+      </view>
+      <scroll-view class="local-scroll" scroll-x>
+        <view
+          wx:for="{{localTools}}"
+          wx:key="name"
+          class="local-card qz-card qz-card-line qz-press"
+          data-url="{{item.url}}"
+          bindtap="onLocalToolTap"
+        >
+          <view class="qz-ico qz-ico-s local-ico">
+            <view class="qz-i {{item.icon}}"></view>
+          </view>
+          <text class="local-name">{{item.label}}</text>
+        </view>
+      </scroll-view>
+    </view>
+
+    <!-- 页头 -->
+    <view class="head">
+      <view class="head-row qz-an-in">
+        <view class="qz-ico qz-ico-l qz-ico-float">
+          <view class="qz-i qz-i-toolbox"></view>
+        </view>
+        <view class="head-main">
+          <text class="head-title">AI 工具箱</text>
+          <text class="head-sub">{{allTools.length}} 个工具 · 选一个，剩下的交给 AI</text>
+        </view>
+        <view class="head-files qz-press" bindtap="onMyFiles">
+          <view class="qz-i qz-i-files files-ico"></view>
+          <text class="files-text">我的文件</text>
+        </view>
+      </view>
+
+      <view class="search-box qz-an-in qz-d1">
+        <view class="qz-i qz-i-search search-icon"></view>
+        <input
+          class="search-input"
+          placeholder="搜索工具（PPT / 压缩 / OCR…）"
+          value="{{keyword}}"
+          bindinput="onKeywordInput"
+          confirm-type="search"
+          bindconfirm="onSmartSubmit"
+        />
+        <view wx:if="{{keyword}}" class="search-clear qz-press" bindtap="onClearKeyword">
+          <view class="qz-i qz-i-close clear-ico"></view>
+        </view>
+      </view>
+
+      <view class="head-flow qz-flow"></view>
+    </view>
+
+    <!-- 主体：左分类 + 右列表 -->
+    <view class="body">
+      <scroll-view class="cats" scroll-y>
+        <view
+          wx:for="{{categories}}"
+          wx:key="id"
+          class="cat {{activeCategory === item.id && !keyword ? 'cat-active' : ''}} qz-press"
+          data-id="{{item.id}}"
+          bindtap="onCategoryTap"
+        >
+          <view class="qz-i {{item.icon}} cat-ico"></view>
+          <view class="cat-body">
+            <text class="cat-name">{{item.name}}</text>
+            <text class="cat-count">{{item.count}}</text>
+          </view>
+        </view>
+      </scroll-view>
+
+      <scroll-view class="tools" scroll-y>
+        <!-- 错误提示 -->
+        <view wx:if="{{error}}" class="qz-err">
+          <text class="qz-err-text">{{error}}</text>
+          <view class="qz-err-btn qz-press" bindtap="onRetry">重试</view>
+        </view>
+
+        <!-- 空态 -->
+        <view wx:if="{{!loading && !tools.length}}" class="qz-empty">
+          <view class="qz-empty-ico qz-ico qz-ico-l qz-ico-float">
+            <view class="qz-i qz-i-search"></view>
+          </view>
+          <text class="qz-empty-title">没有找到相关工具</text>
+          <text class="qz-empty-text">换个关键词试试，或者直接在搜索框里说一句话，让 AI 帮你挑。</text>
+          <view class="qz-empty-flow qz-flow"></view>
+        </view>
+
+        <!-- 工具卡：描边卡 + 顶部流动线（.qz-topline，第十一节分配的签名卡型）；
+             可点击 → 抬升反馈 .qz-lift；换分类时靠 animOn 重播入场 -->
+        <view
+          wx:for="{{tools}}"
+          wx:key="name"
+          class="tool {{animOn ? 'qz-an-in' : ''}} qz-d{{index + 1}} qz-card qz-card-line qz-lift {{item.status === 'planned' ? 'tool-planned' : ''}}"
+          data-name="{{item.name}}"
+          data-status="{{item.status}}"
+          bindtap="onToolTap"
+        >
+          <view class="qz-topline"></view>
+          <view class="qz-ico qz-ico-s tool-ico">
+            <view class="qz-i {{item.iconClass}}"></view>
+          </view>
+          <view class="tool-body">
+            <view class="tool-head">
+              <text class="tool-name qz-ellipsis">{{item.displayName}}</text>
+              <text wx:if="{{item.status === 'planned'}}" class="tool-badge-planned">即将上线</text>
+              <!-- 免费开放期统一显示"限时免费"，不显示价格（价格文案见 utils/billing.ts） -->
+              <text wx:elif="{{item.free}}" class="tool-badge-free">{{item.priceLabel}}</text>
+              <text wx:elif="{{item.price === 0}}" class="tool-badge-free">{{item.priceLabel}}</text>
+              <text wx:else class="tool-badge-price">{{item.priceLabel}}</text>
+            </view>
+            <text class="tool-desc qz-ellipsis-2">{{item.description}}</text>
+            <view class="tool-foot">
+              <text class="tool-count">已使用 {{item.useCount}} 次</text>
+              <text wx:if="{{item.requiresCopyrightAck}}" class="tool-warn">需版权声明</text>
+            </view>
+          </view>
+        </view>
+
+        <view wx:if="{{tools.length}}" class="tools-count">共 {{tools.length}} 个工具</view>
+      </scroll-view>
+    </view>
+  </view>
+</view>

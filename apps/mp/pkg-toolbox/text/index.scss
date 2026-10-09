@@ -1,0 +1,35 @@
+@import '../../styles/tokens.scss';
+
+/* 文本产物预览 · 云蓝主题（模块色板见 styles/themes.scss 的 .th-files）
+   造型语言：一整块可滚动的纸面 + 底部固定双动作条 */
+
+.text { padding-bottom: 200rpx; }
+
+.head-flow { margin-top: $sp-4; }
+
+/* ---------- 装饰签名：flow-soft + dot-a（安静阅读） ----------
+   .qz-flow 只带动效不带定位；流线压低到纸面之下，绝不干扰阅读 */
+.text-flow {
+  position: absolute; left: -40rpx; right: -40rpx; bottom: 260rpx;
+}
+
+/* ---------- 正文纸面 ---------- */
+.body { padding: $card-padding; }
+.body-scroll { max-height: 62vh; }
+.body-text {
+  font-size: $fs-body; color: $text-1; line-height: 1.8;
+  /* 保留模型输出的换行与缩进，同时让超长行折行而不是横向溢出 */
+  white-space: pre-wrap; word-break: break-word;
+}
+
+/* ---------- 底部动作条 ---------- */
+.bar {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 10;
+  display: flex; align-items: center;
+  padding: $sp-4 $sp-6 calc(#{$sp-4} + env(safe-area-inset-bottom));
+  background: $bg-card; border-top: 1rpx solid var(--ms);
+}
+.bar-btn { flex: 1; }
+/* 用相邻选择器而不是 :first-child：正文为空时"复制全文"不渲染，
+   用 :first-child 会让剩下的那颗按钮带上一截多余的右间距 */
+.bar-btn + .bar-btn { margin-left: $sp-3; }

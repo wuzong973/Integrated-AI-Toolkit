@@ -1,0 +1,89 @@
+@import '../../styles/tokens.scss';
+
+/* 校园小工具列表 —— 只用 Design Token 取色，禁止硬编码色值 */
+.toolkit-home {
+  padding-bottom: 40rpx;
+
+  /* ---------- 装饰签名：flow-soft + dot-a ----------
+     ⚠️ 库内 `.qz-flow` 只带动效、不带定位（见 styles/deco.scss），它在 `.qz-fx` 里
+        按普通流排到视差层顶边，而 `.qz-fx` 相对 `.qz-deco` 外扩了 40rpx ——
+        那条 4rpx 高的虚线会整条落到 `overflow: hidden` 的裁切区之外（不报错、只是看不见）。
+        这里按外扩补 40rpx 回到包装前的屏幕位置；左右 0 仍是 `.qz-fx` 的整宽，与原先一致。 */
+  .qz-flow {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 40rpx;
+  }
+
+  .head {
+    padding: 24rpx 8rpx 16rpx;
+
+    .title {
+      display: block;
+      font-size: 44rpx;
+      font-weight: 600;
+      color: var(--mt);
+    }
+
+    .sub {
+      display: block;
+      margin-top: 8rpx;
+      font-size: 24rpx;
+      color: $text-3;
+    }
+  }
+
+  .list {
+    display: flex;
+    flex-direction: column;
+    gap: 20rpx;
+  }
+
+  .item {
+    display: flex;
+    align-items: center;
+    padding: 24rpx;
+    border-radius: var(--r-card);
+    background: $bg-card;
+    box-shadow: $shadow-soft;
+
+    /* 按压反馈用库内 .qz-press（motion.scss），页面不自己写 :active 与时长 */
+
+    /* ⚠️ `.qz-i` 基类**不带尺寸**（见 styles/icons.scss：尺寸由 `.qz-ico-*` 或外部样式给定）。
+        这里没有用 `.qz-ico` 容器，所以必须自己给尺寸 —— 否则图标是 **0×0 隐形元素**，
+        而编译、tsc 与所有守卫都不会报（与 `qz-rise` 缺形状类是同一类坑）。 */
+    .qz-i {
+      flex-shrink: 0;
+      width: $ico-md;
+      height: $ico-md;
+      margin-right: 20rpx;
+    }
+  }
+
+  .item-body {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .item-name {
+    display: block;
+    font-size: 32rpx;
+    font-weight: 600;
+    color: var(--mt);
+  }
+
+  .item-desc {
+    display: block;
+    margin-top: 6rpx;
+    font-size: 24rpx;
+    line-height: 1.5;
+    color: $text-3;
+  }
+
+  .item-arrow {
+    margin-left: 12rpx;
+    font-size: 34rpx;
+    color: $text-3;
+  }
+}

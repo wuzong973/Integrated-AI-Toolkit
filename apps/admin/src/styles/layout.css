@@ -1,0 +1,255 @@
+/**
+ * 框架布局：侧栏 + 顶栏 + 内容区。
+ *
+ * 结构约束：整页高度锁死在 100vh，**只有内容区滚动** ——
+ * 若让整页滚动，长表格会把侧栏一起推走，用户每翻一页都要重新找菜单。
+ */
+
+.qz-shell {
+  display: grid;
+  grid-template-columns: var(--layout-sidebar) 1fr;
+  height: 100vh;
+  transition: grid-template-columns 0.18s ease;
+}
+
+.qz-shell.is-collapsed {
+  grid-template-columns: var(--layout-sidebar-collapsed) 1fr;
+}
+
+/* ---------- 侧栏 ---------- */
+.qz-sidebar {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  background: var(--bg-card);
+  border-right: 1px solid var(--border);
+  overflow: hidden;
+}
+
+.qz-sidebar__brand {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  height: var(--layout-topbar);
+  padding: 0 var(--sp-4);
+  border-bottom: 1px solid var(--border-soft);
+  flex: none;
+}
+
+.qz-sidebar__logo {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  flex: none;
+  border-radius: var(--r-md);
+  background: linear-gradient(135deg, var(--brand-500), var(--brand-600));
+  color: var(--text-inverse);
+  font-size: var(--fs-tag);
+  font-weight: var(--fw-semi);
+  box-shadow: var(--shadow-tint-brand);
+}
+
+.qz-sidebar__title {
+  font-size: var(--fs-h3);
+  font-weight: var(--fw-semi);
+  white-space: nowrap;
+}
+
+.qz-sidebar__nav {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--sp-3) var(--sp-2);
+}
+
+.qz-sidebar__group {
+  padding: var(--sp-3) var(--sp-2) var(--sp-1);
+  font-size: var(--fs-tag);
+  font-weight: var(--fw-medium);
+  color: var(--text-3);
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+
+.qz-nav-item {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  padding: var(--sp-2) var(--sp-3);
+  margin-bottom: 2px;
+  border-radius: var(--r-md);
+  color: var(--text-2);
+  font-size: var(--fs-body);
+  white-space: nowrap;
+  transition: background 0.12s ease, color 0.12s ease;
+}
+
+.qz-nav-item:hover {
+  background: var(--bg-hover);
+  color: var(--text-1);
+  text-decoration: none;
+}
+
+.qz-nav-item.is-active {
+  background: var(--brand-50);
+  color: var(--brand-600);
+  font-weight: var(--fw-medium);
+}
+
+.qz-nav-item__icon {
+  display: grid;
+  place-items: center;
+  width: 18px;
+  flex: none;
+  font-size: 15px;
+  line-height: 1;
+}
+
+.qz-nav-item__badge {
+  margin-left: auto;
+  padding: 0 6px;
+  border-radius: var(--r-pill);
+  background: var(--danger-500);
+  color: var(--text-inverse);
+  font-size: 11px;
+  line-height: 16px;
+}
+
+/* 折叠态：只留图标，文字与分组标题隐藏 */
+.is-collapsed .qz-sidebar__title,
+.is-collapsed .qz-nav-item__text,
+.is-collapsed .qz-nav-item__badge,
+.is-collapsed .qz-sidebar__group {
+  display: none;
+}
+
+.is-collapsed .qz-nav-item {
+  justify-content: center;
+  padding: var(--sp-2);
+}
+
+.is-collapsed .qz-sidebar__brand {
+  justify-content: center;
+  padding: 0;
+}
+
+/* ---------- 主区 ---------- */
+.qz-main {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.qz-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-4);
+  height: var(--layout-topbar);
+  padding: 0 var(--sp-5);
+  flex: none;
+  background: var(--bg-card);
+  border-bottom: 1px solid var(--border);
+}
+
+.qz-topbar__left,
+.qz-topbar__right {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  min-width: 0;
+}
+
+.qz-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--sp-5);
+}
+
+.qz-content__inner {
+  max-width: var(--layout-content-max);
+  margin: 0 auto;
+}
+
+/* ---------- 面包屑 ---------- */
+.qz-breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  font-size: var(--fs-aux);
+  color: var(--text-3);
+  min-width: 0;
+}
+
+.qz-breadcrumb__sep {
+  color: var(--border);
+}
+
+.qz-breadcrumb__current {
+  color: var(--text-1);
+  font-weight: var(--fw-medium);
+}
+
+/* ---------- 演示模式角标（红线 10：Mock 必须可见） ---------- */
+.qz-demo-flag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 8px;
+  border-radius: var(--r-pill);
+  background: var(--warning-50);
+  border: 1px solid var(--warning-500);
+  color: var(--warning-500);
+  font-size: var(--fs-tag);
+  white-space: nowrap;
+}
+
+/* ---------- 登录页 ---------- */
+.qz-login {
+  display: grid;
+  place-items: center;
+  min-height: 100vh;
+  padding: var(--sp-6);
+  background: radial-gradient(circle at 20% 20%, var(--brand-50), transparent 55%),
+    radial-gradient(circle at 80% 0%, var(--tech-50), transparent 50%), var(--bg-page);
+}
+
+.qz-login__card {
+  width: 100%;
+  max-width: 380px;
+  padding: var(--sp-8);
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--r-xl);
+  box-shadow: var(--shadow-soft);
+}
+
+.qz-login__brand {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  margin-bottom: var(--sp-6);
+}
+
+.qz-login__brand h1 {
+  font-size: var(--fs-h2);
+  font-weight: var(--fw-semi);
+}
+
+.qz-login__hint {
+  margin-top: var(--sp-5);
+  padding-top: var(--sp-4);
+  border-top: 1px dashed var(--border);
+  font-size: var(--fs-tag);
+  color: var(--text-3);
+  line-height: 1.7;
+}
+
+/* ---------- 响应式：窄屏收起侧栏 ---------- */
+@media (max-width: 900px) {
+  .qz-shell {
+    grid-template-columns: var(--layout-sidebar-collapsed) 1fr;
+  }
+}

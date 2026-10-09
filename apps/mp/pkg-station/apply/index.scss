@@ -1,0 +1,93 @@
+@import '../../styles/tokens.scss';
+
+/* 服务者认证 · 靛蓝主题（模块色板见 styles/themes.scss 的 .th-apply）
+   造型语言：中圆角 + 光环 + 柔流线，强调"三步入驻"的流程感 */
+
+/* 装饰签名（.qz-deco > .qz-fx 内）：光环罩住页头糖果图标，柔流线压在页头下方 */
+.apply-halo-box {
+  position: absolute; left: 24rpx; top: 24rpx; width: 152rpx; height: 152rpx;
+}
+.apply-fx-flow {
+  position: absolute; left: 0; right: 0; top: 260rpx;
+}
+
+/* 页头底部的粗流线（行进虚线） */
+.apply-flow { margin-top: $sp-4; }
+
+/* 内容区：底部留白，避免贴住安全区 */
+.apply-body { padding-bottom: $sp-12; }
+
+/* 错误分支的重试按钮：沿用全局 .qz-err-btn 配色，只把点击区补到 $hit-min */
+.qz-err-btn {
+  display: flex; align-items: center;
+  min-height: $hit-min; padding: 0 $sp-6;
+}
+
+/* ---------- 驳回原因：必须显眼（M3-02 验收要求"给出具体原因"） ---------- */
+.reject-box {
+  display: flex; flex-direction: column;
+  margin-bottom: $sp-5; padding: $sp-5;
+  border-radius: var(--r-card);
+  /* 用模块色板而不是写死红/橙：主题切换时它要跟着变 */
+  background: var(--ms);
+  border-left: 6rpx solid var(--m1);
+}
+.reject-title { font-size: $fs-body; font-weight: $fw-semi; color: var(--m1); }
+.reject-why { margin-top: $sp-2; font-size: $fs-body; color: var(--mt); line-height: 1.6; }
+.reject-tip { margin-top: $sp-2; font-size: $fs-tag; color: var(--mt); opacity: .8; }
+
+/* ---------- 步骤指示 ---------- */
+.steps { display: flex; align-items: center; margin-bottom: $sp-5; }
+.step { display: flex; flex-direction: column; align-items: center; flex-shrink: 0; }
+.step-dot {
+  width: 52rpx; height: 52rpx; border-radius: $radius-pill;
+  display: flex; align-items: center; justify-content: center;
+  font-size: $fs-tag; font-weight: $fw-semi;
+  background: var(--ms); color: var(--mt);
+}
+.step.on .step-dot { background: linear-gradient(135deg, var(--m1), var(--m2)); color: $text-inverse; }
+.step-label { margin-top: $sp-1; font-size: $fs-tag; color: var(--mt); }
+.step.on .step-label { color: var(--m1); }
+.step-line { flex: 1; height: 4rpx; margin: 0 $sp-2; background: var(--ms); }
+.step-line.on { background: var(--m1); }
+
+/* ---------- 表单 ---------- */
+.form-card { display: flex; flex-direction: column; }
+.field { display: flex; flex-direction: column; margin-bottom: $sp-5; }
+.field-label { margin-bottom: $sp-2; font-size: $fs-tag; color: var(--mt); }
+.field-input, .field-picker {
+  min-height: $hit-min; padding: 0 $sp-4;
+  display: flex; align-items: center;
+  border-radius: $radius-md;
+  background: var(--ms); color: var(--mt);
+  font-size: $fs-body;
+}
+.field-picker.placeholder { opacity: .55; }
+.field-file { margin-top: $sp-2; font-size: $fs-tag; color: var(--mt); opacity: .85; }
+
+/* 技能标签：输入 + 添加按钮同行 */
+.skill-add { display: flex; align-items: center; }
+.skill-input { flex: 1; }
+.skill-btn { margin-left: $sp-2; padding: 0 $sp-5; min-height: $hit-min; flex-shrink: 0; }
+.skill-tags { display: flex; flex-wrap: wrap; margin-top: $sp-3; }
+.skill-chip { margin: 0 $sp-2 $sp-2 0; }
+
+/* ---------- 服务承诺 ---------- */
+.promise { display: flex; align-items: flex-start; margin-bottom: $sp-4; }
+.promise-box {
+  flex-shrink: 0; width: 40rpx; height: 40rpx; margin-right: $sp-3;
+  border-radius: $radius-sm; border: 2rpx solid var(--ms);
+  display: flex; align-items: center; justify-content: center;
+  font-size: $fs-tag; color: $text-inverse;
+}
+.promise-box.on { background: var(--m1); border-color: var(--m1); }
+.promise-box-lock { opacity: .4; color: var(--mt); }
+.promise-text { flex: 1; font-size: $fs-tag; color: var(--mt); line-height: 1.6; }
+.promise-plain { opacity: .75; }
+
+/* ---------- 步骤按钮 ---------- */
+.form-actions { display: flex; margin-top: $sp-5; }
+.act { flex: 1; margin-right: $sp-3; }
+.act:last-child { margin-right: 0; }
+.disabled { opacity: .6; }
+

@@ -1,0 +1,75 @@
+@import '../../styles/tokens.scss';
+
+/* 技能画像 · 青柠主题（模块色板见 styles/themes.scss 的 .th-skill）
+   造型语言：大圆角 + 上翻波浪 + 上升粒子，强调"往上长"的成长感 */
+
+/* ---------- 装饰签名：rise + dot-b（技能粒子） ----------
+   动画复用 deco.scss 现成的 qzRise，本页只排粒子：位置 / 大小 / 错峰延迟，
+   取色只用主题变量（--m1..--m4），不落任何裸色值 */
+.skill-rise {
+  position: absolute; width: 14rpx; height: 14rpx; border-radius: 50%;
+  left: 18%; top: 360rpx;
+  background: radial-gradient(circle at 34% 30%, var(--m3), var(--m1));
+}
+.skill-rise-b {
+  left: 46%; top: 430rpx; width: 10rpx; height: 10rpx;
+  animation-delay: -1.3s;
+}
+.skill-rise-c {
+  left: 74%; top: 330rpx; width: 18rpx; height: 18rpx;
+  background: radial-gradient(circle at 34% 30%, var(--m4), var(--m2));
+  animation-delay: -2.4s;
+}
+
+/* 页头底部的上翻扇贝波浪 */
+.skill-wave { margin-top: $sp-4; }
+
+/* 内容区：底部留白，避免贴住安全区 */
+.skill-body { padding-bottom: $sp-12; }
+
+/* 错误分支的重试按钮：沿用全局 .qz-err-btn 配色，只把点击区补到 $hit-min */
+.qz-err-btn {
+  display: flex; align-items: center;
+  min-height: $hit-min; padding: 0 $sp-6;
+}
+
+/* ---------- 画像卡（主卡型：主题浅底卡 + 顶部流动线，与下方描边标签卡拉开层次） ---------- */
+.profile-card { display: flex; flex-direction: column; margin-bottom: $sp-5; }
+.profile-row { display: flex; align-items: center; }
+.profile-main { flex: 1; min-width: 0; margin-left: $sp-3; display: flex; flex-direction: column; }
+.profile-title { font-size: $fs-h3; font-weight: $fw-semi; color: $text-1; }
+
+/* 认证状态徽章：色调只用模块变量的"点缀色"区分，不引入新色值（红线 2） */
+.badge {
+  align-self: flex-start; margin-top: $sp-2;
+  padding: 4rpx $sp-3; border-radius: $radius-pill;
+  font-size: $fs-tag; font-weight: $fw-semi;
+  background: var(--ms); color: var(--mt);
+}
+.badge-ok { background: var(--m4); color: $text-inverse; }
+.badge-wait { background: var(--m3); color: $text-inverse; }
+.badge-bad { background: $danger; color: $text-inverse; }
+.badge-idle { background: var(--ms); color: var(--mt); }
+
+/* 三项真实统计 */
+.stat-row { display: flex; margin-top: $sp-5; }
+.stat {
+  flex: 1; display: flex; flex-direction: column; align-items: center;
+  padding: $sp-3 0; border-radius: $radius-md; background: $glass-text;
+}
+.stat + .stat { margin-left: $sp-3; }
+.stat-num { font-size: $fs-h2; font-weight: $fw-bold; color: var(--m1); }
+.stat-label { margin-top: 2rpx; font-size: $fs-tag; color: $text-3; }
+
+/* ---------- 技能标签 ---------- */
+.skills-card { padding: $sp-5 $card-padding; }
+.skill-chips { display: flex; flex-wrap: wrap; }
+.skill-chips .qz-chip { margin: 0 $sp-2 $sp-2 0; }
+.skills-none { font-size: $fs-aux; color: $text-3; line-height: 1.7; }
+
+/* ---------- 主操作 ---------- */
+.act-btn { margin-top: $sp-2; }
+.act-hint {
+  display: block; margin-top: $sp-3;
+  font-size: $fs-tag; color: $text-3; line-height: 1.7; text-align: center;
+}

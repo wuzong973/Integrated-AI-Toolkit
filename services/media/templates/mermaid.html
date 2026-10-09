@@ -1,0 +1,40 @@
+<!doctype html>
+<!--
+  Mermaid → SVG 渲染模板（playwright 截图目标：#graph 容器）。
+
+  JS 库已本地化（离线/内网可用，禁止改回 CDN 引用）：
+    · vendor/mermaid.min.js —— mermaid 11.4.1（MIT）
+      来源：https://cdn.jsdelivr.net/npm/mermaid@11.4.1/dist/mermaid.min.js
+
+  约定：window.render(code) 注入图表并在布局完成后 resolve，
+  供 playwright `page.evaluate("code => window.render(code)", code)` 调用。
+-->
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<style>
+  body { margin: 0; background: #fff;
+         font-family: 'PingFang SC', 'Microsoft YaHei', 'Noto Sans CJK SC', sans-serif; }
+  /* inline-block 让容器按内容收缩，元素截图正好包住图，不带大片空白 */
+  #graph { display: inline-block; padding: 16px; }
+  /* mermaid 默认 max-width:100% 会把图压进视口，截图要的是原始尺寸 */
+  #graph svg { max-width: none !important; }
+</style>
+</head>
+<body>
+<div id="graph"></div>
+<script src="vendor/mermaid.min.js"></script>
+<script>
+  mermaid.initialize({
+    startOnLoad: false,
+    theme: 'default',
+    fontFamily: "'PingFang SC','Microsoft YaHei','Noto Sans CJK SC',sans-serif",
+  });
+  window.render = async (code) => {
+    const { svg } = await mermaid.render('qz-diagram', code);
+    document.getElementById('graph').innerHTML = svg;
+    return true;
+  };
+</script>
+</body>
+</html>

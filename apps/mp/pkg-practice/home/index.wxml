@@ -1,0 +1,149 @@
+<!-- 练习中心 · 首页（首页金刚区「练习中心」的落点）
+     视觉：靛青主题（styles/themes.scss 的 .th-practice）
+     三个模块入口 + 今日进度 + 连续打卡 + 30 天日历 -->
+<view
+  class="qz-page th-practice practice"
+  bindtouchstart="onFxStart"
+  bindtouchmove="onFxMove"
+  bindtouchend="onFxEnd"
+  bindtouchcancel="onFxEnd"
+>
+  <view class="qz-deco">
+    <view class="qz-fx" style="{{fxStyle}}">
+      <view class="practice-blob-a qz-blob"></view>
+      <view class="practice-blob-b qz-blob"></view>
+      <view class="practice-curve qz-curve"></view>
+      <view class="qz-dot qz-dot-b"></view>
+    </view>
+  </view>
+
+  <view class="qz-content">
+    <!-- 页头 -->
+    <view class="qz-head">
+      <view class="qz-head-row qz-an-in">
+        <view class="qz-ico qz-ico-l qz-ico-float">
+          <view class="qz-i qz-i-tutor"></view>
+        </view>
+        <view class="qz-head-main">
+          <text class="qz-head-title">练习中心</text>
+          <text class="qz-head-sub">句子 · 口语 · 作文 · 按遗忘曲线安排复习</text>
+        </view>
+      </view>
+      <view class="qz-head-chips qz-an-in qz-d1">
+        <view class="qz-chip">连续 {{streak}} 天</view>
+        <view class="qz-chip">今日 {{todayDone}} 题</view>
+        <view class="qz-chip">掌握 {{mastered}}</view>
+      </view>
+      <view class="head-flow qz-flow"></view>
+    </view>
+
+    <view class="qz-container">
+      <!-- 错误条 -->
+      <view wx:if="{{error}}" class="qz-err qz-an-in">
+        <text class="qz-err-text">{{error}}</text>
+        <view class="qz-err-btn qz-press" bindtap="onRetry">重试</view>
+      </view>
+
+      <!-- 首次加载骨架 -->
+      <view wx:if="{{loading && !loaded}}" class="qz-card qz-card-line practice-sk">
+        <view class="qz-skeleton qz-skeleton-line"></view>
+        <view class="qz-skeleton qz-skeleton-line qz-skeleton-line-short"></view>
+      </view>
+
+      <block wx:elif="{{loaded}}">
+        <!-- ① 三个模块入口 -->
+        <view class="qz-sec">
+          <view class="qz-sec-bar"></view>
+          <text class="qz-sec-title">今天練什麼</text>
+          <text class="qz-sec-sub">建议按顺序 · 也可以直接挑一个</text>
+        </view>
+
+        <view
+          wx:for="{{modules}}"
+          wx:key="module"
+          class="qz-card practice-mod qz-an-in {{item.canStart ? 'qz-lift' : 'practice-mod-dim'}}"
+          data-module="{{item.module}}"
+          bindtap="onOpen"
+        >
+          <view class="practice-mod-head">
+            <view class="qz-ico qz-ico-m practice-mod-ico">
+              <view class="qz-i {{item.module === 'speak' ? 'qz-i-audio' : item.module === 'write' ? 'qz-i-doc' : 'qz-i-learn'}}"></view>
+            </view>
+            <view class="qz-item-main">
+              <text class="qz-item-title">{{item.title}}</text>
+              <text class="qz-item-desc">{{item.hint}}</text>
+            </view>
+            <view class="practice-mod-quota">
+              <text class="practice-mod-quota-v">{{item.quotaText}}</text>
+              <text class="practice-mod-quota-k">今日</text>
+            </view>
+          </view>
+
+          <view class="practice-bar">
+            <view class="practice-bar-fill" style="width: {{item.percent}}%"></view>
+          </view>
+
+          <view class="practice-mod-foot">
+            <text class="practice-mod-done">{{item.doneText}}</text>
+            <view wx:if="{{item.hasDue}}" class="practice-due">{{item.dueText}}</view>
+          </view>
+
+          <!-- 空态原因原样转述（"练完了" / "题库没建好" 是完全不同的两件事） -->
+          <text wx:if="{{!item.canStart && item.emptyReason}}" class="practice-reason">{{item.emptyReason}}</text>
+        </view>
+
+        <!-- ② 累计 -->
+        <view class="qz-sec">
+          <view class="qz-sec-bar"></view>
+          <text class="qz-sec-title">我的进步</text>
+          <text class="qz-sec-sub">追踪中的题 · 到期要复习的题</text>
+        </view>
+
+        <view class="qz-card qz-card-line practice-nums qz-an-in qz-d3">
+          <view class="practice-num">
+            <text class="practice-num-v">{{tracked}}</text>
+            <text class="practice-num-k">在练</text>
+          </view>
+          <view class="practice-num">
+            <text class="practice-num-v">{{due}}</text>
+            <text class="practice-num-k">待复习</text>
+          </view>
+          <view class="practice-num">
+            <text class="practice-num-v">{{sentenceAccuracy}}</text>
+            <text class="practice-num-k">句子正确率</text>
+          </view>
+          <view class="practice-num">
+            <text class="practice-num-v">{{speakAvg}}</text>
+            <text class="practice-num-k">口语均分</text>
+          </view>
+        </view>
+
+        <!-- ③ 打卡日历 -->
+        <view class="qz-sec">
+          <view class="qz-sec-bar"></view>
+          <text class="qz-sec-title">最近 30 天</text>
+          <text class="qz-sec-sub">有练习的日子会亮起来</text>
+        </view>
+
+        <view class="qz-card qz-card-line practice-cal qz-an-in qz-d4">
+          <view
+            wx:for="{{calendar}}"
+            wx:key="day"
+            class="practice-cell {{item.has ? 'practice-cell-on' : ''}} {{item.isToday ? 'practice-cell-today' : ''}}"
+          >
+            <text class="practice-cell-d">{{item.dow}}</text>
+          </view>
+        </view>
+
+        <view class="practice-links qz-an-in qz-d4">
+          <view class="qz-btn-sub qz-press practice-link" bindtap="onStats">
+            <view class="qz-ico qz-ico-s practice-link-ico">
+              <view class="qz-i qz-i-chart"></view>
+            </view>
+            <text>练习统计</text>
+          </view>
+        </view>
+      </block>
+    </view>
+  </view>
+</view>

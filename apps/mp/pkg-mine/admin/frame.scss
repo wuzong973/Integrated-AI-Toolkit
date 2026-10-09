@@ -1,0 +1,165 @@
+@import '../../styles/tokens.scss';
+
+/* 管理后台四页的共用骨架样式（身份带 / Tab 条 / 刷新行 / 指标网格 / 骨架）
+   ------------------------------------------------------------------
+   为什么单拆一个 frame：这四页是同一个后台的四个 Tab，头区与 Tab 条必须逐字一致，
+   抄四份就一定漂四份。⚠️ 但**装饰签名的定位不放这里** —— `audit:mp` ⑳ 段只解析
+   与页面同名那份 SCSS（`index.scss`），定位写在这里会被判成"装饰看不见"，
+   所以 `.ad-topline / .ver-flow / .od-water` 一律留在各自页面的 SCSS 里。
+   取色只用 var(--m*) 与 tokens，不写裸色值、不自造 @keyframes。 */
+
+/* ---------- 页面骨架 ---------- */
+.ad { padding-bottom: $sp-12; }
+
+/* ---------- ① 身份带（图二的彩色头区） ---------- */
+.ad-band {
+  position: relative; overflow: hidden;
+  margin: 0 $page-padding $sp-4; padding: $sp-6;
+  border-radius: var(--r-card);
+  background: linear-gradient(135deg, var(--m1), var(--m2));
+  box-shadow: 0 12rpx 30rpx var(--sh);
+}
+.ad-band-row { display: flex; align-items: center; }
+.ad-band-ico { margin-right: $sp-3; }
+.ad-band-main { flex: 1; min-width: 0; }
+.ad-band-title {
+  display: block; font-size: $fs-h1; font-weight: $fw-black;
+  color: $text-inverse; letter-spacing: .6rpx;
+}
+.ad-band-sub { display: block; margin-top: 4rpx; font-size: $fs-aux; color: $glass-text; }
+/* 返回按钮压在渐变上，白罩一律走 $glass-* 令牌（§九：不许写裸 rgba） */
+.ad-band-back {
+  display: flex; align-items: center; justify-content: center;
+  min-height: $hit-min; padding: 0 $sp-5; margin-left: $sp-3;
+  border-radius: $radius-pill;
+  background: $glass-soft; border: 1rpx solid $glass-mid;
+  color: $text-inverse; font-size: $fs-aux; font-weight: $fw-semi;
+}
+.ad-band-chips { display: flex; flex-wrap: wrap; margin-top: $sp-4; }
+.ad-chip {
+  margin: 0 $sp-2 $sp-2 0; padding: 2rpx $sp-3;
+  border-radius: $radius-pill;
+  background: $glass-faint; border: 1rpx solid $glass-mid;
+  font-size: $fs-tag; color: $text-inverse;
+}
+
+/* ---------- ② Tab 条（当前页要一眼看出来） ---------- */
+.ad-tabs {
+  display: flex; margin: 0 $page-padding $sp-3; padding: 6rpx;
+  background: var(--ms); border-radius: $radius-pill;
+}
+.ad-tab {
+  flex: 1; height: $hit-min;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: $radius-pill;
+  font-size: $fs-aux; color: $text-2;
+  transition: background $dur-base $ease-out, color $dur-base $ease-out;
+}
+.ad-tab-on {
+  background: $bg-card; color: var(--mt); font-weight: $fw-bold;
+  box-shadow: 0 6rpx 16rpx var(--sh);
+}
+
+/* ---------- ③ 刷新行：真实完成时刻 + 手动刷新（轮询的替代件） ---------- */
+.ad-sync {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: $sp-2 $page-padding $sp-3;
+}
+.ad-sync-time { font-size: $fs-tag; color: $text-3; }
+.ad-sync-btn {
+  display: flex; align-items: center; justify-content: center;
+  min-height: $hit-min; padding: 0 $sp-5;
+  border-radius: $radius-pill;
+  background: $bg-card; border: 1rpx solid var(--ms);
+  color: var(--mt); font-size: $fs-aux; font-weight: $fw-semi;
+}
+
+/* ---------- ④ 指标网格（2 up） ---------- */
+.ad-grid { display: flex; flex-wrap: wrap; justify-content: space-between; }
+.ad-metric { width: 48%; }
+.ad-m-label { display: block; font-size: $fs-tag; color: $text-3; }
+.ad-m-num {
+  display: block; margin-top: 2rpx;
+  font-size: $fs-h1; font-weight: $fw-black; color: $text-1; line-height: 1.3;
+}
+.ad-m-hint { display: block; margin-top: 4rpx; font-size: $fs-tag; color: $text-3; line-height: 1.5; }
+
+/* 环比行：涨绿跌红是任务口径；"不适用 / —" 走中性灰，不给它任何涨跌暗示 */
+.ad-rate { display: flex; align-items: center; flex-wrap: wrap; margin-top: $sp-2; }
+.ad-rate-label { margin-right: 6rpx; font-size: $fs-tag; color: $text-3; }
+.ad-rate-text { font-size: $fs-aux; font-weight: $fw-semi; color: $text-2; }
+.ad-rate-win { margin-left: 6rpx; font-size: $fs-tag; color: $text-3; }
+.r-up .ad-rate-text { color: $success; }
+.r-down .ad-rate-text { color: $danger; }
+.r-flat .ad-rate-text { color: $text-2; }
+.r-na .ad-rate-text { color: $ink-soft; }
+
+/* ---------- 小节头 ---------- */
+.ad-sec { display: block; margin-bottom: $sp-4; }
+.ad-sec-head { display: flex; align-items: center; margin-bottom: $sp-3; }
+.ad-sec-title { margin-left: $sp-2; font-size: $fs-h2; font-weight: $fw-bold; color: $text-1; }
+.ad-sec-sub { margin-left: $sp-2; font-size: $fs-tag; color: $text-3; }
+
+/* ---------- 说明条（口径 / 暂不可用的如实交代） ---------- */
+.ad-note { padding: $sp-4; }
+.ad-note-text { font-size: $fs-tag; color: $text-2; line-height: 1.7; }
+
+/* ---------- 筛选胶囊行（列表三页共用） ---------- */
+.ad-filters { display: flex; flex-wrap: wrap; padding: 0 $page-padding $sp-3; }
+.ad-filter {
+  display: flex; align-items: center; justify-content: center;
+  min-height: $hit-min; margin: 0 $sp-2 $sp-2 0; padding: 0 $sp-4;
+  border-radius: $radius-pill;
+  background: var(--ms); color: var(--mt);
+  font-size: $fs-aux; font-weight: $fw-medium;
+}
+.ad-filter-on {
+  background: linear-gradient(135deg, var(--m1), var(--m2));
+  color: $text-inverse; font-weight: $fw-semi;
+  box-shadow: 0 6rpx 16rpx var(--sh);
+}
+
+/* ---------- 列表行通用 ---------- */
+.ad-row { display: flex; align-items: center; min-height: $hit-min; }
+.ad-row-main { flex: 1; min-width: 0; }
+.ad-row-title { display: block; font-size: $fs-body; font-weight: $fw-semi; color: $text-1; }
+.ad-row-desc { display: block; margin-top: 2rpx; font-size: $fs-tag; color: $text-3; line-height: 1.6; }
+.ad-row-extra { margin-left: $sp-3; font-size: $fs-aux; font-weight: $fw-semi; color: $text-2; }
+.ad-tags { display: flex; flex-wrap: wrap; margin-top: $sp-2; }
+.ad-tags .ad-chip-plain { margin: 0 $sp-2 $sp-2 0; }
+.ad-chip-plain {
+  padding: 2rpx $sp-3; border-radius: $radius-pill;
+  background: var(--ms); color: var(--mt); font-size: $fs-tag;
+}
+
+/* 状态字色：只改颜色，底色仍交给主题柔色（不引入新色值） */
+.st-ok { color: $success; }
+.st-warn { color: $warning; }
+.st-bad { color: $danger; }
+.st-mute { color: $text-3; }
+
+/* ---------- 分页尾巴 ---------- */
+.ad-more {
+  display: flex; align-items: center; justify-content: center;
+  min-height: $hit-min; margin-top: $sp-2;
+  border-radius: var(--r-card);
+  background: var(--ms); color: var(--mt);
+  font-size: $fs-aux; font-weight: $fw-semi;
+}
+.ad-end {
+  display: block; padding: $sp-4 0;
+  text-align: center; font-size: $fs-tag; color: $text-3;
+}
+
+/* ---------- 首屏骨架（形状与真实卡一致，避免加载完成时整屏跳动） ---------- */
+.ad-body { padding-bottom: $sp-12; }
+.ad-skh { height: 150rpx; margin-bottom: $sp-4; border-radius: var(--r-card); }
+.ad-skm { min-height: 150rpx; }
+.ad-sk-label { width: 40%; height: 20rpx; }
+.ad-sk-num { width: 58%; height: 44rpx; }
+
+/* 错误条里的重试按钮：沿用全局 .qz-err-btn 配色，只把点击区补到 $hit-min（无障碍硬要求） */
+.qz-err-btn {
+  display: flex; align-items: center;
+  min-height: $hit-min; padding: 0 $sp-6;
+}

@@ -1,0 +1,129 @@
+@import '../../styles/tokens.scss';
+
+/* 服务者工作台 · 紫罗兰主题（模块色板见 styles/themes.scss 的 .th-workbench）
+   造型语言：小圆角 18 + 顶部流动线 / 背后流水 + 渐变指标卡，突出"专业、能干活" */
+
+.workbench { padding-bottom: 200rpx; }
+
+/* 装饰签名（.qz-deco > .qz-fx 内）：
+   topline 从 .qz-fx 顶边（页面外扩 40rpx）拉回页面顶端；water 横铺在中部内容背后（水波不算流线） */
+.wb-topline { top: 40rpx; }
+.wb-water {
+  position: absolute; left: -60rpx; right: -60rpx; top: 42%; height: 260rpx;
+  opacity: .12;
+}
+
+/* 卡片内小标题：复用全局 .qz-sec-title 的字形，只补图标间距 */
+.card-head { display: flex; align-items: center; margin-bottom: $sp-3; }
+.card-head-title { margin-left: $sp-2; }
+
+/* ---------- 页头操作 ---------- */
+.head-actions { display: flex; align-items: center; margin-top: $sp-4; }
+.head-act {
+  display: flex; align-items: center;
+  min-height: $hit-min; padding: 0 $sp-6;
+  border-radius: $radius-pill;
+  background: $bg-card; border: 1rpx solid $border-strong;
+  box-shadow: $shadow-card;
+}
+.head-act-ico { width: 32rpx; height: 32rpx; margin-right: $sp-2; }
+.head-act-text { font-size: $fs-aux; color: $text-2; font-weight: $fw-medium; }
+.head-actions .qz-chip { margin-left: $sp-3; }
+
+/* ---------- 经营指标（渐变卡 + 扫光） ---------- */
+.stat-card {
+  position: relative; overflow: hidden;
+  display: flex; align-items: center;
+  padding: $sp-6 0 $sp-12;
+  margin-bottom: $sp-4;
+  border-radius: var(--r-card);
+  background: linear-gradient(135deg, var(--m1), var(--m2));
+  box-shadow: 0 12rpx 30rpx var(--sh);
+}
+.stat { flex: 1; text-align: center; position: relative; z-index: 1; }
+.stat-ico { width: 40rpx; height: 40rpx; margin-bottom: $sp-2; }
+.stat-num { display: block; font-size: $fs-h1; font-weight: $fw-black; color: $text-inverse; line-height: 1.3; }
+.stat-label { display: block; font-size: $fs-tag; color: $glass-text; }
+
+/* ---------- 接单开关（白卡 + 底部流水光效） ---------- */
+.toggle-row { display: flex; align-items: center; }
+.toggle-body { flex: 1; min-width: 0; margin-left: $sp-3; }
+.toggle-title { display: block; font-size: $fs-body; font-weight: $fw-semi; color: $text-1; }
+.toggle-desc { display: block; font-size: $fs-tag; color: $text-3; }
+.toggle-water { position: absolute; left: 0; right: 0; bottom: 0; height: 24rpx; }
+.switch-hit { display: flex; align-items: center; min-height: $hit-min; padding-left: $sp-4; }
+.switch {
+  width: 88rpx; height: 48rpx; padding: 4rpx;
+  border-radius: $radius-pill; background: $border-strong;
+  transition: background $dur-fast $ease-out;
+}
+.switch-on { background: linear-gradient(135deg, var(--m1), var(--m2)); }
+.switch-knob {
+  width: 40rpx; height: 40rpx; border-radius: $radius-pill;
+  background: $text-inverse; box-shadow: $shadow-card;
+  transition: transform $dur-fast $ease-spring;
+}
+.switch-on .switch-knob { transform: translateX(40rpx); }
+
+/* ---------- 分段 Tab ---------- */
+.tabs {
+  display: flex; padding: 6rpx; margin-bottom: $sp-4;
+  background: var(--ms); border-radius: $radius-pill;
+}
+.tab {
+  flex: 1; height: $hit-min;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: $radius-pill; font-size: $fs-aux; color: $text-2;
+  transition: background $dur-base $ease-out, color $dur-base $ease-out;
+}
+.tab-active {
+  background: $bg-card; color: var(--mt); font-weight: $fw-bold;
+  box-shadow: 0 6rpx 16rpx var(--sh);
+}
+
+/* ---------- 任务卡 ---------- */
+.task { padding: $card-padding $card-padding $card-padding $sp-6; }
+.task-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: $sp-3; }
+.task-title { flex: 1; font-size: $fs-body; font-weight: $fw-semi; color: $text-1; margin-right: $sp-3; }
+.task-budget { font-size: $fs-h3; font-weight: $fw-black; color: $accent-500; }
+.task-tags { display: flex; flex-wrap: wrap; margin-bottom: $sp-3; }
+.task-tags .qz-chip { margin: 0 $sp-2 $sp-2 0; }
+.task-deadline { display: flex; align-items: center; font-size: $fs-tag; color: $text-3; }
+.deadline-ico { width: 28rpx; height: 28rpx; margin-right: 6rpx; }
+
+/* 匹配度进度条：让"为什么推荐给我"一眼可见 */
+.match-row { display: flex; align-items: center; margin-bottom: $sp-4; }
+.match-bar {
+  flex: 1; height: 12rpx; overflow: hidden;
+  border-radius: $radius-pill; background: var(--ms);
+}
+.match-fill {
+  height: 100%; border-radius: $radius-pill;
+  background: linear-gradient(90deg, var(--m1), var(--m2));
+  transition: width $dur-slow $ease-out;
+}
+.match-text { margin-left: $sp-3; font-size: $fs-tag; font-weight: $fw-semi; color: var(--mt); }
+/* 匹配依据：匹配度必须"可解释"，否则用户只能看到一个没有来源的百分比 */
+.match-why { margin: (-$sp-2) 0 $sp-4; }
+.match-why-text { font-size: $fs-tag; color: var(--mt); opacity: 0.85; }
+
+.task-actions { display: flex; }
+.act-btn { flex: 1; margin-right: $sp-3; }
+.act-btn:last-child { margin-right: 0; }
+
+/* ---------- 收入 ---------- */
+.income-row { display: flex; align-items: center; justify-content: space-between; padding: $sp-2 0; }
+.income-label { font-size: $fs-aux; color: $text-2; }
+.income-value { font-size: $fs-body; font-weight: $fw-semi; color: $text-1; }
+.income-tip { display: block; margin-top: $sp-3; font-size: $fs-tag; color: $text-3; line-height: 1.6; }
+
+/* ---------- 加载骨架 ----------
+   行与动画都来自全局 .qz-skeleton，这里只补卡内边距，
+   让"正在加载"与"暂无数据"在视觉上一眼可分（不把加载演成空态）。 */
+.sk { padding: $card-padding; }
+
+/* 错误分支的重试按钮：沿用全局 .qz-err-btn 配色，只把点击区补到 $hit-min */
+.qz-err-btn {
+  display: flex; align-items: center;
+  min-height: $hit-min; padding: 0 $sp-6;
+}

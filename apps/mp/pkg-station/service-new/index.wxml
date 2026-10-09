@@ -1,0 +1,202 @@
+<!-- 上架服务（`POST /services`）：认证服务者填表，价格按「元」填、按「分」交
+     视觉：暖橙主题 · 渐变表单主卡 + 门面扫光；非认证者只看到引导，看不到表单 -->
+<view
+  class="qz-page th-station svc-new"
+  bindtouchstart="onFxStart"
+  bindtouchmove="onFxMove"
+  bindtouchend="onFxEnd"
+  bindtouchcancel="onFxEnd"
+>
+  <!-- 装饰层（不拦截点击，内容可读性不受影响）
+       签名：shine + blob-a（门面扫光）—— 一道柔光自左掠过整块表单门面 -->
+  <view class="qz-deco">
+    <view class="qz-fx" style="{{fxStyle}}">
+      <view class="qz-blob qz-blob-a"></view>
+      <view class="new-shine qz-shine qz-shine-slow"></view>
+    </view>
+  </view>
+
+  <view class="qz-content">
+    <!-- 页头 -->
+    <view class="qz-head">
+      <view class="qz-head-row qz-an-in">
+        <view class="qz-ico qz-ico-l qz-ico-float">
+          <view class="qz-i qz-i-gift"></view>
+        </view>
+        <view class="qz-head-main">
+          <text class="qz-head-title">上架一项服务</text>
+          <text class="qz-head-sub">写清包含什么、几天交付，同学才敢找你</text>
+        </view>
+      </view>
+      <view class="head-flow qz-flow"></view>
+    </view>
+
+    <view class="qz-container new-body">
+      <!-- ① 加载中 -->
+      <view wx:if="{{stage === 'loading'}}" class="qz-skeleton qz-an-in">
+        <view class="qz-skeleton-line"></view>
+        <view class="qz-skeleton-line"></view>
+        <view class="qz-skeleton-line qz-skeleton-line-short"></view>
+      </view>
+
+      <!-- ② 拉认证状态失败 -->
+      <view wx:elif="{{stage === 'error'}}" class="qz-err qz-an-in">
+        <text class="qz-err-text">{{error}}</text>
+        <view class="qz-err-btn qz-press" bindtap="onRetry">重试</view>
+      </view>
+
+      <!-- ③ 还不能上架：给引导，不给一个必然被服务端拒掉的表单 -->
+      <view wx:elif="{{stage === 'blocked'}}" class="qz-empty qz-an-in qz-d1">
+        <view class="qz-empty-ico qz-ico qz-ico-xl qz-ico-float">
+          <view class="qz-i qz-i-verify"></view>
+        </view>
+        <text class="qz-empty-title">{{blockedTitle}}</text>
+        <text wx:if="{{blockedReason}}" class="reject-why">上次的原因：{{blockedReason}}</text>
+        <text class="qz-empty-text">{{blockedText}}</text>
+        <view class="qz-empty-flow qz-flow"></view>
+        <view class="qz-btn-main qz-press" bindtap="onGoApply">去做服务者认证</view>
+        <view class="qz-btn-sub qz-press new-empty-sub" bindtap="onGoMarket">先去服务市场看看</view>
+      </view>
+
+      <!-- ④ 表单 -->
+      <block wx:else>
+        <view wx:if="{{catNotice}}" class="qz-err cat-notice qz-an-in">
+          <text class="qz-err-text">{{catNotice}}</text>
+        </view>
+
+        <!-- 基本信息（主卡型：渐变卡，视觉规范第十一节 service-new 行） -->
+        <view class="qz-card qz-card-grad qz-an-in qz-d2">
+          <view class="field">
+            <text class="field-label">服务标题 *</text>
+            <input
+              class="field-input"
+              placeholder="如：毕业季个人写真修图（4~60 字）"
+              value="{{form.title}}"
+              data-key="title"
+              bindinput="onInput"
+            />
+          </view>
+          <view class="field">
+            <text class="field-label">服务分类 *</text>
+            <picker
+              mode="selector"
+              range="{{categoryNames}}"
+              value="{{categoryIndex}}"
+              bindchange="onCategoryChange"
+            >
+              <view class="field-picker {{form.categoryId ? '' : 'placeholder'}}">
+                {{categoryIndex >= 0 ? categoryNames[categoryIndex] : '请选择分类'}}
+              </view>
+            </picker>
+          </view>
+          <view class="field">
+            <text class="field-label">服务说明 *（至少 10 个字）</text>
+            <textarea
+              class="field-textarea"
+              placeholder="包含几轮修改、交付什么文件、不含什么 —— 写细一点能少很多扯皮"
+              value="{{form.description}}"
+              data-key="description"
+              bindinput="onInput"
+              maxlength="2000"
+              auto-height
+            />
+          </view>
+        </view>
+
+        <!-- 价格与交付 -->
+        <view class="qz-card qz-card-line qz-an-in qz-d3">
+          <view class="field">
+            <text class="field-label">计价方式 *</text>
+            <view class="opt-row">
+              <view
+                wx:for="{{priceUnits}}"
+                wx:key="id"
+                class="qz-chip opt {{form.priceUnit === item.id ? 'qz-chip-on' : ''}} qz-press"
+                data-id="{{item.id}}"
+                bindtap="onPriceUnitTap"
+              >
+                {{item.name}}
+              </view>
+            </view>
+          </view>
+          <view class="field">
+            <text class="field-label">{{form.priceUnit === 'negotiable' ? '价格' : '价格 *（元）'}}</text>
+            <input
+              wx:if="{{form.priceUnit !== 'negotiable'}}"
+              class="field-input"
+              type="digit"
+              placeholder="如：199 或 199.00"
+              value="{{form.price}}"
+              data-key="price"
+              bindinput="onInput"
+            />
+            <view wx:else class="negotiable-tip">面议不填价格，具体金额成交前与发布者约定</view>
+          </view>
+          <view class="field">
+            <text class="field-label">交付天数 *（1~90 天）</text>
+            <input
+              class="field-input"
+              type="number"
+              placeholder="如：3"
+              value="{{form.deliveryDays}}"
+              data-key="deliveryDays"
+              bindinput="onInput"
+            />
+          </view>
+          <view class="field">
+            <text class="field-label">服务地区 *</text>
+            <view class="opt-row">
+              <view
+                wx:for="{{areas}}"
+                wx:key="id"
+                class="qz-chip opt {{form.serviceArea === item.id ? 'qz-chip-on' : ''}} qz-press"
+                data-id="{{item.id}}"
+                bindtap="onAreaTap"
+              >
+                {{item.name}}
+              </view>
+            </view>
+          </view>
+        </view>
+
+        <!-- 技能标签 -->
+        <view class="qz-card qz-card-line qz-an-in qz-d4">
+          <view class="field">
+            <text class="field-label">技能标签（选填，最多 10 个）</text>
+            <view class="tag-add">
+              <input
+                class="field-input tag-input"
+                placeholder="如：精修、灯光、简历美化"
+                value="{{tagInput}}"
+                bindinput="onTagInput"
+                bindconfirm="onTagAdd"
+              />
+              <view class="qz-btn-sub qz-press tag-btn" bindtap="onTagAdd">添加</view>
+            </view>
+            <view wx:if="{{skillTags.length}}" class="tag-list">
+              <view
+                wx:for="{{skillTags}}"
+                wx:key="*this"
+                class="qz-chip tag-chip qz-press"
+                data-tag="{{item}}"
+                bindtap="onTagRemove"
+              >
+                {{item}} ×
+              </view>
+            </view>
+          </view>
+        </view>
+
+        <!-- 提交前把规则说在前面：这些文字是"会发生什么"，不是承诺成交 -->
+        <view class="qz-card qz-card-tint qz-an-in qz-d5">
+          <text class="notice-title">上架后会发生什么</text>
+          <text class="notice-text">标题与描述会先过内容安全检测，不通过会当场告诉你原因；通过后服务立即出现在服务市场。想撤下来，随时在详情页下架。</text>
+        </view>
+
+        <view class="qz-btn-main qz-press submit {{submitting ? 'disabled' : ''}}" bindtap="onSubmit">
+          {{submitting ? '提交中…' : '确认上架'}}
+        </view>
+      </block>
+    </view>
+  </view>
+</view>

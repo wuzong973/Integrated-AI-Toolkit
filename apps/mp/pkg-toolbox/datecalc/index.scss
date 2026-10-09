@@ -1,0 +1,192 @@
+@import '../../styles/tokens.scss';
+
+/* 日期计算 · 星蓝主题（th-toolbox）
+   造型：模式 chip + 日期对选（起⇄止）/ 推算输入；取色只用语义令牌与
+   tokens.scss 变量，页面无裸 #RRGGBB、无数字型 rgba()；投影用 var(--sh) */
+.dc-page {
+  padding-bottom: $sp-8;
+}
+
+.card-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: $sp-4;
+  font-size: $fs-h3;
+  font-weight: $fw-semi;
+  color: var(--mt);
+
+  &-hint {
+    font-size: $fs-tag;
+    font-weight: $fw-medium;
+    color: $text-3;
+  }
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $sp-3;
+}
+
+/* ---------- 日期对选（起 ⇄ 止） ---------- */
+.pick-row {
+  display: flex;
+  align-items: center;
+  gap: $sp-3;
+
+  picker {
+    flex: 1;
+    min-width: 0;
+  }
+}
+
+.pick {
+  display: flex;
+  align-items: center;
+  min-height: $hit-min;
+  padding: 0 $sp-4;
+  background: $bg-card;
+  border: 1rpx solid var(--m2);
+  border-radius: var(--r-card);
+
+  &-tag {
+    flex-shrink: 0;
+    font-size: $fs-tag;
+    color: $text-3;
+  }
+
+  &-value {
+    flex: 1;
+    min-width: 0;
+    margin: 0 $sp-2;
+    font-size: $fs-body;
+    font-weight: $fw-semi;
+    color: var(--mt);
+  }
+
+  &-arrow {
+    flex-shrink: 0;
+    font-size: $fs-h2;
+    color: $text-3;
+  }
+}
+
+.swap {
+  flex-shrink: 0;
+  width: $hit-min;
+  height: $hit-min;
+  line-height: $hit-min - 4rpx;
+  text-align: center;
+  font-size: $fs-h1;
+  color: var(--m1);
+  background: $bg-card;
+  border: 1rpx solid var(--m1);
+  border-radius: 50%;
+  box-shadow: 0 6rpx 16rpx var(--sh);
+}
+
+/* ---------- 推算输入（基准日 + 天数） ---------- */
+.base-picker {
+  display: block;
+}
+
+.value-row {
+  display: flex;
+  align-items: center;
+  gap: $sp-3;
+  margin-top: $sp-4;
+}
+
+.value-input {
+  flex: 1;
+  min-width: 0;
+  height: $hit-min;
+  padding: 0 $sp-4;
+  font-size: $fs-h1;
+  font-weight: $fw-semi;
+  color: var(--mt);
+  background: $bg-card;
+  border: 1rpx solid var(--m2);
+  border-radius: var(--r-card);
+}
+
+.value-ph {
+  font-size: $fs-h2;
+  font-weight: $fw-medium;
+  color: $text-3;
+}
+
+.value-unit {
+  font-size: $fs-h3;
+  color: var(--mt);
+}
+
+/* ---------- 结果 ---------- */
+.result-body {
+  display: flex;
+  align-items: baseline;
+}
+
+.result-num {
+  font-size: 76rpx;
+  font-weight: $fw-black;
+  line-height: 1.2;
+  color: var(--m1);
+}
+
+.result-unit {
+  margin-left: $sp-3;
+  font-size: $fs-h2;
+  font-weight: $fw-semi;
+  color: var(--mt);
+}
+
+.result-span {
+  display: block;
+  margin-top: $sp-2;
+  font-size: $fs-body;
+  font-weight: $fw-semi;
+  color: var(--mt);
+}
+
+.result-src {
+  display: block;
+  font-size: $fs-aux;
+  color: $text-2;
+}
+
+/* 一句人话长句（含方向与两端周几），用主题浅底托一下 */
+.result-hint {
+  margin-top: $sp-4;
+  padding: $sp-3 $sp-4;
+  border-radius: var(--r-card);
+  background: var(--ms);
+}
+
+.hint-text {
+  display: block;
+  font-size: $fs-aux;
+  line-height: 1.6;
+  color: var(--mt);
+}
+
+/* ---------- 空态 / 错态（不套 .qz-empty：套进卡片阵列会压垮布局） ---------- */
+.blank {
+  text-align: center;
+
+  .blank-title {
+    display: block;
+    font-size: $fs-h2;
+    font-weight: $fw-semi;
+    color: var(--mt);
+  }
+}
+
+.hint {
+  display: block;
+  margin-top: $sp-3;
+  font-size: $fs-tag;
+  line-height: 1.6;
+  color: $text-3;
+}

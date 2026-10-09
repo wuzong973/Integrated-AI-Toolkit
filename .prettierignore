@@ -1,0 +1,19 @@
+# 依赖与构建产物
+node_modules
+dist
+build
+coverage
+apps/mp/miniprogram_npm
+
+# 锁文件由 npm 维护，重排会让 diff 不可读
+package-lock.json
+
+# 中文长文档重排会产生巨大无意义 diff
+*.md
+
+# Python 走 PEP8（.editorconfig 已声明 4 空格），不用 prettier
+services/**/*.py
+scripts/**/*.py
+
+# 微信开发者工具会回写此文件，保持原样
+project.private.config.json

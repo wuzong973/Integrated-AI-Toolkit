@@ -1,0 +1,288 @@
+@import '../../styles/tokens.scss';
+
+/* AA 分账 —— 只用 Design Token 取色，禁止硬编码色值 */
+.split {
+  padding-bottom: 40rpx;
+
+  .head {
+    padding: 24rpx 8rpx 16rpx;
+
+    .title {
+      display: block;
+      font-size: 44rpx;
+      font-weight: 600;
+      color: var(--mt);
+    }
+
+    .sub {
+      display: block;
+      margin-top: 8rpx;
+      font-size: 24rpx;
+      color: $text-3;
+    }
+  }
+
+  /* 卡片统一用库内 .qz-card；页面只加排版修饰类（.result / .empty）
+     ⚠️ 不要自造 .card，也不要把 var(--sh) 当背景 —— 那是**投影色**。 */
+
+  /* 上升粒子（装饰签名 "rise"）。
+     ⚠️ 库内 `.qz-rise` **只带 keyframes，不带形状与位置** ——
+        必须由页面补一个形状类，否则这个 view 尺寸为 0，动画在跑但完全看不见。
+     ⚠️ 它现在挂在 `.qz-fx` 里，而 `.qz-fx` 相对 `.qz-deco` 向外扩了 40rpx
+        （见 styles/deco.scss）—— 下面两个坐标已按外扩量各加 40rpx，
+        换算回原来的屏幕位置（原为 left 72rpx / bottom 160rpx）。 */
+  .rise-particle {
+    position: absolute;
+    left: 112rpx;
+    bottom: 200rpx;
+    width: 14rpx;
+    height: 14rpx;
+    border-radius: 50%;
+    background: var(--m3);
+    opacity: .5;
+  }
+
+  .card-title {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: 16rpx;
+    font-size: 30rpx;
+    font-weight: 600;
+    color: var(--mt);
+
+    &-hint {
+      font-size: 22rpx;
+      font-weight: 400;
+      color: $text-3;
+    }
+  }
+
+  .hint {
+    display: block;
+    margin-top: 12rpx;
+    font-size: 22rpx;
+    line-height: 1.5;
+    color: $text-3;
+  }
+
+  /* ---------- 成员 ---------- */
+  .member-row {
+    display: flex;
+    align-items: center;
+    padding: 8rpx 0;
+  }
+
+  .member-input {
+    flex: 1;
+    padding: 14rpx 12rpx;
+    font-size: 28rpx;
+    color: var(--mt);
+    border-bottom: 1rpx solid var(--ms);
+  }
+
+  .del {
+    width: 56rpx;
+    text-align: right;
+    font-size: 36rpx;
+    color: $text-3;
+  }
+
+  /* ---------- 账单 ---------- */
+  /* 单笔账单：库内 .qz-card-tint 给主题浅底，这里只补内边距与间距 */
+  .bill {
+    margin-bottom: 20rpx;
+    padding: 16rpx;
+    border-radius: var(--r-card);
+  }
+
+  .bill-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .bill-payer {
+    flex: 1;
+  }
+
+  .payer-box {
+    display: flex;
+    align-items: center;
+    font-size: 26rpx;
+  }
+
+  .payer-label {
+    color: $text-3;
+  }
+
+  .payer-name {
+    flex: 1;
+    margin-left: 12rpx;
+    font-weight: 600;
+    color: var(--mt);
+  }
+
+  .payer-arrow {
+    color: $text-3;
+  }
+
+  .bill-amount {
+    display: flex;
+    align-items: baseline;
+    margin: 8rpx 0 12rpx;
+
+    .yuan {
+      font-size: 30rpx;
+      color: var(--m1);
+    }
+  }
+
+  .amount-input {
+    flex: 1;
+    margin-left: 8rpx;
+    font-size: 44rpx;
+    font-weight: 700;
+    color: var(--m1);
+  }
+
+  .bill-participants {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .chips {
+    display: flex;
+    flex: 1;
+    flex-wrap: wrap;
+  }
+
+  .chip {
+    margin: 4rpx 12rpx 4rpx 0;
+    padding: 6rpx 18rpx;
+    font-size: 24rpx;
+    border-radius: 999rpx;
+    color: $text-3;
+    border: 1rpx solid var(--ms);
+
+    &-on {
+      color: $text-inverse;
+      background: var(--m1);
+      border-color: var(--m1);
+    }
+  }
+
+  .chip-all {
+    flex-shrink: 0;
+    margin-left: 12rpx;
+    font-size: 22rpx;
+    color: var(--m1);
+  }
+
+  .actions {
+    display: flex;
+    gap: 16rpx;
+    margin-top: 16rpx;
+  }
+
+  .btn {
+    padding: 18rpx 0;
+    text-align: center;
+    font-size: 26rpx;
+    border-radius: var(--r-card);
+
+    &-ghost {
+      flex: 1;
+      color: var(--m1);
+      border: 1rpx solid var(--m1);
+    }
+
+    &-solid {
+      margin-top: 16rpx;
+      color: $text-inverse;
+      background: var(--m1);
+    }
+  }
+
+  /* ---------- 结果 ---------- */
+  .result {
+    .settle {
+      display: flex;
+      align-items: baseline;
+      padding: 14rpx 0;
+      font-size: 30rpx;
+      border-bottom: 1rpx solid var(--ms);
+    }
+
+    .settle-from,
+    .settle-to {
+      color: var(--mt);
+      font-weight: 600;
+    }
+
+    .settle-arrow {
+      margin: 0 14rpx;
+      color: var(--m1);
+    }
+
+    .settle-amount {
+      flex: 1;
+      text-align: right;
+      font-weight: 700;
+      color: var(--m1);
+    }
+
+    .settle-none {
+      padding: 24rpx 0;
+      text-align: center;
+      font-size: 26rpx;
+      color: $text-3;
+    }
+
+    .balance-row {
+      display: flex;
+      align-items: center;
+      padding: 12rpx 0;
+      font-size: 28rpx;
+    }
+
+    .balance-name {
+      flex: 1;
+      color: var(--mt);
+    }
+
+    .balance-state {
+      margin-right: 16rpx;
+      font-size: 22rpx;
+      color: $text-3;
+    }
+
+    .balance-amount {
+      font-weight: 600;
+      color: var(--m1);
+    }
+
+    .amount-even {
+      color: $text-3;
+      font-weight: 400;
+    }
+  }
+
+  .err-title {
+    display: block;
+    font-size: 28rpx;
+    font-weight: 600;
+    color: var(--m3);
+  }
+
+  .empty {
+    text-align: center;
+
+    .empty-title {
+      display: block;
+      font-size: 28rpx;
+      color: var(--mt);
+    }
+  }
+}

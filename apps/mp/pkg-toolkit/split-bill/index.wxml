@@ -1,0 +1,167 @@
+<!-- AA 分账（校园小工具）
+     视觉：工具主题 · 成员 → 账单 → 方案 三段式，全部本地计算，无网络请求
+     装饰签名（见 docs/dev/MP-VISUAL-SYSTEM.md）：rise + dot-b -->
+<view
+  class="qz-page th-toolkit split"
+  bindtouchstart="onFxStart"
+  bindtouchmove="onFxMove"
+  bindtouchend="onFxEnd"
+  bindtouchcancel="onFxEnd"
+>
+  <!-- 装饰层（不拦截点击；只有装饰层跟随指针，内容区不跟随） -->
+  <view class="qz-deco">
+    <view class="qz-fx" style="{{fxStyle}}">
+      <view class="rise-particle qz-rise"></view>
+      <view class="qz-dot qz-dot-b"></view>
+    </view>
+  </view>
+
+  <view class="qz-content">
+    <view class="head qz-an-in qz-d1">
+      <text class="title">AA 分账</text>
+      <text class="sub">本地计算，不联网、不上传账单</text>
+    </view>
+
+    <!-- ---------- 成员 ---------- -->
+    <view class="qz-card qz-an-in qz-d2">
+      <view class="card-title">
+        <text>成员</text>
+        <text class="card-title-hint">改名字后所有账单同步更新</text>
+      </view>
+
+      <view class="member-row" wx:for="{{members}}" wx:key="id">
+        <input
+          class="member-input"
+          value="{{item.name}}"
+          placeholder="成员 {{index + 1}}"
+          data-index="{{index}}"
+          bindinput="onMemberInput"
+        />
+        <view class="del qz-press" data-index="{{index}}" bindtap="onRemoveMember">×</view>
+      </view>
+
+      <view class="actions">
+        <view class="btn btn-ghost qz-press" bindtap="onAddMember">+ 添加成员</view>
+        <view class="btn btn-ghost qz-press" bindtap="onReset">清空重来</view>
+      </view>
+    </view>
+
+    <!-- ---------- 账单 ---------- -->
+    <view class="qz-card qz-an-in qz-d3">
+      <view class="card-title">
+        <text>账单</text>
+        <text class="card-title-hint">金额单位是元，最多两位小数</text>
+      </view>
+
+      <view class="bill qz-card-tint" wx:for="{{expenses}}" wx:key="id">
+        <view class="bill-head">
+          <picker
+            class="bill-payer"
+            mode="selector"
+            range="{{memberLabels}}"
+            value="{{item.payerIndex}}"
+            data-id="{{item.id}}"
+            bindchange="onPayerChange"
+          >
+            <view class="payer-box">
+              <text class="payer-label">付款人</text>
+              <text class="payer-name">{{memberLabels[item.payerIndex]}}</text>
+              <text class="payer-arrow">›</text>
+            </view>
+          </picker>
+          <view class="del qz-press" data-id="{{item.id}}" bindtap="onRemoveExpense">×</view>
+        </view>
+
+        <view class="bill-amount">
+          <text class="yuan">¥</text>
+          <input
+            class="amount-input"
+            type="digit"
+            value="{{item.amount}}"
+            placeholder="0.00"
+            data-id="{{item.id}}"
+            bindinput="onAmountInput"
+          />
+        </view>
+
+        <view class="bill-participants">
+          <view class="chips">
+            <view
+              class="chip qz-press {{p.picked ? 'chip-on' : ''}}"
+              wx:for="{{item.participants}}"
+              wx:for-item="p"
+              wx:key="id"
+              data-id="{{item.id}}"
+              data-mid="{{p.id}}"
+              bindtap="onToggleParticipant"
+            >
+              {{p.label}}
+            </view>
+          </view>
+          <view class="chip-all qz-press" data-id="{{item.id}}" bindtap="onToggleAllParticipants">
+            全选 / 全不选
+          </view>
+        </view>
+      </view>
+
+      <view class="actions">
+        <view class="btn btn-ghost qz-press" bindtap="onAddExpense">+ 添加一笔</view>
+      </view>
+    </view>
+
+    <!-- ---------- 结果 ---------- -->
+    <view class="qz-card result qz-an-in" wx:if="{{computed && result && result.error}}">
+      <text class="err-title">这笔账还算不出来</text>
+      <text class="hint">{{result.error}}。请补全后再看方案。</text>
+    </view>
+
+    <block wx:elif="{{computed && result && result.totalCents > 0}}">
+      <view class="qz-card result qz-an-in">
+        <view class="card-title">
+          <text>结算方案</text>
+          <text class="card-title-hint">合计 ¥{{totalText}}</text>
+        </view>
+
+        <view class="settle" wx:for="{{settleRows}}" wx:key="key">
+          <text class="settle-from">{{item.fromName}}</text>
+          <text class="settle-arrow">→</text>
+          <text class="settle-to">{{item.toName}}</text>
+          <text class="settle-amount">¥{{item.amountText}}</text>
+        </view>
+
+        <view class="settle-none" wx:if="{{settleRows.length === 0}}">
+          <text>大家已经两清，谁都不用转账 🎉</text>
+        </view>
+
+        <view class="btn btn-solid qz-press" wx:if="{{settleRows.length}}" bindtap="onCopyPlan">
+          复制方案
+        </view>
+        <text class="hint">
+          按"最大债务人 → 最大债权人"逐笔冲抵，笔数不会超过「人数 − 1」；
+          不保证是理论最少笔数，但金额一定对得上。
+        </text>
+      </view>
+
+      <view class="qz-card result qz-an-in">
+        <view class="card-title">
+          <text>每人净额</text>
+          <text class="card-title-hint">垫付 − 应摊</text>
+        </view>
+        <view class="balance-row" wx:for="{{balanceRows}}" wx:key="id">
+          <text class="balance-name">{{item.name}}</text>
+          <text class="balance-state state-{{item.state}}">{{item.stateText}}</text>
+          <text class="balance-amount {{item.state === 'even' ? 'amount-even' : ''}}">
+            ¥{{item.amountText}}
+          </text>
+        </view>
+      </view>
+    </block>
+
+    <view class="qz-card empty qz-an-in" wx:elif="{{computed}}">
+      <text class="empty-title">填上谁付了多少，方案自动出来</text>
+      <text class="hint">
+        纯本地计算，不用点提交按钮；金额只在「元」和「分」之间做整数换算，不会出现差一分钱的情况。
+      </text>
+    </view>
+  </view>
+</view>

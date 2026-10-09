@@ -1,0 +1,25 @@
+# qz-media：音视频处理服务依赖
+# 骨架阶段（python -m services.media）不需要安装任何依赖即可启动并通过 /health。
+# 进入实现阶段再安装：pip install -r services/media/requirements.txt
+
+# ---- Web 框架（替换当前的标准库骨架，设计文档 3.3.1）----
+fastapi==0.115.6
+uvicorn[standard]==0.34.0
+python-multipart==0.0.20
+pydantic==2.10.4
+httpx==0.28.1
+
+# ---- 媒体处理（M4-01）----
+# ffmpeg / ffprobe 为系统级依赖，必须 LGPL 构建（见 scripts/license/check-ffmpeg-license.sh）；
+# Python 侧仅以子进程调用 CLI，不链接 libav*。
+# ffmpeg-python==0.2.0        # 可选：更友好的 CLI 封装
+
+# ---- 图表渲染（Mermaid / markmap → PNG 分享图）----
+# playwright（Apache-2.0）驱动 chromium 截图内置 HTML 模板（services/media/templates/）。
+# 浏览器是独立安装步骤，装完 pip 依赖后必须再执行：
+#   playwright install chromium --with-deps
+# ⚠️ 中文字体包必须装（--with-deps 在 Debian/Ubuntu 会带上 fonts-noto-cjk；
+#    其他发行版手动装 fonts-noto-cjk / wqy-zenhei），否则渲染出的中文全是方块。
+# 模板内 JS 库（mermaid 11.4.1 / d3 7.9.0 / markmap-lib 0.18.12 / markmap-view 0.18.12）
+# 已本地化进 templates/vendor/，不依赖 CDN。
+playwright==1.49.1

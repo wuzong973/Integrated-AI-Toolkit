@@ -1,0 +1,160 @@
+<!-- 行程规划（旅行小工具）
+     视觉：工具主题 · 目的地 → Day → 时间轴 三段式，纯本地存储，无网络请求
+     装饰签名（见 docs/dev/MP-VISUAL-SYSTEM.md）：curve + dot-b -->
+<view
+  class="qz-page th-toolkit trip"
+  bindtouchstart="onFxStart"
+  bindtouchmove="onFxMove"
+  bindtouchend="onFxEnd"
+  bindtouchcancel="onFxEnd"
+>
+  <!-- 装饰层（不拦截点击；只有装饰层跟随指针，内容区不跟随） -->
+  <view class="qz-deco">
+    <view class="qz-fx" style="{{fxStyle}}">
+      <view class="qz-curve"></view>
+      <view class="qz-dot qz-dot-b"></view>
+    </view>
+  </view>
+
+  <view class="qz-content">
+    <view class="head qz-an-in">
+      <text class="title">行程</text>
+      <text class="sub">排好每天去哪，只存在这台手机上</text>
+    </view>
+
+    <!-- ---------- 目的地 ---------- -->
+    <view class="qz-card qz-an-in qz-d1">
+      <view class="card-title">
+        <text>去哪</text>
+        <text class="card-title-hint" wx:if="{{rangeText}}">{{rangeText}}</text>
+      </view>
+      <input
+        class="city-input"
+        value="{{city}}"
+        placeholder="目的地城市，如 成都"
+        placeholder-class="ph"
+        bindinput="onCityInput"
+      />
+    </view>
+
+    <!-- ---------- Day 切换 ---------- -->
+    <view class="days qz-an-in qz-d2">
+      <view
+        class="day qz-press {{index === activeIndex ? 'day-on' : ''}}"
+        wx:for="{{dayTabs}}"
+        wx:key="id"
+        data-index="{{index}}"
+        bindtap="onDayTap"
+      >
+        <text class="day-label">{{item.label}}</text>
+        <text class="day-sub">{{item.sub || '未定日期'}}</text>
+      </view>
+      <view class="day day-add qz-press" bindtap="onAddDay">+</view>
+    </view>
+
+    <!-- ---------- 当前这天 ---------- -->
+    <view class="day-bar qz-an-in qz-d3">
+      <picker mode="date" value="{{activeDate}}" bindchange="onDayDateChange">
+        <view class="day-bar-date">
+          <text class="day-bar-label">日期</text>
+          <text class="day-bar-value">{{activeDate || '未定'}}</text>
+          <text class="day-bar-arrow">›</text>
+        </view>
+      </picker>
+      <text class="day-bar-stats" wx:if="{{statsText}}">{{statsText}}</text>
+      <text class="link qz-press" wx:if="{{canRemoveDay}}" bindtap="onRemoveDay">删除这天</text>
+    </view>
+
+    <!-- ---------- 时间轴 ---------- -->
+    <view class="timeline qz-an-in" wx:if="{{stops.length}}">
+      <view class="stop" wx:for="{{stops}}" wx:key="id">
+        <view class="rail">
+          <view class="node {{item.conflict ? 'node-warn' : ''}}"></view>
+          <view class="line" wx:if="{{!item.last}}"></view>
+        </view>
+
+        <view class="stop-body">
+          <view class="stop-time">
+            <picker
+              mode="time"
+              value="{{item.arriveAt}}"
+              data-id="{{item.id}}"
+              bindchange="onStopTimeChange"
+            >
+              <text class="time-text {{item.arriveAt ? '' : 'time-empty'}}">{{item.timeText}}</text>
+            </picker>
+            <text class="stay-text">{{item.stayText}}</text>
+          </view>
+
+          <!-- 从上一站到这里的路程（点"算每段路"后才会有） -->
+          <text class="leg-text" wx:if="{{item.legText}}">{{item.legText}}</text>
+
+          <view class="qz-card stop-card">
+            <input
+              class="stop-name"
+              value="{{item.name}}"
+              placeholder="去哪（如 武侯祠）"
+              placeholder-class="ph"
+              data-id="{{item.id}}"
+              bindinput="onStopNameInput"
+            />
+            <input
+              class="stop-addr"
+              value="{{item.address}}"
+              placeholder="地址或备注（可空）"
+              placeholder-class="ph"
+              data-id="{{item.id}}"
+              bindinput="onStopAddressInput"
+            />
+
+            <view class="stop-foot">
+              <view class="stay">
+                <text class="stay-label">停留</text>
+                <input
+                  class="stay-input"
+                  type="number"
+                  value="{{item.stayMinutes}}"
+                  data-id="{{item.id}}"
+                  bindinput="onStopStayInput"
+                />
+                <text class="stay-unit">分钟</text>
+              </view>
+              <text class="del qz-press" data-id="{{item.id}}" bindtap="onRemoveStop">删除</text>
+            </view>
+
+            <text class="warn qz-an-in" wx:if="{{item.conflict}}">和前面某一站的时间重叠了</text>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <view class="btn btn-ghost qz-press qz-an-in" wx:if="{{stops.length}}" bindtap="onAddStop">
+      + 再加一站
+    </view>
+
+    <!-- 算每段路：用户主动触发才联网（行程页的编辑与存储始终是纯本地的） -->
+    <view class="calc qz-an-in" wx:if="{{stops.length}}">
+      <view class="mode qz-press" bindtap="onToggleMode">
+        <text class="mode-label">出行方式</text>
+        <text class="mode-value">{{mode === 'walking' ? '步行' : '驾车'}}</text>
+      </view>
+      <view class="btn btn-ghost qz-press {{calculating ? 'btn-busy' : ''}}" bindtap="onCalcLegs">
+        {{calculating ? '正在算…' : '算每段路'}}
+      </view>
+    </view>
+
+    <text class="hint" wx:if="{{calcHint}}">{{calcHint}}</text>
+    <text class="hint" wx:if="{{stops.length > 1 && !calcHint}}">
+      点「算每段路」会联网查询每段距离与耗时（需要登录）；不算也不影响排行程。
+    </text>
+
+    <view class="qz-card empty qz-an-in" wx:else>
+      <view class="qz-ico qz-ico-l empty-ico">
+        <view class="qz-i qz-i-orders"></view>
+      </view>
+      <text class="empty-title">这一天还没排东西</text>
+      <text class="hint">先加一站，时间可以先空着 —— 想好了再填。</text>
+      <view class="btn btn-solid qz-press" bindtap="onAddStop">+ 添加第一站</view>
+    </view>
+  </view>
+</view>

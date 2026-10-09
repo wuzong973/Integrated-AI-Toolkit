@@ -1,0 +1,129 @@
+<!-- 记单词 · 学习统计（学习页「完成」与首页「学习统计」的落点）
+     视觉：苔绿主题（styles/themes.scss 的 .th-vocab）
+     四个指标 + 最近 30 天打卡日历。数字口径与首页同源（后端 plan.totals） -->
+<view
+  class="qz-page th-vocab stats"
+  bindtouchstart="onFxStart"
+  bindtouchmove="onFxMove"
+  bindtouchend="onFxEnd"
+  bindtouchcancel="onFxEnd"
+>
+  <view class="qz-deco">
+    <view class="qz-fx" style="{{fxStyle}}">
+      <view class="stats-blob qz-blob"></view>
+      <view class="stats-curve qz-curve"></view>
+      <view class="qz-dot qz-dot-b"></view>
+    </view>
+  </view>
+
+  <view class="qz-content">
+    <view class="qz-head">
+      <view class="qz-head-row qz-an-in">
+        <view class="qz-ico qz-ico-l qz-ico-float">
+          <view class="qz-i qz-i-chart"></view>
+        </view>
+        <view class="qz-head-main">
+          <text class="qz-head-title">学习统计</text>
+          <text class="qz-head-sub">连续天数按"有作答记录"的日子算，断一天就归零</text>
+        </view>
+      </view>
+      <view class="qz-head-chips qz-an-in qz-d1">
+        <view wx:if="{{bookName}}" class="qz-chip qz-chip-on">{{bookName}}</view>
+        <view class="qz-chip">待复习 {{dueToday}}</view>
+      </view>
+      <view class="head-flow qz-flow"></view>
+    </view>
+
+    <view class="qz-container">
+      <view wx:if="{{error}}" class="qz-err qz-an-in">
+        <text class="qz-err-text">{{error}}</text>
+        <view class="qz-err-btn qz-press" bindtap="onRetry">重试</view>
+      </view>
+
+      <view wx:if="{{loading}}" class="qz-card qz-card-line stats-sk">
+        <view class="qz-skeleton qz-skeleton-line"></view>
+        <view class="qz-skeleton qz-skeleton-line qz-skeleton-line-short"></view>
+      </view>
+
+      <!-- 一本书都没选过：统计确实还没有内容，说清而不是显示一排 0 -->
+      <view wx:elif="{{!bookName}}" class="qz-empty qz-an-in qz-d2">
+        <view class="qz-empty-ico qz-ico qz-ico-xl">
+          <view class="qz-i qz-i-star"></view>
+        </view>
+        <text class="qz-empty-title">还没有学习记录</text>
+        <text class="qz-empty-text">先回上一页选一本词书，背完第一组词这里就有数了</text>
+        <view class="qz-empty-flow qz-flow"></view>
+        <view class="qz-btn-main qz-press" bindtap="onBack">返回</view>
+      </view>
+
+      <block wx:else>
+        <!-- 四个指标 -->
+        <view class="qz-card stats-grid qz-an-in qz-d2">
+          <view class="qz-topline"></view>
+          <view class="stats-tile">
+            <view class="qz-ico qz-ico-s stats-tile-ico">
+              <view class="qz-i qz-i-fire"></view>
+            </view>
+            <text class="stats-tile-v">{{streak}}</text>
+            <text class="stats-tile-k">连续天数</text>
+          </view>
+          <view class="stats-tile">
+            <view class="qz-ico qz-ico-s stats-tile-ico">
+              <view class="qz-i qz-i-learn"></view>
+            </view>
+            <text class="stats-tile-v">{{totalLearned}}</text>
+            <text class="stats-tile-k">已学单词</text>
+          </view>
+          <view class="stats-tile">
+            <view class="qz-ico qz-ico-s stats-tile-ico">
+              <view class="qz-i qz-i-star"></view>
+            </view>
+            <text class="stats-tile-v">{{mastered}}</text>
+            <text class="stats-tile-k">已掌握</text>
+          </view>
+          <view class="stats-tile">
+            <view class="qz-ico qz-ico-s stats-tile-ico">
+              <view class="qz-i qz-i-chart"></view>
+            </view>
+            <text class="stats-tile-v">{{accuracy}}%</text>
+            <text class="stats-tile-k">正确率</text>
+          </view>
+        </view>
+
+        <!-- 打卡日历 -->
+        <view class="qz-sec">
+          <view class="qz-sec-bar"></view>
+          <text class="qz-sec-title">最近 30 天</text>
+          <text class="qz-sec-sub">颜色越深答得越多</text>
+        </view>
+        <view class="qz-card qz-card-line stats-cal qz-an-in qz-d3">
+          <view class="stats-grid-cells">
+            <view
+              wx:for="{{cells}}"
+              wx:key="key"
+              class="stats-cell stats-cell-{{item.level}} {{item.today ? 'stats-cell-today' : ''}} qz-press"
+              data-key="{{item.key}}"
+              bindtap="onCellTap"
+            >
+              <text class="stats-cell-num">{{item.dayNum}}</text>
+            </view>
+          </view>
+          <view class="stats-legend">
+            <text class="stats-legend-text">少</text>
+            <view class="stats-legend-swatch stats-cell-0"></view>
+            <view class="stats-legend-swatch stats-cell-1"></view>
+            <view class="stats-legend-swatch stats-cell-2"></view>
+            <view class="stats-legend-swatch stats-cell-3"></view>
+            <text class="stats-legend-text">多</text>
+          </view>
+          <text class="stats-detail">{{detail}}</text>
+        </view>
+
+        <view wx:if="{{dueToday > 0}}" class="qz-btn-main qz-press stats-go" bindtap="onStudy">
+          去学习（今天有 {{dueToday}} 个词到期）
+        </view>
+        <view class="qz-btn-sub qz-press stats-back" bindtap="onBack">返回</view>
+      </block>
+    </view>
+  </view>
+</view>

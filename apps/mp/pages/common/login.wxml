@@ -1,0 +1,86 @@
+<!-- 登录页（M0-20）
+     视觉：青紫主题 · 超大圆角 · 漂浮光斑 + 流线，第一印象要"活泼可信" -->
+<view
+  class="qz-page th-login login"
+  bindtouchstart="onFxStart"
+  bindtouchmove="onFxMove"
+  bindtouchend="onFxEnd"
+  bindtouchcancel="onFxEnd"
+>
+  <!-- 装饰层：签名组合见规范第十一节 —— blob-a + halo + shine（本页刻意不用 dot，
+       光点让给相邻页，避免"每页同一套"）。三层都落在欢迎区那一带：
+       光斑压右上角、光环绕着 logo、扫光从品牌带缓慢掠过，合起来就是"扫光欢迎卡"。
+       用量红线：1 光斑 + 1 波浪带 + 1 扫光，页面侧透明度 ≤ .4，且都在 .qz-deco 内、不拦点击。 -->
+  <view class="qz-deco">
+    <view class="qz-fx" style="{{fxStyle}}">
+      <view class="qz-blob qz-blob-a"></view>
+      <view class="login-halo qz-halo"></view>
+      <view class="login-sweep qz-shine qz-shine-slow"></view>
+    </view>
+    <view class="login-wave qz-wave qz-wave-up"></view>
+  </view>
+
+  <view class="qz-content login-inner">
+    <!-- 品牌 -->
+    <view class="brand">
+      <view class="logo qz-an-pop">
+        <view class="qz-i qz-i-sparkle logo-ico"></view>
+        <view class="logo-ring"></view>
+      </view>
+      <text class="title qz-an-in qz-d1">青智校园</text>
+      <text class="slogan qz-an-in qz-d2">让 AI 理解需求，让青年创造价值</text>
+      <view class="brand-flow qz-flow"></view>
+    </view>
+
+    <!-- 能力 -->
+    <view class="features">
+      <view class="feature qz-card qz-card-line tone-0 qz-an-in qz-d2">
+        <view class="qz-ico qz-ico-s">
+          <view class="qz-i qz-i-agent"></view>
+        </view>
+        <view class="feature-body">
+          <text class="feature-title">AI 数字员工</text>
+          <text class="feature-desc">一句话完成复杂任务</text>
+        </view>
+      </view>
+      <view class="feature qz-card qz-card-line tone-1 qz-an-in qz-d3">
+        <view class="qz-ico qz-ico-s">
+          <view class="qz-i qz-i-toolbox"></view>
+        </view>
+        <view class="feature-body">
+          <text class="feature-title">AI 工具箱</text>
+          <text class="feature-desc">PPT / 图片 / 音视频 / 文档</text>
+        </view>
+      </view>
+      <view class="feature qz-card qz-card-line tone-2 qz-an-in qz-d4">
+        <view class="qz-ico qz-ico-s">
+          <view class="qz-i qz-i-station"></view>
+        </view>
+        <view class="feature-body">
+          <text class="feature-title">青智驿站</text>
+          <text class="feature-desc">把需求交给同学完成</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 操作 -->
+    <view class="footer">
+      <view class="login-btn {{loading ? 'login-btn-disabled' : ''}} qz-press" bindtap="onLogin">
+        <view class="qz-i qz-i-check login-btn-ico"></view>
+        <text>{{loading ? '登录中…' : '微信一键登录'}}</text>
+        <view wx:if="{{!loading}}" class="login-btn-shine"></view>
+      </view>
+
+      <view class="agree qz-press" bindtap="onAgreeToggle">
+        <view class="checkbox {{agreed ? 'checkbox-on' : ''}}">
+          <text wx:if="{{agreed}}" class="checkbox-mark">✓</text>
+        </view>
+        <!-- ⚠️ 整段必须留在同一行：小程序的 <text> 会把源码里的换行和缩进空格
+             原样渲染成换行，拆成多行就会变成"一句一行"的竖排。 -->
+        <text class="agree-text">我已阅读并同意<text class="agree-link qz-press" catchtap="onOpenAgreement">《用户协议》</text>与<text class="agree-link qz-press" catchtap="onOpenPrivacy">《隐私政策》</text></text>
+      </view>
+
+      <text class="tip">登录仅用于保存你的任务与文件，不会公开你的个人信息</text>
+    </view>
+  </view>
+</view>

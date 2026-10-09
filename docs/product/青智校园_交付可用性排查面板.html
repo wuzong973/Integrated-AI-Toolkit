@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>青智校园 · 交付可用性排查面板</title>
+<style>
+  :root{
+    --bg:#0e1116; --panel:#161a21; --panel2:#1b2029; --line:#262c37;
+    --txt:#e8ebf0; --dim:#98a2b3; --dim2:#6b7686;
+    --p0:#ff5c5c; --p0bg:rgba(255,92,92,.10);
+    --p1:#ffa53d; --p1bg:rgba(255,165,61,.10);
+    --p2:#ffd93d; --p2bg:rgba(255,217,61,.08);
+    --ok:#2ee6a8; --okbg:rgba(46,230,168,.10);
+    --brand:#00d6c4;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    background:var(--bg); color:var(--txt);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+    line-height:1.65; padding:36px 28px 72px; max-width:1180px; margin:0 auto;
+    font-size:14px;
+  }
+  h1{font-size:26px;font-weight:700;letter-spacing:.3px}
+  .sub{color:var(--dim);font-size:13px;margin-top:8px}
+  .divider{height:1px;background:linear-gradient(90deg,var(--brand),transparent);margin:26px 0 30px}
+
+  /* 顶部结论 */
+  .verdict{
+    background:linear-gradient(135deg,rgba(0,214,196,.10),rgba(0,214,196,.02));
+    border:1px solid rgba(0,214,196,.28); border-radius:14px;
+    padding:20px 22px; margin-bottom:26px;
+  }
+  .verdict b{color:var(--brand)}
+  .verdict p{color:var(--dim);margin-top:8px}
+  .verdict p strong{color:var(--txt)}
+
+  /* 指标卡 */
+  .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:34px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px 16px 14px;position:relative;overflow:hidden}
+  .card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--c,var(--brand))}
+  .card .n{font-size:24px;font-weight:700;letter-spacing:.5px}
+  .card .l{font-size:12px;color:var(--dim);margin-top:3px}
+  .card .d{font-size:11px;color:var(--dim2);margin-top:6px}
+
+  h2{font-size:17px;margin:38px 0 16px;display:flex;align-items:center;gap:10px}
+  h2 .tag{font-size:11px;font-weight:600;padding:2px 9px;border-radius:20px;letter-spacing:.4px}
+  .tag-p0{background:var(--p0bg);color:var(--p0);border:1px solid rgba(255,92,92,.3)}
+  .tag-p1{background:var(--p1bg);color:var(--p1);border:1px solid rgba(255,165,61,.3)}
+  .tag-p2{background:var(--p2bg);color:var(--p2);border:1px solid rgba(255,217,61,.28)}
+  .tag-ok{background:var(--okbg);color:var(--ok);border:1px solid rgba(46,230,168,.3)}
+
+  /* 问题卡 */
+  .issue{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:0;margin-bottom:14px;overflow:hidden}
+  .issue-h{padding:14px 18px;display:flex;align-items:flex-start;gap:12px;border-bottom:1px solid var(--line)}
+  .issue-h .id{font-size:11px;font-weight:700;padding:3px 8px;border-radius:6px;flex-shrink:0;margin-top:2px;letter-spacing:.4px}
+  .i-p0{background:var(--p0bg);color:var(--p0)}
+  .i-p1{background:var(--p1bg);color:var(--p1)}
+  .i-p2{background:var(--p2bg);color:var(--p2)}
+  .issue-h .t{font-size:15px;font-weight:600}
+  .issue-b{padding:16px 18px}
+  .row{display:flex;gap:14px;margin-bottom:11px}
+  .row:last-child{margin-bottom:0}
+  .row .k{color:var(--dim2);font-size:12px;flex-shrink:0;width:74px;padding-top:2px}
+  .row .v{flex:1;font-size:13px;color:var(--dim)}
+  .row .v strong{color:var(--txt);font-weight:600}
+  code{
+    background:#0a0d12;border:1px solid var(--line);border-radius:5px;
+    padding:1.5px 6px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+    font-size:12px;color:#8ee6d8;
+  }
+  .ev{
+    background:#0a0d12;border-left:2px solid var(--line);border-radius:0 6px 6px 0;
+    padding:10px 13px;margin:8px 0;font-size:12.5px;color:var(--dim);
+    font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+    overflow-x:auto;white-space:pre-wrap;word-break:break-all;
+  }
+  .fix{background:rgba(0,214,196,.05);border:1px solid rgba(0,214,196,.18);border-radius:8px;padding:12px 14px;margin-top:12px}
+  .fix .fk{color:var(--brand);font-size:12px;font-weight:600;margin-bottom:6px;letter-spacing:.3px}
+  .fix ul{margin:0;padding-left:18px}
+  .fix li{font-size:13px;color:var(--dim);margin-bottom:5px}
+  .fix li:last-child{margin-bottom:0}
+  .fix li strong{color:var(--txt)}
+
+  /* 表格 */
+  table{width:100%;border-collapse:collapse;font-size:13px;background:var(--panel);border-radius:10px;overflow:hidden}
+  th{background:var(--panel2);color:var(--dim);font-weight:600;text-align:left;padding:11px 14px;font-size:12px;letter-spacing:.3px}
+  td{padding:11px 14px;border-top:1px solid var(--line);color:var(--dim)}
+  td strong{color:var(--txt);font-weight:600}
+  tr:hover td{background:rgba(255,255,255,.015)}
+  .ok{color:var(--ok);font-weight:600}
+  .bad{color:var(--p0);font-weight:600}
+  .warn{color:var(--p1);font-weight:600}
+
+  .note{color:var(--dim2);font-size:12px;margin-top:12px;padding-left:2px}
+  footer{margin-top:52px;padding-top:20px;border-top:1px solid var(--line);color:var(--dim2);font-size:12px}
+</style>
+</head>
+<body>
+
+<h1>青智校园 · 交付可用性排查面板</h1>
+<div class="sub">排查日期 2026-09-18 &nbsp;·&nbsp; 口径：<b style="color:var(--brand)">只采信实测</b>（真实启动后端 + 真实 HTTP 探测 + 真实模型调用 + 真实数据库）&nbsp;·&nbsp; 不采信文档进度标记</div>
+<div class="note" style="color:var(--p1);font-size:13px;margin-top:10px">
+  ⚠️ <b>本页是排查时点的快照，不随后续修复滚动更新</b> —— 卡片里的用例数（331）、P0/P1/P2 计数均停留在 09-18 排查时点。
+  修复后的最新状态请看 <code>docs/product/青智校园_交付可用性排查报告.md</code> 的「0.0 修复进度」表。
+</div>
+<div class="divider"></div>
+
+<div class="verdict">
+  <b>核心链路已真实跑通，可以演示；但驿站与订单两大业务域尚未开工，另有 3 个 P0 会在真机或演示时当场暴露。</b>
+  <p>实测跑通的闭环：登录 → JWT 鉴权、文件 presign → 直传 → 下载、<strong>上传文件 → 调 AI 工具 → 6 秒产出真实 Markdown 产物</strong>、WebSocket 断线重连补齐进度、AI 意图识别 5/5。</p>
+</div>
+
+<div class="cards">
+  <div class="card" style="--c:var(--ok)"><div class="n">331/331</div><div class="l">单元测试通过</div><div class="d">30 个测试文件</div></div>
+  <div class="card" style="--c:var(--ok)"><div class="n">9/9</div><div class="l">active 工具真跑通过</div><div class="d">45 个工具中 10 个 planned</div></div>
+  <div class="card" style="--c:var(--ok)"><div class="n">8/8</div><div class="l">文件链路端到端</div><div class="d">含伪造签名被拒 403</div></div>
+  <div class="card" style="--c:var(--p0)"><div class="n">3</div><div class="l">P0 阻断问题</div><div class="d">含 1 项红线违规</div></div>
+  <div class="card" style="--c:var(--p1)"><div class="n">6</div><div class="l">P1 可用性问题</div><div class="d">含 AI 延迟与 ASR</div></div>
+  <div class="card" style="--c:var(--p2)"><div class="n">9</div><div class="l">P2 质量与一致性</div><div class="d">可排期</div></div>
+  <div class="card" style="--c:var(--dim2)"><div class="n">16</div><div class="l">前端调用但后端未开工</div><div class="d">订单 7 · 驿站 4 · OS 3 · 消息 1</div></div>
+  <div class="card" style="--c:var(--dim2)"><div class="n">27</div><div class="l">页面路由</div><div class="d">9 骨架 · 4 无入口</div></div>
+</div>
+
+<h2><span class="tag tag-p0">P0</span>阻断交付的问题</h2>
+
+<div class="issue">
+  <div class="issue-h"><span class="id i-p0">P0-1</span><span class="t">编排看板用硬编码假数据冒充真实编排结果（违反项目红线）</span></div>
+  <div class="issue-b">
+    <div class="row"><span class="k">现象</span><span class="v">进入「编排看板」看到目标「举办 200 人创新创业活动，预算 3000 元」与 8 个节点（含「已发布 · 3人报名」），<strong>界面上没有任何演示标记</strong>，与真实结果无法区分。</span></div>
+    <div class="row"><span class="k">证据</span><span class="v"><code>pkg-os/plan/index.ts:168-177</code> 的 <code>catch</code> 分支直接 <code>applyRun(buildDemoRun())</code>，只设 <code>loading:false</code>，<strong>未设任何 demo 标记</strong>；<code>index.wxml</code> 中 <code>grep 演示|demo</code> = <strong>0 命中</strong>。</span></div>
+    <div class="row"><span class="k">必然触发</span><span class="v"><code>GET /os/runs/:id</code> 实测 <strong>404</strong> → 只要点进这个页面，看到的一定是假数据。</span></div>
+    <div class="row"><span class="k">反差</span><span class="v">项目已建好 <code>demoMode</code> 机制（<code>utils/request.ts:53</code>），首页与 AI 页都正确挂了「演示模式」角标，<strong>唯独这一页没用</strong>。</span></div>
+    <div class="fix">
+      <div class="fk">修复方案</div>
+      <ul>
+        <li><strong>最小改动</strong>：catch 里 <code>setData({demo:true})</code>，WXML 顶部挂「演示模式」角标（复用 <code>pages/home/index.wxml:69</code> 的 <code>.status-badge</code>）</li>
+        <li><strong>更彻底</strong>：与 <code>order-list</code> 对齐 —— 改为不发请求 + <code>showNotReady</code>，彻底不展示假数据</li>
+        <li><strong>加守卫</strong>：含 <code>DEMO_*</code> 常量的页面必须引用 <code>demoMode</code></li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<div class="issue">
+  <div class="issue-h"><span class="id i-p0">P0-2</span><span class="t">Redis 未运行，作业队列已降级为进程内执行</span></div>
+  <div class="issue-b">
+    <div class="row"><span class="k">证据</span><span class="v">启动日志 <code>WARN Redis 不可用，降级运行</code>；<code>/health</code> 返回 <code>redis:"down"</code>、<code>queue.degraded:true</code>；端口 6379 无监听；Redis 仅由 compose 提供，而本机 <code>docker: command not found</code>。</span></div>
+    <div class="row"><span class="k">真实代价</span><span class="v">降级路径<strong>能跑通</strong>（作业 6 秒成功），但：无跨进程并发控制、作业状态不持久（<strong>进程重启即丢</strong>）、无死信统计（返回 -1 不可知）、无 PEL 无法重投。</span></div>
+    <div class="row"><span class="k">做得对的</span><span class="v">降级<strong>不静默</strong>：打 warn + <code>/health</code> 暴露 <code>degraded:true</code>，符合 M0-11 判据。这一条不需要返工。</span></div>
+    <div class="fix">
+      <div class="fk">修复方案</div>
+      <ul>
+        <li>装 Docker Desktop 或本机 Redis 7，使 <code>docker compose up -d redis</code> 可用</li>
+        <li><code>docs/dev/ENV.md</code> 增加「Redis 为<strong>生产必需</strong>组件，缺失禁止上线」</li>
+        <li><code>/health</code> 的 <code>status</code> 在 <code>degraded=true</code> 时从 <code>ok</code> 降为 <code>degraded</code> —— 现在仍是 <code>ok</code>，<strong>监控会漏报</strong></li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<div class="issue">
+  <div class="issue-h"><span class="id i-p0">P0-3</span><span class="t">小程序端后端地址不可用于真机与线上</span></div>
+  <div class="issue-b">
+    <div class="row"><span class="k">证据</span><span class="v"><code>utils/env.ts</code>：<code>develop: 'http://127.0.0.1:3000'</code>（真机上指向<strong>手机自己</strong>）；<code>trial/release</code> 指向 <code>api-staging.qingzhi.example.com</code> / <code>api.qingzhi.example.com</code> —— <strong>example.com 是 RFC 2606 保留占位域名</strong>，永远解析不到；且 <code>const ENV='develop'</code> 是编译期硬编码，无构建期切换。</span></div>
+    <div class="row"><span class="k">连带</span><span class="v"><code>STORAGE_PUBLIC_BASE_URL</code> 为空 → 回落 localhost → 真机上文件下载地址指向手机自己。</span></div>
+    <div class="row"><span class="k">影响</span><span class="v">M0-16「真机登录成功」这条验收线<strong>物理上不可能通过</strong>。</span></div>
+    <div class="fix">
+      <div class="fk">修复方案</div>
+      <ul>
+        <li><code>ENV</code> 改为由 <code>wx.getAccountInfoSync().miniProgram.envVersion</code> 自动推导，避免手工改常量</li>
+        <li>真机调试：基址改为<strong>局域网 IP 或内网穿透</strong>，并抽成构建注入，不写死在源码</li>
+        <li><code>trial/release</code> 填真实域名（须已备案 + HTTPS + 加入小程序 request 合法域名）</li>
+        <li>同步设置 <code>STORAGE_PUBLIC_BASE_URL</code>；补《真机联调前置清单》</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<h2><span class="tag tag-p1">P1</span>影响可用性的问题</h2>
+
+<div class="issue">
+  <div class="issue-h"><span class="id i-p1">P1-1</span><span class="t">4 个页面已注册路由，但界面里没有任何入口</span></div>
+  <div class="issue-b">
+    <div class="row"><span class="k">证据</span><span class="v">全仓库 grep（排除自身目录与 app.json），<strong>入站引用均为 0 处</strong>：<code>pkg-station/service</code>、<code>pkg-station/provider</code>、<code>pkg-station/apply</code>、<code>pkg-station/order-detail</code>。且 <code>order-list</code> 中<strong>没有任何 navigateTo</strong>。</span></div>
+    <div class="row"><span class="k">反差</span><span class="v"><code>order-detail</code> 是<strong>已写好真实交互</strong>的页面（支付/验收/退款均 await 真实接口 + showNotReady 兜底），却因无入口而白写。</span></div>
+    <div class="fix">
+      <div class="fk">修复方案</div>
+      <ul>
+        <li><code>order-list</code> 列表项补 <code>bindtap</code> → <code>order-detail?orderId=...</code></li>
+        <li>任务详情 / 服务市场卡片补 → <code>service</code> / <code>provider</code>；「我的」补 → <code>apply</code></li>
+        <li><strong>加守卫</strong>：已注册的非 tabBar 路由必须至少有一处入站跳转</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<div class="issue">
+  <div class="issue-h"><span class="id i-p1">P1-2</span><span class="t">7 个骨架页空态文案把「功能未上线」写成「你还没有做」</span></div>
+  <div class="issue-b">
+    <div class="row"><span class="k">证据</span><span class="v">service「服务还没上架」· provider「还没有主页内容」· apply「还没开始认证 / 完成认证就能接单啦」（<strong>页面根本没有认证入口</strong>）· skill「还没有技能画像」· chat「还没有会话」· verify「还没提交认证材料」· os/result「交付包还在准备」</span></div>
+    <div class="row"><span class="k">对照</span><span class="v">写法正确的：settings「设置项准备中 / 将在这里逐项开放」、order-list「即将上线」。</span></div>
+    <div class="row"><span class="k">为什么是问题</span><span class="v">与红线「不许用假数据/误导冒充功能」冲突，且<strong>同批骨架页两种口径并存</strong>，用户会得出错误结论。</span></div>
+    <div class="fix">
+      <div class="fk">修复方案</div>
+      <ul>
+        <li>统一改用 <code>utils/not-ready.ts</code> 口径：标题「XX 功能开发中」，副文案「已规划、尚未上线」</li>
+        <li>把文案抽成 <code>not-ready.ts</code> 导出常量，避免 7 处再次漂移</li>
+        <li>加守卫禁止骨架页出现「还没有 / 还没开始」句式</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<div class="issue">
+  <div class="issue-h"><span class="id i-p1">P1-3</span><span class="t">LLM 延迟抖动 + 超时重试，最坏让用户等 185 秒</span></div>
+  <div class="issue-b">
+    <div class="row"><span class="k">现象</span><span class="v">同一提示词实测 <strong>65132ms / 9503ms / 7166ms</strong>（抖动近 10 倍）；<code>verify:tools</code> 中 <code>generate_outline</code> 实测 <strong>69995ms</strong>；OS 对话单条 <strong>16.3s</strong>。</span></div>
+    <div class="row"><span class="k">根因</span><span class="v">已定位：<code>openai-compatible.provider.ts</code> 每次尝试 <code>AbortSignal.timeout(60000)</code>，<code>maxRetry=3</code>，退避 1s/4s → <strong>最坏 60+1+60+4+60 = 185 秒</strong>。实测 69995ms 正是「60s 超时 + 1s 退避 + 9s 重试成功」的指纹。</span></div>
+    <div class="row"><span class="k">放大因素</span><span class="v"><code>LLM_FALLBACK_MODELS=</code> 刻意留空 → 主模型过载时<strong>无跨模型兜底</strong>，只能等满 185s 后硬失败。</span></div>
+    <div class="row"><span class="k">归因</span><span class="v">抖动来自<strong>服务商侧排队</strong>，不是代码 bug —— 但代码<strong>放大了它的后果</strong>（超时值 × 重试次数）。</span></div>
+    <div class="fix">
+      <div class="fk">修复方案</div>
+      <ul>
+        <li><strong>按工具分档设超时</strong>：短任务（意图/总结/提示词）降到 20~25s，长任务保留 60s</li>
+        <li><strong>重试预算改为总时长上限</strong>（整次 ≤90s），而非「每次 60s × 3 次」</li>
+        <li>补跨服务商降级：需新增独立 <code>LLM_FALLBACK_BASE_URL</code> / <code>API_KEY</code></li>
+        <li><code>os/sessions/:id/messages</code> 是<strong>同步阻塞</strong>，建议改 SSE 或先返回「思考中」再推送</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<div class="issue">
+  <div class="issue-h"><span class="id i-p1">P1-4</span><span class="t">ASR 语音转文字间歇性挂起超时，失败率约 35%</span></div>
+  <div class="issue-b">
+    <div class="row"><span class="k">现象</span><span class="v">6 轮样本 2 轮失败（33%），8 轮扫描 3 轮失败（38%）。成功时仅 <strong>78~97ms</strong>。</span></div>
+    <div class="row"><span class="k">失败原文</span><span class="v"><code>The operation was aborted due to timeout</code></span></div>
+    <div class="row"><span class="k">关键点</span><span class="v">失败时<strong>连 120s 超时都没返回</strong>（<code>ASR_TIMEOUT_MS=120000</code>），即服务商 <code>/audio/transcriptions</code> 端点<strong>偶发无限挂起</strong> —— 不是 400、不是参数错。</span></div>
+    <div class="row"><span class="k">影响</span><span class="v"><code>speech_to_text</code> 是 9 个 active 工具之一，工具页展示为「可用」→ 用户有 1/3 概率<strong>等 2 分钟后收到超时错误</strong>。</span></div>
+    <div class="fix">
+      <div class="fk">修复方案</div>
+      <ul>
+        <li><strong>降低超时</strong>：ASR 正常 &lt;100ms，把 <code>ASR_TIMEOUT_MS</code> 从 120000 降到 15~20s，快速失败</li>
+        <li><strong>加失败重试 1 次</strong>：这类「挂起」重试通常能成功（ASR Provider 目前无重试）</li>
+        <li>确认该错误不被 <code>BizException</code> 吞成确定性失败（参考已踩过的 <code>UnusableOutputError</code> 教训）</li>
+        <li>把 <code>verify:siliconflow</code> 的 ASR 段改为<strong>多次采样</strong>再判定，避免单次采样把偶发当稳定</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<div class="issue">
+  <div class="issue-h"><span class="id i-p1">P1-5</span><span class="t">后端 404 的原始框架报文直接弹给用户</span></div>
+  <div class="issue-b">
+    <div class="row"><span class="k">现象</span><span class="v">用户填完整张发布表单点「发布」→ toast 显示 <code>Cannot POST /api/v1/station/tasks</code></span></div>
+    <div class="ev">实测响应: {"code":40400,"message":"Cannot POST /api/v1/station/tasks","data":null,"traceId":"-"}
+request.ts:203 → new Error(body.message)   request.ts:280 → showToast(e.message)</div>
+    <div class="row"><span class="k">命中点</span><span class="v"><code>publish:251</code> → stationApi.publish · <code>task:94</code> → stationApi.apply · <code>order-detail:88/128/158</code> → orderApi.pay/accept/refund</span></div>
+    <div class="row"><span class="k">对照</span><span class="v">task 的「选定服务者/关闭需求」、workbench 的「报名接单」、order-detail 的「订单交付/要求修改」均已用 <code>showNotReady</code> ✅ → 属「<strong>只改了一半</strong>」</span></div>
+    <div class="fix">
+      <div class="fk">修复方案</div>
+      <ul>
+        <li>上述 5 个调用点改为 <code>showNotReady(...)</code>，与已改部分保持一致</li>
+        <li><strong>更稳</strong>：在 <code>request.ts</code> 增加错误文案映射层，<code>code===40400</code> 统一转「该功能尚未开放」，从根上杜绝原始报文泄漏</li>
+        <li>扩展 <code>audit-api-routes.mjs</code>：调用缺失路由的页面必须导入 <code>showNotReady</code></li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<div class="issue">
+  <div class="issue-h"><span class="id i-p1">P1-6</span><span class="t">真机微信登录从未被验证过</span></div>
+  <div class="issue-b">
+    <div class="row"><span class="k">证据</span><span class="v"><code>.env</code> 的 <code>WECHAT_SECRET</code> <strong>为空</strong> → 走开发模式伪 openid（实测返回 <code>openid:"dev_c43d94d0"</code>，<code>dev_</code> 前缀即降级路径）。</span></div>
+    <div class="row"><span class="k">做得对的</span><span class="v">降级<strong>显式可辨</strong>：打 warn 日志 + 响应带 <code>X-Provider: mock</code>，符合红线 10 ✅</span></div>
+    <div class="row"><span class="k">问题</span><span class="v">M0-16 验收要求是「真机登录成功」，目前只证明了开发降级路径 —— 真实 <code>code2session</code> 链路（含 session_key、unionid、错误码处理）<strong>一次都没跑过</strong>。</span></div>
+    <div class="fix">
+      <div class="fk">修复方案</div>
+      <ul>
+        <li>填入真实 <code>WECHAT_SECRET</code>；按 P0-3 配好真机可达地址后走一次完整登录</li>
+        <li>补 <code>verify:wechat</code>：用真 code 打 <code>code2session</code>，断言 openid <strong>非 <code>dev_</code> 前缀</strong></li>
+        <li>覆盖失效 code / 过期 code 的负向用例</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<h2><span class="tag tag-p2">P2</span>质量与一致性（可排期）</h2>
+
+<table>
+  <tr><th style="width:52px">编号</th><th style="width:30%">问题</th><th>证据与修复方案</th></tr>
+  <tr>
+    <td><span class="id i-p2" style="padding:2px 6px;border-radius:4px">P2-1</span></td>
+    <td><strong>verify-billing-modes 偶发失败</strong></td>
+    <td>首轮 <code>零余额作业也跑成功(status=undefined)</code>，重跑通过。根因：<code>waitTerminal</code> 上限 40s 撞上 P1-3 抖动。<b>修 P1-3 后自然缓解</b>，或把上限提到 120s</td>
+  </tr>
+  <tr>
+    <td><span class="id i-p2" style="padding:2px 6px;border-radius:4px">P2-2</span></td>
+    <td><strong>4 个验证脚本未登记且默认端口错</strong></td>
+    <td><code>verify-llm / verify-billing / verify-billing-modes / verify-realtime</code> 均不在 <code>npm run</code> 里；前三个默认 <code>127.0.0.1:3100</code> 而项目实际 <b>3000</b> → 直接跑必然 ECONNREFUSED（本次已踩到）。全部登记 + 默认基址统一读 <code>.env</code></td>
+  </tr>
+  <tr>
+    <td><span class="id i-p2" style="padding:2px 6px;border-radius:4px">P2-3</span></td>
+    <td><strong>reasoning_effort=low 对延迟改善不稳定</strong></td>
+    <td>带 low：65132/9503/7166ms；不带：54731/8105ms，无显著差异。项目记忆里「差 4 倍」是 <b>智谱 GLM</b> 的实测，<b>不可外推</b>。更新 <code>docs/dev/AI-PROVIDER-CONFIG.md</code> 注明适用模型</td>
+  </tr>
+  <tr>
+    <td><span class="id i-p2" style="padding:2px 6px;border-radius:4px">P2-4</span></td>
+    <td><strong>api.ts 3 个方法无调用方（死代码），其中一个是真缺口</strong></td>
+    <td><code>stationApi.categories / match / messageApi.*</code> 全仓库 0 调用；而 <code>pages/station/index.ts:12</code> 的分类是<b>客户端硬编码常量</b>，与后端 <code>service_category</code> 表（seed 9 条）<b>无对齐机制</b>。分类这类枚举应只保留一份真相源</td>
+  </tr>
+  <tr>
+    <td><span class="id i-p2" style="padding:2px 6px;border-radius:4px">P2-5</span></td>
+    <td><strong>限流阈值对认证接口偏宽松</strong></td>
+    <td><code>THROTTLE_LIMIT=120/60s</code>。机制本身<b>已正确生效</b>（<code>app.module.ts:76</code> 已注册全局守卫），但建议对 <code>/auth/login</code> 单独收紧到 10 次/分/IP 防撞库</td>
+  </tr>
+  <tr>
+    <td><span class="id i-p2" style="padding:2px 6px;border-radius:4px">P2-6</span></td>
+    <td><strong>推理标签未在净化层覆盖</strong></td>
+    <td><code>os-reply-guard.ts</code> 只删 URL/图片，不处理 <code>&lt;/think&gt;</code>；<code>verify-llm</code> 输出中曾出现 <code>「可以&lt;/think&gt;可以」</code>。专项探测 <b>5 次 0 泄漏</b>属低概率，但加固零风险（幂等剥离）</td>
+  </tr>
+  <tr>
+    <td><span class="id i-p2" style="padding:2px 6px;border-radius:4px">P2-7</span></td>
+    <td><strong>驿站任务大厅展示 seed 演示数据且未标注</strong></td>
+    <td><code>GET /station/tasks</code> 返回 4 条，编号 <code>QZ-DEMO-0001..0004</code>（「张同学」发布、2 人报名），而 WXML <b>不渲染 taskNo</b> → 用户无法分辨。对外演示前建议加「演示数据」角标</td>
+  </tr>
+  <tr>
+    <td><span class="id i-p2" style="padding:2px 6px;border-radius:4px">P2-8</span></td>
+    <td><strong>apps/admin 0 实现且未纳入 CI</strong></td>
+    <td><code>find apps/admin -type f</code> = <b>1 个文件</b>（仅 README）；根 <code>build</code>/<code>typecheck</code> 不含 admin → 这个缺口<b>永远不会被自动化发现</b></td>
+  </tr>
+  <tr>
+    <td><span class="id i-ok" style="padding:2px 6px;border-radius:4px">P2-9</span></td>
+    <td><strong>工具目录口径不一致</strong>（已修复）</td>
+    <td>排查时把接口默认返回的 <code>33</code> 条（<b>用户可见</b>口径，<code>where: { visible: true }</code>）当成了全量，误记为「seed 33 条 / 7 分类」。真实：seed <b>41 条</b>（33 可见 + 8 个 Agent 内部）、分类 <b>9 个</b>（可见 7 + 内部 2）。<br>连带纠正一个错误结论：<code>campus</code> / <code>system</code> 分类<b>在 <code>seed.ts</code> 里早已定义</b>（<code>visible: false</code>），并非「不存在于 tool_category」→ <b>不需要"先补分类行"</b>，缺的 9 个工具补进 seed 不会外键失败。<br>现已加静态守卫 <code>npm run check:doc-counts</code> 锁死文档口径（5 处漂移已全部改正）</td>
+  </tr>
+</table>
+
+<h2><span class="tag tag-ok">实测</span>逐项核验结果</h2>
+
+<table>
+  <tr><th style="width:34%">核验项</th><th style="width:12%">结果</th><th>说明</th></tr>
+  <tr><td>路由文件三件套齐全</td><td class="ok">通过</td><td>27/27 齐全，无缺失</td></tr>
+  <tr><td>静态跳转目标命中</td><td class="ok">通过</td><td>100% 命中，无悬空目标</td></tr>
+  <tr><td>tabBar 图标 / 自定义组件</td><td class="ok">通过</td><td>10 个图标齐全；全部 <code>usingComponents:{}</code> → 无组件加载类致命错误</td></tr>
+  <tr><td>lint / typecheck / build</td><td class="ok">通过</td><td>build 首次报错是<b>沙箱拦截批量删 dist</b>，非代码缺陷，非沙箱重跑通过</td></tr>
+  <tr><td>单元测试</td><td class="ok">331/331</td><td>30 个测试文件</td></tr>
+  <tr><td>静态守卫（mp/api/points/tools）+ smoke</td><td class="ok">全通过</td><td><code>X-Provider: mock</code> 正确标注 8 个 Mock Provider</td></tr>
+  <tr><td>9 个 active 工具端到端</td><td class="ok">9/9</td><td>但 <code>generate_outline</code> 耗时 69995ms（见 P1-3）</td></tr>
+  <tr><td>文件链路端到端</td><td class="ok">8/8</td><td>含伪造签名被拒 403</td></tr>
+  <tr><td>AI 助手 + 意图识别</td><td class="ok">5/5</td><td>意图分类命中，越权访问正确返回 404</td></tr>
+  <tr><td>WebSocket 实时进度</td><td class="ok">通过</td><td>进度序列 0→0→15→55→90→100 单调不减，断线重连补齐</td></tr>
+  <tr><td>文件+工具真实闭环</td><td class="ok">通过</td><td>presign→直传→confirm→调工具→<b>6 秒产出真实 Markdown</b>（已下载核对正文）</td></tr>
+  <tr><td>OCR / 向量化 / 结构化输出</td><td class="ok">通过</td><td>3 个 OCR 模型均正确识别；embedding 1024 维非常数向量</td></tr>
+  <tr><td>参数校验与诚实性</td><td class="ok">通过</td><td>空参 400、未登录 401、planned 工具 404 且文案诚实（<code>detail.status=planned</code>）</td></tr>
+  <tr><td>ASR 语音转文字</td><td class="bad">间歇失败</td><td>6 轮 2 败 / 8 轮 3 败，原文 <code>aborted due to timeout</code>（见 P1-4）</td></tr>
+  <tr><td>LLM 延迟</td><td class="bad">严重抖动</td><td>同提示词 65s/9.5s/7.2s；最坏 185s 才报错（见 P1-3）</td></tr>
+  <tr><td>verify-billing-modes</td><td class="warn">偶发失败</td><td>首次 1 项失败，重跑通过（见 P2-1）</td></tr>
+  <tr><td>verify-billing</td><td class="warn">主动拒绝</td><td>要求 points 模式而当前为 free —— <b>属脚本自我保护，设计正确</b></td></tr>
+  <tr><td>页面可达性</td><td class="bad">4 个无入口</td><td>见 P1-1</td></tr>
+  <tr><td>后端接口完备度</td><td class="bad">16 个未开工</td><td>订单 7 · 驿站 4 · OS 3 · 消息 1</td></tr>
+  <tr><td>真机 / 线上连通性</td><td class="bad">必然失败</td><td>127.0.0.1 + example.com 占位域名（见 P0-3）</td></tr>
+  <tr><td>真机微信登录</td><td class="bad">未验证</td><td>仅证明开发降级路径（见 P1-6）</td></tr>
+</table>
+
+<h2>建议的修复顺序</h2>
+<div class="issue" style="padding:18px">
+  <div class="row"><span class="k" style="color:var(--p0);width:86px">第 1 批</span><span class="v"><strong>阻断交付（1~2 天）</strong> —— P0-1 编排看板假数据（改动最小、收益最大）· P0-3 小程序后端地址环境化 · P0-2 Redis 装起来 + <code>/health</code> 状态降级 + 文档标注</span></div>
+  <div class="row"><span class="k" style="color:var(--p1);width:86px">第 2 批</span><span class="v"><strong>可用性（2~3 天）</strong> —— P1-3 LLM 分档超时 + 总时长预算（直接解决 185s 与 70s）· P1-4 ASR 超时降到 20s + 重试 · P1-5 request.ts 统一文案映射（一处覆盖所有页面）· P1-1 补跳转 + 孤岛页守卫 · P1-2 统一空态文案 · P1-6 真机登录</span></div>
+  <div class="row"><span class="k" style="color:var(--p2);width:86px">第 3 批</span><span class="v"><strong>质量与一致性</strong> —— P2-1 ~ P2-9</span></div>
+  <div class="fix" style="margin-top:14px">
+    <div class="fk">同时建议立即补的 3 条静态守卫（防复发，成本极低）</div>
+    <ul>
+      <li>已注册的非 tabBar 路由<strong>必须有入站跳转</strong>（防孤岛页 → P1-1）</li>
+      <li>含 <code>DEMO_*</code> 常量的页面<strong>必须引用 demoMode</strong>（防假数据 → P0-1）</li>
+      <li>调用 <code>KNOWN_MISSING</code> 路由的页面<strong>必须导入 showNotReady</strong>（防原始报文泄漏 → P1-5）</li>
+    </ul>
+  </div>
+</div>
+
+<footer>
+  数据来源：真实启动后端（<code>localhost:3000/api/v1</code>）+ 真实 HTTP 探测 28 条路由 + 真实模型调用 + 真实数据库查询，共 6 个一次性排查脚本。<br>
+  完整报告见 <code>docs/product/青智校园_交付可用性排查报告.md</code>　·　环境：MySQL 在跑 / Redis 未运行 / Docker 不可用。
+</footer>
+
+</body>
+</html>

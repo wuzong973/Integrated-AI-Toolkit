@@ -1,0 +1,87 @@
+<!-- Base64 / URL 编解码 —— UTF-8 安全，纯本地计算，输入即出结果
+     视觉：星蓝主题（th-toolbox）· 装饰签名：shine + dot-a -->
+<view
+  class="qz-page th-toolbox b64-page"
+  bindtouchstart="onFxStart"
+  bindtouchmove="onFxMove"
+  bindtouchend="onFxEnd"
+  bindtouchcancel="onFxEnd"
+>
+  <view class="qz-deco">
+    <view class="qz-fx" style="{{fxStyle}}">
+      <view class="qz-shine"></view>
+      <view class="qz-dot qz-dot-a"></view>
+    </view>
+  </view>
+
+  <view class="qz-content">
+    <view class="qz-head">
+      <view class="qz-head-row qz-an-in">
+        <view class="qz-ico qz-ico-l qz-ico-float">
+          <view class="qz-i qz-i-code"></view>
+        </view>
+        <view class="qz-head-main">
+          <text class="qz-head-title">Base64 编解码</text>
+          <text class="qz-head-sub">UTF-8 安全 · 本地计算、不上传</text>
+        </view>
+      </view>
+    </view>
+
+    <view class="qz-container">
+      <!-- 模式切换 -->
+      <view class="qz-card qz-an-in qz-d1">
+        <view class="card-title">
+          <text>选一个模式</text>
+          <text class="card-title-hint">切换后按当前内容立即重算</text>
+        </view>
+        <view class="chips">
+          <view
+            wx:for="{{modeChips}}"
+            wx:key="key"
+            class="qz-chip qz-press {{mode === item.key ? 'qz-chip-on' : ''}}"
+            data-key="{{item.key}}"
+            bindtap="onModeTap"
+          >
+            {{item.label}}
+          </view>
+        </view>
+      </view>
+
+      <!-- 输入 -->
+      <view class="qz-card qz-card-grad qz-an-in qz-d2">
+        <view class="card-title">
+          <text>输入</text>
+          <view wx:if="{{inputText}}" class="clear-chip qz-press" bindtap="onClear">清空</view>
+        </view>
+        <textarea
+          class="io-area"
+          value="{{inputText}}"
+          maxlength="-1"
+          placeholder="粘贴要编码或解码的文本"
+          placeholder-class="io-ph"
+          bindinput="onInput"
+        ></textarea>
+      </view>
+
+      <!-- 结果 -->
+      <view wx:if="{{error}}" class="qz-err qz-an-in qz-d3">
+        <text class="qz-err-text">{{error}}</text>
+      </view>
+
+      <view wx:elif="{{outputText}}" class="qz-card qz-card-glow qz-an-in qz-d3" bindtap="onCopy">
+        <view class="card-title">
+          <text>结果</text>
+          <text class="result-copy">点此复制</text>
+        </view>
+        <scroll-view scroll-y class="out-scroll">
+          <text class="out-text" user-select="{{true}}">{{outputText}}</text>
+        </scroll-view>
+      </view>
+
+      <view wx:else class="qz-card blank qz-an-in qz-d3">
+        <text class="blank-title">结果会在这里出现</text>
+        <text class="hint">编码与解码都是边输入边算；Base64 解码会先容忍换行与空格。</text>
+      </view>
+    </view>
+  </view>
+</view>

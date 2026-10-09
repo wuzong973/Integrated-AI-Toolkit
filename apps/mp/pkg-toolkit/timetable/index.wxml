@@ -1,0 +1,209 @@
+<!-- 课程表（校园小工具）
+     视觉：工具主题 · 周视图网格（节次 × 星期），纯本地存储，无网络请求
+     装饰签名（见 docs/dev/MP-VISUAL-SYSTEM.md）：topline + water -->
+<view
+  class="qz-page th-toolkit timetable"
+  bindtouchstart="onFxStart"
+  bindtouchmove="onFxMove"
+  bindtouchend="onFxEnd"
+  bindtouchcancel="onFxEnd"
+>
+  <!-- 装饰层（不拦截点击；只有装饰层跟随指针，内容区不跟随） -->
+  <view class="qz-deco">
+    <view class="qz-fx" style="{{fxStyle}}">
+      <view class="qz-topline"></view>
+      <view class="tb-water qz-water"></view>
+    </view>
+  </view>
+
+  <view class="qz-content">
+    <view class="head qz-an-in">
+      <text class="title">课程表</text>
+      <text class="sub">按节次排布 · 只存在这台手机上</text>
+    </view>
+
+    <!-- ---------- 学期开始（未设置时是引导，不是空课表） ---------- -->
+    <view class="qz-card setup qz-an-in qz-d1" wx:if="{{!termStartText}}">
+      <text class="setup-title">先设置学期第一周的周一</text>
+      <text class="hint">
+        有了这个起点，才能算出"今天第几周"，单双周与周次范围也才有意义。
+        日期随便选那一周里的哪天都行，会自动对齐到周一。
+      </text>
+      <picker mode="date" value="{{termStartText}}" bindchange="onTermStartChange">
+        <view class="btn btn-solid qz-press">选择日期</view>
+      </picker>
+    </view>
+
+    <block wx:else>
+      <!-- ---------- 周次切换 ---------- -->
+      <view class="qz-card week-bar qz-an-in qz-d1">
+        <view class="step qz-press" data-delta="-1" bindtap="onWeekStep">‹</view>
+        <view class="week-center">
+          <text class="week-no">第 {{week}} 周</text>
+          <text class="week-range">{{weekRangeText}}</text>
+        </view>
+        <view class="step qz-press" data-delta="1" bindtap="onWeekStep">›</view>
+      </view>
+
+      <view class="week-actions qz-an-in qz-d2">
+        <text class="week-state" wx:if="{{currentWeek < 1}}">学期还没开始</text>
+        <text class="week-state" wx:elif="{{isCurrent}}">这是本周</text>
+        <view class="link qz-press" wx:else bindtap="onBackToCurrent">回到本周</view>
+        <picker mode="date" value="{{termStartText}}" bindchange="onTermStartChange">
+          <view class="link qz-press">改学期开始</view>
+        </picker>
+      </view>
+
+      <!-- ---------- 网格 ---------- -->
+      <view class="grid qz-an-in qz-d3">
+        <view class="grid-head">
+          <view class="corner"></view>
+          <view class="day-head" wx:for="{{columns}}" wx:key="weekday">{{item.label}}</view>
+        </view>
+
+        <view class="grid-body">
+          <view class="period-col">
+            <view class="period-cell" wx:for="{{periodLabels}}" wx:for-item="p" wx:key="*this">
+              {{p}}
+            </view>
+          </view>
+
+          <view class="day-col" wx:for="{{columns}}" wx:key="weekday">
+            <view class="slot" wx:for="{{periodLabels}}" wx:for-item="p" wx:key="*this"></view>
+            <view
+              class="block qz-press"
+              wx:for="{{item.blocks}}"
+              wx:for-item="b"
+              wx:key="id"
+              style="top:{{b.top}}%;height:{{b.height}}%"
+              data-id="{{b.id}}"
+              bindtap="onBlockTap"
+            >
+              <text class="block-name">{{b.name}}</text>
+              <text class="block-meta">{{b.periodText}}</text>
+              <text class="block-meta" wx:if="{{b.location}}">@{{b.location}}</text>
+            </view>
+          </view>
+        </view>
+      </view>
+
+      <text class="hint grid-hint">
+        点课程块可以删除。这里不显示上课时间 —— 各校作息不同，写死一套反而会误导。
+      </text>
+    </block>
+
+    <!-- ---------- 添加课程 ---------- -->
+    <view class="qz-card qz-an-in qz-d4">
+      <view class="add-toggle qz-press" bindtap="onToggleForm">
+        {{showForm ? '收起' : '＋ 添加课程'}}
+      </view>
+
+      <block wx:if="{{showForm}}">
+        <input
+          class="field"
+          value="{{form.name}}"
+          placeholder="课程名称，如 高等数学"
+          data-field="name"
+          bindinput="onFormInput"
+        />
+        <input
+          class="field"
+          value="{{form.teacher}}"
+          placeholder="任课老师（可留空）"
+          data-field="teacher"
+          bindinput="onFormInput"
+        />
+        <input
+          class="field"
+          value="{{form.location}}"
+          placeholder="上课地点（可留空）"
+          data-field="location"
+          bindinput="onFormInput"
+        />
+
+        <view class="picker-row">
+          <picker
+            class="pick"
+            mode="selector"
+            range="{{weekdayLabels}}"
+            value="{{form.weekdayIndex}}"
+            data-field="weekdayIndex"
+            bindchange="onFormPick"
+          >
+            <view class="pick-box">
+              <text class="pick-label">星期</text>
+              <text class="pick-value">周{{weekdayLabels[form.weekdayIndex]}}</text>
+            </view>
+          </picker>
+
+          <picker
+            class="pick"
+            mode="selector"
+            range="{{periodLabels}}"
+            value="{{form.startIndex}}"
+            data-field="startIndex"
+            bindchange="onFormPick"
+          >
+            <view class="pick-box">
+              <text class="pick-label">起始</text>
+              <text class="pick-value">{{periodLabels[form.startIndex]}}</text>
+            </view>
+          </picker>
+
+          <picker
+            class="pick"
+            mode="selector"
+            range="{{periodLabels}}"
+            value="{{form.endIndex}}"
+            data-field="endIndex"
+            bindchange="onFormPick"
+          >
+            <view class="pick-box">
+              <text class="pick-label">结束</text>
+              <text class="pick-value">{{periodLabels[form.endIndex]}}</text>
+            </view>
+          </picker>
+        </view>
+
+        <view class="picker-row">
+          <input
+            class="field field-num"
+            type="number"
+            value="{{form.fromWeek}}"
+            placeholder="起始周"
+            data-field="fromWeek"
+            bindinput="onFormInput"
+          />
+          <input
+            class="field field-num"
+            type="number"
+            value="{{form.toWeek}}"
+            placeholder="结束周"
+            data-field="toWeek"
+            bindinput="onFormInput"
+          />
+          <picker
+            class="pick"
+            mode="selector"
+            range="{{parityOptions}}"
+            value="{{form.parityIndex}}"
+            data-field="parityIndex"
+            bindchange="onFormPick"
+          >
+            <view class="pick-box">
+              <text class="pick-label">单双周</text>
+              <text class="pick-value">{{parityOptions[form.parityIndex]}}</text>
+            </view>
+          </picker>
+        </view>
+
+        <view class="btn btn-solid qz-press" bindtap="onAddCourse">加到课表</view>
+      </block>
+    </view>
+
+    <view class="qz-card empty qz-an-in" wx:if="{{termStartText && !weekHasCourse}}">
+      <text class="empty-title">这一周还没有课</text>
+      <text class="hint">用下面的「添加课程」加一门；也可以切到别的周看看。</text>
+    </view>
+  </view>
+</view>

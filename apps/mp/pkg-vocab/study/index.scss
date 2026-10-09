@@ -1,0 +1,290 @@
+@import '../../styles/tokens.scss';
+
+/* 记单词 · 学习页（模块色板见 styles/themes.scss 的 .th-vocab）
+   造型语言：四种选项状态一眼可辨（未答 / 对 / 错 / 淡出），词形放大到全屏最大 */
+
+.study { padding-bottom: 120rpx; }
+
+/* 装饰签名：一团光斑压在题卡背后，一条大弧横在页头下沿 —— 都进 .qz-fx 跟着指针动 */
+.study-blob {
+  width: 360rpx; height: 360rpx;
+  right: -120rpx; top: -60rpx;
+}
+.study-curve { position: absolute; left: -40rpx; right: -40rpx; top: 240rpx; opacity: .24; }
+
+.head-flow { margin-top: $sp-4; }
+
+.study-sk { padding: $card-padding; }
+
+/* ---------- 题卡 ---------- */
+.study-card { padding: $sp-6 $card-padding $sp-8; }
+
+.study-top { display: flex; align-items: center; justify-content: space-between; }
+/* 新词 / 复习：新词用实心（今天是第一次见），复习用描边 */
+.study-tag {
+  padding: 4rpx $sp-3;
+  border-radius: $radius-pill;
+  font-size: $fs-tag; font-weight: $fw-semi;
+}
+.study-tag-new { background: var(--m1); color: $text-inverse; }
+.study-tag-rev { background: var(--ms); color: var(--mt); border: 1rpx solid var(--m2); }
+/* 题型标签：与"新词/复习"标签同排但语气更轻 —— 它说明"这道题考什么"，
+   不是状态，不该和新词标签抢视觉重量 */
+.study-type {
+  margin-left: $sp-2;
+  padding: 4rpx $sp-3;
+  border-radius: $radius-pill;
+  background: $bg-page;
+  color: $text-2;
+  font-size: $fs-tag;
+}
+.study-step { margin-left: auto; font-size: $fs-tag; color: $text-3; }
+
+/* 作答说明：一句话告诉用户这道题要做什么。四种题型的操作差别很大（有的选、
+   有的拼、有的要听），没有它用户会盯着一屏文字不知道该点哪里 */
+.study-hint {
+  display: block;
+  margin-top: $sp-3;
+  font-size: $fs-tag; color: $text-3;
+}
+
+/* 词形 + 喇叭 */
+.study-word-row { display: flex; align-items: center; margin-top: $sp-5; }
+.study-word {
+  /* 长词（如 responsibility）必须能换行，题目区不能横向溢出 */
+  flex: 1; min-width: 0;
+  font-size: 60rpx; font-weight: $fw-black; color: $text-1;
+  letter-spacing: 1rpx; line-height: 1.25;
+  word-break: break-word;
+}
+/* 点击区补到 $hit-min（图标本身只有 $ico-sm） */
+.study-spk {
+  flex-shrink: 0;
+  width: $hit-min; height: $hit-min;
+  margin-left: $sp-2;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 50%;
+  transition: background $dur-fast $ease-out;
+}
+/* 正在合成/播放：底色亮起来，配合图标自转（qz-ico-bob） */
+.study-spk-on { background: var(--ms); }
+.study-phonetic {
+  display: block;
+  margin-top: $sp-2;
+  font-size: $fs-aux; color: $text-3;
+}
+
+/* ---------- 听音辨词：题面是一个大喇叭 ---------- */
+/* 这个题型"没有字可看"，所以喇叭必须给足尺寸与反馈 ——
+   点不到 / 看不出能点，这道题就废了 */
+.study-listen {
+  display: flex; flex-direction: column; align-items: center;
+  padding: $sp-6 0 $sp-4;
+}
+.study-listen-btn {
+  display: flex; align-items: center; justify-content: center;
+  width: 200rpx; height: 200rpx;
+  border-radius: 50%;
+  background: var(--ms);
+  transition: background $dur-fast $ease-out;
+}
+/* 正在播放：底色加深一档，配合图标的 qz-ico-bob 呼吸 */
+.study-listen-on { background: var(--m2); }
+.study-listen-tip {
+  margin-top: $sp-4;
+  font-size: $fs-aux; color: $text-3;
+}
+
+/* ---------- 看义拼词：题面是一句中文释义 ---------- */
+.study-sense {
+  margin-top: $sp-5;
+  padding: $sp-5 $sp-4;
+  border-radius: $radius-lg;
+  background: $bg-page;
+}
+.study-sense-text {
+  display: block;
+  font-size: $fs-h3; font-weight: $fw-bold; color: $text-1;
+  line-height: 1.6;
+}
+
+/* ---------- 例句填空：题面是挖空的句子 ---------- */
+.study-cloze {
+  margin-top: $sp-5;
+  padding: $sp-5 $sp-4;
+  border-radius: $radius-lg;
+  background: $bg-page;
+}
+.study-cloze-en {
+  display: block;
+  font-size: $fs-h3; color: $text-1;
+  line-height: 1.7;
+  /* 空格是下划线，必须能换行折行 —— 长例句不能横向溢出 */
+  word-break: break-word;
+}
+.study-cloze-zh {
+  display: block;
+  margin-top: $sp-3;
+  font-size: $fs-aux; color: $text-3;
+  line-height: 1.6;
+}
+/* "听整句"：例句填空的辅助按钮，与题面同一行不够放，单独给一个行内样式 */
+.study-spk-line {
+  width: auto; height: auto;
+  margin: $sp-3 0 0;
+  padding: $sp-2 $sp-3;
+  border-radius: $radius-pill;
+  background: $bg-card;
+  border: 1rpx solid $border-strong;
+}
+.study-spk-text { margin-left: $sp-2; font-size: $fs-tag; color: $text-2; }
+
+/* ---------- 拼写输入 ---------- */
+.study-input-wrap { margin-top: $sp-6; }
+.study-input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: $sp-4;
+  border-radius: $radius-lg;
+  border: 2rpx solid $border-strong;
+  background: $bg-card;
+  color: $text-1;
+  font-size: $fs-h3; font-weight: $fw-semi;
+  /* 拼写时字母间距拉开一点，长词更好数清楚 */
+  letter-spacing: 2rpx;
+}
+.study-input-ph { color: $text-3; font-weight: $fw-medium; letter-spacing: 0; }
+/* 判完上色：与选项的对/错同一套语义色 */
+.study-input-ok { border-color: var(--m1); background: var(--ms); }
+.study-input-no { border-color: $danger; background: $danger-veil; }
+.study-input-btn { margin-top: $sp-4; }
+
+/* ---------- 四个选项 ---------- */
+.study-opts { margin-top: $sp-6; }
+.study-opt {
+  display: flex; align-items: center;
+  min-height: $hit-min;
+  padding: $sp-3 $sp-4;
+  margin-bottom: $sp-3;
+  border-radius: $radius-lg;
+  background: $bg-card;
+  border: 2rpx solid $border-strong;
+  transition: border-color $dur-fast $ease-out, background $dur-fast $ease-out,
+    opacity $dur-fast linear;
+}
+.study-opt:last-child { margin-bottom: 0; }
+.study-opt-key {
+  flex-shrink: 0;
+  width: 44rpx; height: 44rpx; line-height: 44rpx;
+  margin-right: $sp-3;
+  border-radius: 50%;
+  text-align: center;
+  font-size: $fs-tag; font-weight: $fw-bold;
+  background: $bg-page; color: $text-2;
+}
+.study-opt-text { flex: 1; min-width: 0; font-size: $fs-body; color: $text-1; line-height: 1.5; }
+
+/* 正确项：主题绿（本模块 --m1 就是苔绿）+ 浅底 */
+.study-opt-ok { border-color: var(--m1); background: var(--ms); }
+.study-opt-ok .study-opt-key { background: var(--m1); color: $text-inverse; }
+/* 选错的那个：红色，和"正确项在哪"同时呈现，用户才知道自己错在哪 */
+.study-opt-no { border-color: $danger; background: $danger-veil; }
+.study-opt-no .study-opt-key { background: $danger; color: $text-inverse; }
+/* 其余两个淡出，视线自然落到对错两处 */
+.study-opt-dim { opacity: .5; }
+
+/* ---------- 作答反馈 ---------- */
+.study-fb { padding: $sp-6 $card-padding; }
+.study-fb-ok { border-left: 8rpx solid var(--m1); }
+/* 差一点就对：用警示色而不是错误色 —— 它过了 SM-2 通过线，不是"答错"，
+   标成红色会让用户以为自己完全不会 */
+.study-fb-near { border-left: 8rpx solid $warning; }
+.study-fb-no { border-left: 8rpx solid $danger; }
+
+.study-fb-head { display: flex; align-items: center; }
+.study-fb-ico { margin-right: $sp-3; }
+.study-fb-title { font-size: $fs-h3; font-weight: $fw-bold; color: $text-1; }
+.study-fb-sub { margin-left: auto; font-size: $fs-tag; color: $text-3; }
+
+/* 拼写/填空的"你写的 vs 正确的"对照 —— 只报"错了"而不给出正确写法，
+   用户没有可对照的东西，下一遍还是会错 */
+.study-cmp {
+  margin-top: $sp-4;
+  padding: $sp-3 $sp-4;
+  border-radius: $radius-md;
+  background: $bg-page;
+}
+.study-cmp-row { display: flex; align-items: baseline; margin-bottom: $sp-2; }
+.study-cmp-row:last-child { margin-bottom: 0; }
+.study-cmp-key { flex-shrink: 0; width: 120rpx; font-size: $fs-tag; color: $text-3; }
+.study-cmp-val {
+  flex: 1; min-width: 0;
+  font-size: $fs-body; font-weight: $fw-semi;
+  word-break: break-word;
+}
+.study-cmp-ok { color: var(--mt); }
+.study-cmp-no { color: $danger; text-decoration: line-through; }
+
+/* 美/英音标切换：两个胶囊，选中的那个实心 */
+.study-accent { display: flex; flex-wrap: wrap; margin-top: $sp-4; }
+.study-accent .qz-chip { margin: 0 $sp-2 $sp-2 0; }
+
+/* 释义：词性小字 + 中文（词性可能为空，空时不占位） */
+.study-mean { margin-top: $sp-4; }
+.study-mean-row { display: block; font-size: $fs-body; color: $text-1; line-height: 1.7; }
+.study-mean-pos { margin-right: $sp-2; font-size: $fs-tag; color: var(--mt); }
+
+.study-ex {
+  margin-top: $sp-4;
+  padding: $sp-3 $sp-4;
+  border-radius: $radius-md;
+  background: $bg-page;
+}
+.study-ex-row { display: block; margin-bottom: $sp-3; }
+.study-ex-row:last-child { margin-bottom: 0; }
+.study-ex-en { display: block; font-size: $fs-aux; color: $text-1; line-height: 1.6; }
+.study-ex-zh { display: block; font-size: $fs-tag; color: $text-3; line-height: 1.6; }
+
+/* 词组搭配：与例句同族（都是"这个词怎么用"），但用描边区分开 ——
+   例句是"读一句"，词组是"记一个搭配"，两者不该看起来是同一批内容 */
+.study-ph {
+  margin-top: $sp-4;
+  padding: $sp-3 $sp-4;
+  border-radius: $radius-md;
+  border: 1rpx solid $border-strong;
+}
+.study-ph-row { display: block; margin-bottom: $sp-2; }
+.study-ph-row:last-child { margin-bottom: 0; }
+.study-ph-en { display: block; font-size: $fs-aux; font-weight: $fw-semi; color: var(--mt); line-height: 1.6; }
+.study-ph-zh { display: block; font-size: $fs-tag; color: $text-3; line-height: 1.6; }
+
+/* 助记：AI 生成的记忆提示，用警示柔底与词典释义区分开（它不一定权威） */
+.study-mnemo {
+  display: flex; align-items: flex-start;
+  margin-top: $sp-4;
+  padding: $sp-3 $sp-4;
+  border-radius: $radius-md;
+  background: $warning-veil;
+}
+.study-mnemo-key {
+  flex-shrink: 0;
+  margin-right: $sp-3;
+  padding: 2rpx $sp-2;
+  border-radius: $radius-xs;
+  background: $bg-card; color: $warning;
+  font-size: $fs-tag; font-weight: $fw-semi;
+}
+.study-mnemo-text { flex: 1; min-width: 0; font-size: $fs-aux; color: $text-2; line-height: 1.6; }
+
+.study-next { margin-top: $sp-6; }
+
+/* ---------- 收尾 ---------- */
+.study-done { padding: $sp-8 $card-padding; text-align: center; }
+.study-done-ico { margin-bottom: $sp-4; }
+.study-done-title {
+  display: block;
+  font-size: $fs-h2; font-weight: $fw-black; color: $text-1;
+}
+.study-done-sub { display: block; margin-top: $sp-2; font-size: $fs-aux; color: $text-3; }
+.study-done-btn { margin-top: $sp-6; }
+.study-done-back { margin-top: $sp-3; }

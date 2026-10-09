@@ -1,0 +1,144 @@
+<!-- 管理后台 · 订单（数据源 GET /admin/orders，只读）
+     ⚠️ 不提供放款 / 退款 / 介入：纠纷裁决留在网页版后台（apps/admin），
+     那三个动作直接动托管资金，手机上误触的代价太高。
+     装饰签名「dot-c + water」（§十一 登记）· 主卡型 .qz-card-bar · 反馈 press 给筛选与分页 -->
+<view
+  class="qz-page th-mine ad ad-orders"
+  bindtouchstart="onFxStart"
+  bindtouchmove="onFxMove"
+  bindtouchend="onFxEnd"
+  bindtouchcancel="onFxEnd"
+>
+  <view class="qz-deco">
+    <view class="qz-fx" style="{{fxStyle}}">
+      <view class="od-water qz-water"></view>
+      <view class="ad-dot qz-dot qz-dot-c"></view>
+    </view>
+  </view>
+
+  <view class="qz-content">
+    <!-- 闸门未过：骨架 / 没有权限 / 没问出来。三种情况都不发一个后台请求 -->
+    <block wx:if="{{gate !== 'ok'}}">
+      <view wx:if="{{gate === 'checking'}}" class="qz-container ad-body">
+        <view class="ad-skm qz-card qz-card-bar">
+          <view class="qz-skeleton ad-sk-label"></view>
+          <view class="qz-skeleton ad-sk-num"></view>
+        </view>
+      </view>
+      <view wx:elif="{{gate === 'denied'}}" class="qz-container ad-body">
+        <view class="qz-empty qz-an-in">
+          <view class="qz-empty-ico qz-ico qz-ico-xl qz-ico-float"><view class="qz-i qz-i-lock"></view></view>
+          <text class="qz-empty-title">没有权限</text>
+          <text class="qz-empty-text">当前账号不是平台管理员，订单数据不会在这里展示，也没有发出任何后台请求。</text>
+          <view class="qz-empty-flow qz-flow"></view>
+          <view class="qz-btn-main qz-press" bindtap="onBack">返回</view>
+        </view>
+      </view>
+      <view wx:elif="{{gate === 'error'}}" class="qz-container ad-body">
+        <view class="qz-err qz-an-in">
+          <text class="qz-err-text">{{gateError}}</text>
+          <view class="qz-err-btn qz-press" bindtap="onRetryGate">重新验证</view>
+        </view>
+      </view>
+    </block>
+
+    <block wx:else>
+      <view class="ad-band qz-an-in">
+        <view class="ad-band-row">
+          <view class="qz-ico qz-ico-m qz-ico-plain ad-band-ico"><view class="qz-i qz-i-orders"></view></view>
+          <view class="ad-band-main">
+            <text class="ad-band-title">管理后台</text>
+            <text class="ad-band-sub">{{adminName}} · {{roleChips}}</text>
+          </view>
+          <view class="ad-band-back qz-press" bindtap="onBack">返回</view>
+        </view>
+        <view class="ad-band-chips">
+          <view wx:for="{{roleChips}}" wx:key="*this" class="ad-chip">{{item}}</view>
+        </view>
+      </view>
+
+      <view class="ad-tabs qz-an-in qz-d1">
+        <view
+          wx:for="{{tabs}}"
+          wx:key="key"
+          class="ad-tab {{item.on ? 'ad-tab-on' : ''}} qz-press"
+          data-url="{{item.url}}"
+          bindtap="onTabTap"
+        >{{item.label}}</view>
+      </view>
+
+      <!-- 只反映这一次真发出去的请求；没有定时器，所以"更新于"不会自己跳 -->
+      <view class="ad-sync qz-an-in qz-d2">
+        <text class="ad-sync-time">{{updatedAt ? '更新于 ' + updatedAt + ' · 共 ' + total + ' 条，本页已显示 ' + rows.length + ' 条' : '首次拉取中，还没取到条数'}}</text>
+        <view class="ad-sync-btn qz-press" bindtap="onRefresh">{{stage === 'loading' ? '刷新中…' : '手动刷新'}}</view>
+      </view>
+
+      <!-- 状态胶囊的值逐个抄自 OrderStatus（packages/core/src/enums/index.ts）：
+           写一个后端没有的值不会报错，只会筛出 0 条，看起来就像"没人下单" -->
+      <view class="ad-filters qz-an-in qz-d3">
+        <view class="od-box">
+          <view
+            wx:for="{{statusChips}}"
+            wx:key="value"
+            class="ad-filter {{status === item.value ? 'ad-filter-on' : ''}} qz-press"
+            data-value="{{item.value}}"
+            bindtap="onStatusTap"
+          >{{item.label}}</view>
+          <view class="od-toggle {{disputed ? 'od-toggle-on' : ''}} qz-press" bindtap="onDisputedTap">
+            {{disputed ? '只看纠纷：开' : '只看纠纷：关'}}
+          </view>
+        </view>
+      </view>
+
+      <view wx:if="{{stage === 'loading'}}" class="qz-container ad-body">
+        <view wx:for="{{[1,2,3]}}" wx:key="*this" class="ad-skm qz-card qz-card-bar">
+          <view class="qz-skeleton ad-sk-label"></view>
+          <view class="qz-skeleton ad-sk-num"></view>
+        </view>
+      </view>
+
+      <view wx:elif="{{stage === 'error'}}" class="qz-container ad-body">
+        <view class="qz-err qz-an-in">
+          <text class="qz-err-text">{{error}}</text>
+          <view class="qz-err-btn qz-press" bindtap="onRetry">重试</view>
+        </view>
+      </view>
+
+      <!-- 筛出 0 条 ≠ 全站没有订单：把当前的两个条件原样报回去，人才看得出是筛选生效了 -->
+      <view wx:elif="{{stage === 'empty'}}" class="qz-container ad-body">
+        <view class="qz-empty qz-an-in">
+          <view class="qz-empty-ico qz-ico qz-ico-xl qz-ico-float"><view class="qz-i qz-i-empty"></view></view>
+          <text class="qz-empty-title">这一组条件筛出了 0 条订单</text>
+          <text class="qz-empty-text">当前条件：{{statusLabel}}{{disputed ? ' · 只看纠纷' : ''}}。接口回的是「共 0 条」，说的是这个条件下没有命中，不是全站没人下单。</text>
+          <view class="qz-empty-flow qz-flow"></view>
+          <view class="qz-btn-main qz-press" bindtap="onResetFilters">清掉筛选重拉</view>
+        </view>
+      </view>
+
+      <view wx:else class="qz-container ad-body">
+        <!-- 只读行：金额已在 TS 里走 moneyText（整数分 → 「12.34」），WXML 不做任何算术；
+             纯信息卡不挂 .qz-lift / .qz-press，点了没东西可点 -->
+        <view wx:for="{{rows}}" wx:key="id" class="ad-row qz-card qz-card-bar {{item.anim}}">
+          <view class="ad-row-main">
+            <text class="ad-row-title">{{item.orderNoText}}</text>
+            <text class="ad-row-desc">{{item.partyText}}</text>
+            <text class="ad-row-extra">{{item.createdText}} · {{item.paidText}}</text>
+            <text wx:if="{{item.refundReason}}" class="od-hint">退款原因：{{item.refundReason}}</text>
+          </view>
+          <view class="od-side">
+            <text class="od-amount">{{item.amountText}}</text>
+            <view class="ad-tags"><view class="ad-chip {{item.statusCls}}">{{item.statusText}}</view></view>
+          </view>
+        </view>
+
+        <!-- 分页尾巴：还有下一页才是按钮，到底了就换成一句说明（留个点不动的"加载更多"是骗人） -->
+        <view
+          wx:if="{{hasMore}}"
+          class="ad-more qz-press"
+          bindtap="onLoadMore"
+        >{{loadingMore ? '加载中…' : '加载更多（已显示 ' + rows.length + ' / ' + total + '）'}}</view>
+        <text wx:elif="{{!loadingMore}}" class="ad-end">已显示全部 {{total}} 条订单</text>
+      </view>
+    </block>
+  </view>
+</view>

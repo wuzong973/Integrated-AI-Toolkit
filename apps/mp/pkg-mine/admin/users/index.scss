@@ -1,0 +1,55 @@
+@import '../frame.scss';
+
+/* 管理后台 · 用户列表
+   装饰签名「仅 dot-c」—— 列表页刻意克制（§十一 登记）：
+   一屏要读十几行数据，装饰多一处就多想一处。 */
+.ad-dot {
+  opacity: .26;
+}
+
+/* 搜索框：只用令牌取色，不写裸色值。
+   左右留白必须自己给——这一行是 .qz-content 的直接子节点，不在 .qz-container 里，
+   少这一句搜索框就会顶到屏幕两边，和上下的卡片对不齐。 */
+.ad-search {
+  display: flex;
+  align-items: center;
+  margin: $sp-4 $page-padding 0;
+  padding: 0 $sp-4;
+  /* 按 $hit-min 做高：里面的「搜索」按钮要能填满这一行才够点击区（§九 无障碍硬要求） */
+  height: $hit-min;
+  background: var(--ms);
+  border-radius: $radius-pill;
+}
+.ad-search-ico {
+  flex-shrink: 0;
+  margin-right: $sp-2;
+  opacity: .6;
+}
+.ad-search-input {
+  flex: 1;
+  min-width: 0;
+  font-size: $fs-aux;
+  color: $text-1;
+}
+.ad-search-go {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  height: $hit-min;
+  margin-left: $sp-2;
+  padding: 0 $sp-4;
+  font-size: $fs-tag;
+  color: var(--mt);
+}
+
+/* 注册时间：`frame.scss` 的 `.ad-row-extra` 原本是给"右侧那一列数值"用的
+   （margin-left + 加粗 + 深色），而本页把它排在昵称与手机下面当第三行说明。
+   照原样用就是一行莫名缩进、还比上一行更醒目的时间。这里按列表页的排版改回
+   整行辅助文字 —— WXML 挂了类但没人覆盖它是不报错的，只会"看着怪"（§九 同族）。 */
+.ad-row-extra {
+  display: block;
+  margin-left: 0;
+  margin-top: 2rpx;
+  font-weight: $fw-medium;
+  color: $text-3;
+}

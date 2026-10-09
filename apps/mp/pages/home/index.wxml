@@ -1,0 +1,199 @@
+<!-- 首页（文档 5.3.1）
+     视觉：青碧主题 · 水波感 · 泡泡造型；装饰层随指针移动产生视差 -->
+<view
+  class="qz-page th-home home"
+  style="{{sbStyle}}"
+  bindtouchstart="onFxStart"
+  bindtouchmove="onFxMove"
+  bindtouchend="onFxEnd"
+  bindtouchcancel="onFxEnd"
+>
+  <!-- 装饰层（不拦截点击，内容可读性不受影响）
+       签名组合见规范第十一节：wave-up + blob-a/b + dot-a —— 首页独占"泡泡水波"，
+       水波压在导航下方的头部带，光斑与光点只做角落呼吸（blob 2 枚 ≤ 红线 3 枚）。 -->
+  <view class="qz-deco">
+    <view class="qz-fx" style="{{fxStyle}}">
+      <view class="home-wave qz-wave qz-wave-up"></view>
+      <view class="qz-blob qz-blob-a"></view>
+      <view class="qz-blob qz-blob-b"></view>
+      <view class="qz-dot qz-dot-a"></view>
+    </view>
+  </view>
+
+  <view class="qz-content">
+    <!-- 自定义透明导航（滚动渐白，文档 5.2.2）。
+         右侧刻意留空：那是微信胶囊的位置，摆什么都会被盖 -->
+    <view class="nav {{scrolled ? 'nav-solid' : ''}}">
+      <!-- 学校名：多校区选择（M4-10）未开放，点开来要说实话，不能是个摆设 -->
+      <view class="nav-left qz-press" bindtap="onSchoolTap">
+        <view class="qz-i qz-i-home brand-ico"></view>
+        <text class="school">青智校园</text>
+        <text class="arrow">▾</text>
+      </view>
+    </view>
+
+    <!-- 搜索区 -->
+    <view class="hero">
+      <view class="hero-hello qz-an-in qz-d1">
+        <view class="hero-hello-main">
+          <text class="hero-hi">Hi，今天想做点什么？</text>
+          <text class="hero-tip">说一句话，AI 帮你把活干完</text>
+        </view>
+        <!-- 铃铛：站内消息（M3-19）未开放，所以不画"未读红点"——那是演出来的。
+             从导航行挪到这里：胶囊下方才是它点得到的位置 -->
+        <view class="bell qz-press" bindtap="onBellTap">
+          <view class="qz-i qz-i-bell bell-ico"></view>
+        </view>
+      </view>
+
+      <view class="search-box qz-an-in qz-d2 qz-press" bindtap="onSearchTap">
+        <view class="qz-i qz-i-search search-icon"></view>
+        <text class="search-ph">告诉我你想完成什么…</text>
+        <view class="search-ai">AI</view>
+      </view>
+
+      <scroll-view class="chips qz-an-in qz-d3" scroll-x enable-flex show-scrollbar="{{false}}">
+        <view
+          wx:for="{{quickCommands}}"
+          wx:key="*this"
+          class="chip tone-{{index % 4}} qz-press"
+          data-cmd="{{item}}"
+          bindtap="onQuickCommand"
+        >
+          <view class="chip-dot"></view>
+          <text class="chip-text">{{item}}</text>
+        </view>
+      </scroll-view>
+    </view>
+
+    <!-- 后端连通状态（M0 验收：首页显示版本号） -->
+    <view class="container qz-an-in qz-d3">
+      <!-- 连不上时如实报错 + 给重试，不再只留一句红字 -->
+      <view wx:if="{{healthError}}" class="qz-err">
+        <text class="qz-err-text">{{healthError}}</text>
+        <view class="qz-err-btn qz-press" bindtap="onRetryHealth">重试</view>
+      </view>
+      <view wx:elif="{{health}}" class="status-card ok">
+        <view class="status-pulse"></view>
+        <text class="status-text">后端已连接 · v{{health.version}} · DB {{health.dependencies.database}}</text>
+        <text wx:if="{{health.mockProviders.length}}" class="status-badge">演示模式</text>
+      </view>
+      <view wx:else class="status-card">
+        <view class="status-pulse"></view>
+        <text class="status-text">正在连接后端…</text>
+      </view>
+    </view>
+
+    <!-- 金刚区 -->
+    <view class="container">
+      <view class="grid qz-card qz-card-grad qz-card-glow qz-an-in qz-d4">
+        <view class="qz-topline"></view>
+        <view class="qz-shine qz-shine-slow"></view>
+        <view
+          wx:for="{{gridEntries}}"
+          wx:key="key"
+          class="grid-item qz-press"
+          data-url="{{item.url}}"
+          data-tab="{{item.tab}}"
+          bindtap="onGridTap"
+        >
+          <view class="grid-ico qz-ico qz-ico-m qz-ico-float delay-{{index}}">
+            <view class="qz-i {{item.icon}}"></view>
+          </view>
+          <text class="grid-name">{{item.name}}</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 首屏加载中：列表区给骨架，不留一片空白（写法同 pkg-station/apply） -->
+    <view class="container skeleton-box" wx:if="{{loading}}">
+      <view class="qz-skeleton qz-an-in">
+        <view class="qz-skeleton-line"></view>
+        <view class="qz-skeleton-line qz-skeleton-line-short"></view>
+      </view>
+    </view>
+
+    <!-- 热门工具 -->
+    <view class="section" wx:if="{{hotTools.length}}">
+      <view class="qz-sec">
+        <view class="qz-sec-bar"></view>
+        <text class="qz-sec-title">热门工具</text>
+        <text class="qz-sec-sub">大家都在用</text>
+        <text class="qz-sec-more qz-press" bindtap="onMoreTools">更多 ›</text>
+      </view>
+      <scroll-view class="hscroll" scroll-x enable-flex show-scrollbar="{{false}}">
+        <view
+          wx:for="{{hotTools}}"
+          wx:key="name"
+          class="tool-card tone-{{index % 4}} qz-an-in qz-d{{index + 1}} qz-lift"
+          data-name="{{item.name}}"
+          bindtap="onToolTap"
+        >
+          <view class="tool-ico qz-ico qz-ico-s">
+            <view class="qz-i {{item.iconClass}}"></view>
+          </view>
+          <text class="tool-name qz-ellipsis">{{item.displayName}}</text>
+          <text class="tool-desc qz-ellipsis-2">{{item.description}}</text>
+          <view class="tool-meta">
+            <!-- 价格文案由 utils/billing.ts 统一决定：免费开放期显示"限时免费开放中" -->
+            <text wx:if="{{item.free}}" class="tool-free">{{item.priceLabel}}</text>
+            <text wx:elif="{{item.price > 0}}" class="tool-price">{{item.priceLabel}}</text>
+            <text wx:else class="tool-free">{{item.priceLabel}}</text>
+            <text class="tool-count">{{item.useCount}} 次</text>
+          </view>
+        </view>
+      </scroll-view>
+    </view>
+
+    <!-- 热门需求 -->
+    <view class="section" wx:if="{{hotTasks.length}}">
+      <view class="qz-sec">
+        <view class="qz-sec-bar"></view>
+        <text class="qz-sec-title">热门需求</text>
+        <text class="qz-sec-sub">接单赚零花</text>
+        <text class="qz-sec-more qz-press" bindtap="onMoreTasks">更多 ›</text>
+      </view>
+      <view class="container">
+        <view
+          wx:for="{{hotTasks}}"
+          wx:key="id"
+          class="task-card qz-card qz-card-glow qz-card-bar qz-an-in qz-d{{index + 1}} qz-lift"
+          data-id="{{item.id}}"
+          bindtap="onTaskTap"
+        >
+          <view class="task-row">
+            <text class="task-title qz-ellipsis">{{item.title}}</text>
+            <text class="task-budget">¥{{item.budget / 100}}</text>
+          </view>
+          <text class="task-desc qz-ellipsis-2">{{item.description}}</text>
+          <view class="task-foot">
+            <view class="task-tags">
+              <text wx:for="{{item.skillTags}}" wx:for-item="tag" wx:key="*this" class="task-tag">{{tag}}</text>
+            </view>
+            <text class="task-apply">{{item.applyCount}} 人报名</text>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 空态：新人三件事（文档 5.3.1：无进行中时展示引导）。统一用 .qz-empty 系列 -->
+    <view class="container" wx:if="{{!loading && !hotTools.length && !hotTasks.length}}">
+      <view class="qz-empty qz-an-in">
+        <view class="qz-empty-ico qz-ico qz-ico-xl qz-ico-float">
+          <view class="qz-i qz-i-rocket"></view>
+        </view>
+        <text class="qz-empty-title">新人三件事</text>
+        <text class="qz-empty-text">完成学生认证 · 用 AI 生成第一份 PPT · 发布第一个需求。先去工具箱挑一个工具开始。</text>
+        <view class="qz-empty-flow qz-flow"></view>
+        <view class="qz-btn-main qz-press" bindtap="onGoToolbox">去工具箱</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 悬浮 AI 球 -->
+  <view class="float-ai qz-press" bindtap="onFloatAi">
+    <view class="float-ring"></view>
+    <view class="float-ring float-ring-2"></view>
+    <view class="qz-i qz-i-ai float-ico"></view>
+  </view>
+</view>

@@ -1,0 +1,120 @@
+@import '../../styles/tokens.scss';
+
+/* 练习中心 · 统计页
+   中性文字色用 `$text-1/-2/-3`（见 tokens.scss）；不要自造 `--color-text-*`。 */
+
+.practice-blob-a {
+  top: 80rpx;
+  left: -70rpx;
+  width: 300rpx;
+  height: 300rpx;
+  background: var(--m2);
+  opacity: 0.24;
+}
+
+.practice-blob-b {
+  top: 500rpx;
+  right: -80rpx;
+  width: 320rpx;
+  height: 320rpx;
+  background: var(--m4);
+  opacity: 0.18;
+}
+
+.pstats-sk {
+  height: 220rpx;
+}
+
+.pstats-hero {
+  padding: 44rpx 30rpx;
+  text-align: center;
+}
+
+.pstats-hero-num {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.pstats-hero-v {
+  font-size: 88rpx;
+  font-weight: 500;
+  line-height: 1.1;
+  color: var(--m1);
+}
+
+.pstats-hero-k {
+  margin-top: 10rpx;
+  font-size: 26rpx;
+  color: $text-2;
+}
+
+.pstats-hero-sub {
+  margin-top: 20rpx;
+  font-size: 24rpx;
+  color: $text-3;
+}
+
+/* ---------- 各模块 ---------- */
+
+.pstats-mods {
+  padding: 30rpx 28rpx;
+}
+
+.pstats-mod {
+  margin-bottom: 26rpx;
+}
+
+.pstats-mod-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.pstats-mod-title {
+  font-size: 28rpx;
+  color: $text-1;
+}
+
+.pstats-mod-v {
+  font-size: 26rpx;
+  color: var(--m1);
+}
+
+/* ---------- 日历 ---------- */
+
+.pstats-cal {
+  display: flex;
+  flex-wrap: wrap;
+  padding: 24rpx 16rpx;
+}
+
+.pstats-cell {
+  width: calc(20% - 12rpx);
+  margin: 6rpx;
+  height: 60rpx;
+  border-radius: 12rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--ms);
+  opacity: 0.5;
+}
+
+.pstats-cell-on {
+  background: var(--m1);
+  opacity: 1;
+}
+
+.pstats-cell-today {
+  border: 2rpx solid var(--m3);
+}
+
+.pstats-cell-d {
+  font-size: 22rpx;
+  color: $text-inverse;
+}
+
+.pstats-back {
+  margin-top: 40rpx;
+}

@@ -1,0 +1,31 @@
+{
+  "miniprogramRoot": "apps/mp/",
+  "compileType": "miniprogram",
+  "appid": "wxd89a1e87830e5821",
+  "projectname": "qingzhi-campus",
+  "description": "青智校园 · AI 驱动的高校智能服务与青年生产力协同平台 —— 小程序端（源码在 apps/mp）",
+  "setting": {
+    "es6": true,
+    "enhance": true,
+    "postcss": true,
+    "minified": true,
+    "uglifyFileName": false,
+    "useCompilerPlugins": ["typescript", "sass"],
+    "packNpmRelationList": [],
+    "ignoreUploadUnusedFiles": true,
+    "babelSetting": {
+      "ignore": [],
+      "disablePlugins": [],
+      "outputPath": ""
+    }
+  },
+  "packOptions": {
+    "ignore": [
+      { "type": "folder", "value": "__tests__" },
+      { "type": "suffix", "value": ".spec.ts" },
+      { "type": "suffix", "value": ".spec.js" }
+    ],
+    "include": []
+  },
+  "editorSetting": {}
+}

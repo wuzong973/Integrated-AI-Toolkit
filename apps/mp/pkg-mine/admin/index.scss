@@ -1,0 +1,52 @@
+@import './frame.scss';
+
+/* 管理后台 · 概览
+   装饰签名「topline + dot-c」（§十一 登记）。
+   ⚠️ 定位必须写在**与页面同名**的 SCSS 里：`audit:mp` ⑳ 段只解析 `index.scss`，
+   写到 frame.scss 会被判成"装饰看不见"。 */
+
+/* `.qz-topline` 库里是 `position:absolute; top:0`，而 `.qz-fx` 相对 `.qz-deco`
+   向外扩了 40rpx —— 不补这 40rpx，这条 6rpx 的流动线整条落在裁切区外，
+   看得见写法、看不见效果。 */
+.ad-topline {
+  top: 40rpx;
+  left: -40rpx;
+  right: -40rpx;
+}
+
+/* `.qz-dot-c` 库里自带定位，这里只把不透明度压到红线（≤ .4）以内 */
+.ad-dot {
+  opacity: .3;
+}
+
+/* ---------- 待办条（三格并排） ----------
+   ⚠️ 这些类必须留在**本页**：`frame.scss` 是四页共用的骨架，那里只有 `.ad-card` 级的
+   通用件，没有"概览独有的两块"。WXML 里挂了的类若哪都没定义，样式不会生效、
+   而编译 / tsc / `audit:mp` ⑪ 段（只管 `qz-*` 前缀）全都不报 ——
+   表现就是三张待办卡竖着堆成一列、榜单没有对齐（与 §九 的"③ 组件类名不存在"同族）。 */
+.ad-todos { display: flex; align-items: stretch; }
+.ad-todo {
+  flex: 1; min-width: 0; margin-right: $sp-3;
+  display: flex; flex-direction: column; align-items: center;
+  padding: $sp-4 $sp-2;
+}
+.ad-todo:last-child { margin-right: 0; }
+/* 没有可跳页面的那一格：不挂 .qz-lift，并压暗一档，免得看起来和能点的那两格一样 */
+.ad-todo-off { opacity: .72; }
+.ad-todo-ico { margin-bottom: $sp-2; }
+.ad-todo-num { font-size: $fs-h1; font-weight: $fw-black; color: var(--mt); line-height: 1.25; }
+.ad-todo-label { margin-top: 2rpx; font-size: $fs-aux; font-weight: $fw-semi; color: $text-1; }
+.ad-todo-hint { margin-top: 2rpx; font-size: $fs-tag; color: $text-3; }
+
+/* ---------- 近 7 日热门工具榜 ---------- */
+.ad-rank-row { display: flex; align-items: center; }
+/* 名次是 <text>，用 line-height 居中而不是 flex（文本节点做 flex 容器在 WXSS 里不稳） */
+.ad-rank-no {
+  flex-shrink: 0; min-width: 44rpx; height: 44rpx; line-height: 44rpx;
+  margin-right: $sp-3; padding: 0 6rpx;
+  text-align: center; border-radius: $radius-pill;
+  background: var(--ms); color: var(--mt);
+  font-size: $fs-aux; font-weight: $fw-bold;
+}
+.ad-rank-name { flex: 1; min-width: 0; font-size: $fs-body; color: $text-1; }
+.ad-rank-jobs { margin-left: $sp-3; font-size: $fs-aux; font-weight: $fw-semi; color: $accent-500; }

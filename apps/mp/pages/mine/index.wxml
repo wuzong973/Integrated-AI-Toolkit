@@ -1,0 +1,187 @@
+<!-- 我的（文档 5.3.11）
+     视觉：樱花粉主题 · 圆角 30 · 柔软；装饰层三光斑 + 上升粒子，
+     页内亮点是头像光环（.qz-halo）与余额数据条的彩色柔影（.qz-card-glow）；
+     用户卡自身再叠一层光斑 + 扫光 -->
+<view
+  class="qz-page th-mine mine {{showAdmin ? 'mine-has-bar' : ''}}"
+  bindtouchstart="onFxStart"
+  bindtouchmove="onFxMove"
+  bindtouchend="onFxEnd"
+  bindtouchcancel="onFxEnd"
+>
+  <!-- 装饰签名（第十一节 · mine）：三枚光斑 + 上升粒子，是全站最"柔软"的一层；
+       粒子只给形状位置，动效交给共享类 .qz-rise -->
+  <view class="qz-deco">
+    <view class="qz-fx" style="{{fxStyle}}">
+      <view class="qz-blob qz-blob-a"></view>
+      <view class="qz-blob qz-blob-b"></view>
+      <view class="qz-blob qz-blob-c"></view>
+      <view class="rise-field">
+        <view class="rise-dot rise-1 qz-rise"></view>
+        <view class="rise-dot rise-2 qz-rise"></view>
+        <view class="rise-dot rise-3 qz-rise"></view>
+      </view>
+    </view>
+  </view>
+
+  <view class="qz-content">
+    <!-- 拉取失败（网络 / 后端）：如实报错 + 重试，位置在内容之上。
+         绝不能演成"未登录" —— 那会把"网络不通"说成"你没登录"，用户白登录一趟。 -->
+    <view wx:if="{{loadError}}" class="qz-err qz-an-in">
+      <text class="qz-err-text">{{loadError}}</text>
+      <view class="qz-err-btn qz-press" bindtap="onRetryMe">重试</view>
+    </view>
+
+    <!-- 未登录（只有确认拿不到会话时才走这一支） -->
+    <view wx:if="{{notLoggedIn}}" class="qz-container login-wrap">
+      <view class="qz-empty qz-an-in">
+        <view class="qz-empty-ico qz-ico qz-ico-xl qz-ico-float">
+          <view class="qz-i qz-i-mine"></view>
+        </view>
+        <text class="qz-empty-title">还未登录</text>
+        <text class="qz-empty-text">登录后可使用 AI 工具、发布需求与接单</text>
+        <view class="qz-empty-flow qz-flow"></view>
+        <view class="qz-btn-main qz-press" bindtap="onGoLogin">立即登录</view>
+      </view>
+    </view>
+
+    <!-- 已登录 -->
+    <block wx:elif="{{me}}">
+      <!-- 用户卡 -->
+      <view class="profile qz-an-in">
+        <view class="profile-deco">
+          <view class="p-blob p-blob-a"></view>
+          <view class="p-blob p-blob-b"></view>
+          <view class="p-dot p-dot-a"></view>
+        </view>
+        <view class="qz-shine qz-shine-slow"></view>
+
+        <view class="profile-top qz-press" bindtap="onEditProfile">
+          <!-- 头像光环（第十一节 · mine 的页内亮点）：光环在图片之前，
+               保证头像本身压在光晕上，只露出四周一圈呼吸的柔光 -->
+          <view class="avatar-ring">
+            <view class="qz-halo"></view>
+            <image wx:if="{{me.avatar}}" class="avatar" src="{{me.avatar}}" mode="aspectFill" />
+            <view wx:else class="avatar avatar-ph">
+              <view class="qz-i qz-i-mine avatar-ico"></view>
+            </view>
+          </view>
+          <view class="profile-info">
+            <text class="profile-name qz-ellipsis">{{me.nickname || '青智同学'}}</text>
+            <text class="profile-sub qz-ellipsis">{{me.college || '未填写学院'}} · {{me.grade || '未填写年级'}}</text>
+          </view>
+          <!-- 编辑热区不能只有那个圆：整行都可点，但要在视觉上交代出来，
+               否则用户会以为头像是装饰（点不动的入口等于没有入口） -->
+          <view class="profile-edit">
+            <view class="qz-ico qz-ico-s"><view class="qz-i qz-i-photo"></view></view>
+            <text class="profile-edit-txt">编辑</text>
+          </view>
+        </view>
+
+        <!-- 余额 / 信用数据条：玻璃底 + 彩色柔影（.qz-card-glow）
+             可点的格子挂 .qz-lift（点了会跳详情），纯信息的格子不挂，防误以为可点 -->
+        <view class="profile-stats qz-card-glow">
+          <view class="stat qz-lift" data-url="/pkg-mine/credit/index" bindtap="onStatTap">
+            <text class="stat-num">{{me.creditScore}}</text>
+            <text class="stat-label">信用分</text>
+          </view>
+          <!-- 积分统计项仅在计费模式展示；免费开放期整项隐藏（界面里不出现"积分"） -->
+          <view wx:if="{{showPoints}}" class="stat">
+            <text class="stat-num">{{me.points}}</text>
+            <text class="stat-label">{{pointsLabel}}</text>
+          </view>
+          <view class="stat qz-lift" data-url="/pkg-station/order-list/index" bindtap="onStatTap">
+            <text class="stat-num">{{me.completedOrders}}</text>
+            <text class="stat-label">完成单数</text>
+          </view>
+          <view class="stat qz-lift" data-url="/pkg-mine/wallet/index" bindtap="onStatTap">
+            <text class="stat-num">¥{{me.balance / 100}}</text>
+            <text class="stat-label">余额</text>
+          </view>
+        </view>
+
+        <!-- 认证徽章：未认证时可点进认证流程，已认证就是状态标记（点了不该有反应） -->
+        <view class="badges">
+          <view wx:if="{{me.isStudentVerified}}" class="badge badge-on">
+            <view class="qz-i qz-i-check badge-ico"></view>
+            <text>学生认证</text>
+          </view>
+          <view wx:else class="badge qz-press" bindtap="onGoVerify">
+            <text>未认证学生 ›</text>
+          </view>
+          <view wx:if="{{me.isProvider}}" class="badge badge-on">
+            <view class="qz-i qz-i-verify badge-ico"></view>
+            <text>服务者认证</text>
+          </view>
+          <view wx:else class="badge qz-press" bindtap="onGoProviderApply">
+            <text>未认证服务者 ›</text>
+          </view>
+        </view>
+
+        <view class="profile-flow qz-flow"></view>
+      </view>
+
+      <!-- 身份切换 -->
+      <view wx:if="{{roles.length > 1}}" class="role-switch qz-card qz-an-in qz-d1">
+        <view class="role-head">
+          <view class="qz-i qz-i-sparkle role-ico"></view>
+          <text class="role-title">身份切换</text>
+        </view>
+        <view class="role-btns">
+          <view
+            wx:for="{{roles}}"
+            wx:key="role"
+            class="role-btn {{currentRole === item.role ? 'role-active' : ''}} qz-press"
+            data-role="{{item.role}}"
+            bindtap="onRoleSwitch"
+          >{{item.label}}</view>
+        </view>
+      </view>
+
+      <!-- 菜单组。
+           `data-key` 是给「管理后台」这类**没有 url** 的入口分派用的：
+           url 为空时 onMenuTap 会按 key 转交专门的处理函数（见 index.ts）。 -->
+      <view wx:for="{{menuGroups}}" wx:for-item="group" wx:key="index" class="menu-group qz-card qz-an-in qz-d{{index + 2}}">
+        <view
+          wx:for="{{group}}"
+          wx:for-item="item"
+          wx:key="key"
+          class="menu-item qz-item qz-item-line qz-press"
+          data-key="{{item.key}}"
+          data-url="{{item.url}}"
+          bindtap="onMenuTap"
+        >
+          <view class="qz-ico qz-ico-s">
+            <view class="qz-i {{item.icon}}"></view>
+          </view>
+          <view class="menu-main">
+            <text class="menu-label">{{item.label}}</text>
+            <text class="menu-desc">{{item.desc}}</text>
+          </view>
+          <text class="menu-arrow">›</text>
+        </view>
+      </view>
+
+      <!-- 退出 -->
+      <view class="logout qz-press" bindtap="onLogout">退出登录</view>
+    </block>
+
+    <!-- 加载中（拉取失败且没有可展示的资料时，只显示上面的错误条 + 重试） -->
+    <view wx:elif="{{loading}}" class="qz-container loading">
+      <view class="qz-skeleton skeleton-card"></view>
+      <view class="qz-skeleton skeleton-card skeleton-card-sm"></view>
+    </view>
+  </view>
+
+  <!-- 管理员固定入口（M3-20）：只对后端返回 isAdmin=true 的人出现。
+       ⚠️ 隐藏入口不是权限控制 —— 真正的拦截在 `AdminPermissionGuard`（每次请求回库查
+       `admin_account`，没有那行就是 403）。这里只是不让普通学生点到一个必然失败的入口。
+       定位与安全内边距由全局 `.qz-footer-bar` 负责，本页只排内容。 -->
+  <view wx:if="{{showAdmin}}" class="qz-footer-bar admin-bar">
+    <view class="admin-bar-main qz-press" bindtap="onGoAdmin">
+      <view class="qz-ico qz-ico-s"><view class="qz-i qz-i-chart"></view></view>
+      <text class="admin-bar-txt">进入管理后台</text>
+    </view>
+    <view class="admin-bar-alt qz-press" bindtap="onOpenAdminConsole">网页版</view>
+  </view>
+</view>

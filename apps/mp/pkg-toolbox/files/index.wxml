@@ -1,0 +1,125 @@
+<!-- 我的文件（文档 6.5.6）
+     视觉：云蓝主题 · 圆角 18 · 收纳感；用量卡带流水条纹，列表用描边卡 + 糖果图标 -->
+<view
+  class="qz-page th-files files"
+  bindtouchstart="onFxStart"
+  bindtouchmove="onFxMove"
+  bindtouchend="onFxEnd"
+  bindtouchcancel="onFxEnd"
+>
+  <view class="qz-deco">
+    <view class="qz-fx" style="{{fxStyle}}">
+      <!-- 签名：water + blob-b（云光流动：云蓝光斑上叠一道横向流水） -->
+      <view class="qz-blob qz-blob-b"></view>
+      <view class="files-water qz-water"></view>
+    </view>
+  </view>
+
+  <view class="qz-content">
+    <!-- 页头 -->
+    <view class="qz-head">
+      <view class="qz-head-row qz-an-in">
+        <view class="qz-ico qz-ico-l qz-ico-float">
+          <view class="qz-i qz-i-files"></view>
+        </view>
+        <view class="qz-head-main">
+          <text class="qz-head-title">我的文件</text>
+          <text class="qz-head-sub">AI 产物、上传素材与订单交付都在这里</text>
+        </view>
+      </view>
+      <view class="qz-head-chips qz-an-in qz-d1">
+        <view class="qz-chip qz-chip-on">共 {{allFiles.length}} 个文件</view>
+        <view class="qz-chip">保留 30 天</view>
+      </view>
+      <view class="head-flow qz-flow"></view>
+    </view>
+
+    <view class="qz-container">
+      <!-- 存储用量（渐变卡 + 顶部流动线 + 流水条纹） -->
+      <view class="qz-card qz-card-grad qz-card-glow storage qz-an-in qz-d2">
+        <view class="qz-topline"></view>
+        <view class="storage-row">
+          <text class="storage-label">存储用量</text>
+          <text class="storage-num">{{storageUsedMb}} / {{storageQuotaMb}} MB</text>
+        </view>
+        <view class="storage-bar">
+          <view class="storage-water qz-water"></view>
+          <view class="storage-fill" style="width: {{storageUsedMb * 100 / storageQuotaMb}}%"></view>
+        </view>
+        <text class="storage-tip">产物文件保留 30 天，重要文件请及时保存</text>
+      </view>
+
+      <!-- 错误条 -->
+      <view wx:if="{{error}}" class="qz-err qz-an-in">
+        <text class="qz-err-text">{{error}}</text>
+        <view class="qz-err-btn qz-press" bindtap="onRetry">重试</view>
+      </view>
+
+      <!-- 筛选胶囊 -->
+      <scroll-view class="filters qz-an-in qz-d3" scroll-x enable-flex show-scrollbar="{{false}}">
+        <view
+          wx:for="{{filters}}"
+          wx:key="key"
+          class="qz-chip {{activeFilter === item.key ? 'qz-chip-on' : ''}} filter qz-press"
+          data-key="{{item.key}}"
+          bindtap="onFilterTap"
+        >{{item.label}}</view>
+      </scroll-view>
+
+      <!-- 加载态：四条列表骨架（没有骨架时这里整块空白，像"一个文件都没有"） -->
+      <view wx:if="{{loading}}" class="qz-card qz-card-line file-list">
+        <view wx:for="{{[1,2,3,4]}}" wx:key="*this" class="sk-row">
+          <view class="qz-skeleton sk-ico"></view>
+          <view class="sk-main">
+            <view class="qz-skeleton qz-skeleton-line"></view>
+            <view class="qz-skeleton qz-skeleton-line qz-skeleton-line-short"></view>
+          </view>
+        </view>
+      </view>
+
+      <!-- 文件列表 -->
+      <view wx:elif="{{files.length}}" class="qz-card qz-card-line file-list qz-an-in qz-d4">
+        <view
+          wx:for="{{files}}"
+          wx:key="id"
+          class="qz-item qz-item-line qz-lift"
+          data-id="{{item.id}}"
+          bindtap="onFileTap"
+        >
+          <view class="qz-ico qz-ico-s">
+            <view class="qz-i {{item.iconClass}}"></view>
+          </view>
+          <view class="qz-item-main">
+            <text class="qz-item-title qz-ellipsis">{{item.name}}</text>
+            <text class="qz-item-desc">{{item.sizeText}} · {{item.createdAtText}}</text>
+          </view>
+          <text class="qz-item-extra">{{item.sceneText}}</text>
+          <text class="qz-item-arrow">›</text>
+        </view>
+      </view>
+
+      <!-- 空态：分"真没有文件"与"筛选后没有"两种，文案不能混用；
+           拉取失败时不给空态（上面的错误条已经说了发生了什么） -->
+      <view wx:elif="{{!error}}" class="qz-empty qz-an-in qz-d4">
+        <view class="qz-empty-ico qz-ico qz-ico-xl qz-ico-float">
+          <view class="qz-i qz-i-empty"></view>
+        </view>
+        <block wx:if="{{activeFilter === 'all' || !allFiles.length}}">
+          <text class="qz-empty-title">还没有文件</text>
+          <text class="qz-empty-text">用 AI 工具生成的文件会自动保存到这里</text>
+          <view class="qz-empty-flow qz-flow"></view>
+          <view class="qz-btn-main qz-press" bindtap="onGoToolbox">去工具箱试试</view>
+        </block>
+        <block wx:else>
+          <text class="qz-empty-title">没有符合筛选的文件</text>
+          <text class="qz-empty-text">
+            共 {{allFiles.length}} 个文件，但都不属于「{{activeFilterLabel}}」。换个分类，或回到全部看看。
+          </text>
+          <view class="qz-empty-flow qz-flow"></view>
+          <view class="qz-btn-main qz-press" bindtap="onClearFilter">清除筛选</view>
+          <view class="qz-btn-sub qz-press empty-sub-btn" bindtap="onGoToolbox">去工具箱试试</view>
+        </block>
+      </view>
+    </view>
+  </view>
+</view>

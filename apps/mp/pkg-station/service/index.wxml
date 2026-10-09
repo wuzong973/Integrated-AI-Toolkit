@@ -1,0 +1,164 @@
+<!-- 服务详情（M3-04 契约 + M3-05 页面）：真数据，无"下单"假按钮
+     视觉：葡萄紫主题 · 大圆角 + 光斑 + 扇贝波浪；装饰层随指针视差（utils/fx.ts） -->
+<view
+  class="qz-page th-provider service"
+  bindtouchstart="onFxStart"
+  bindtouchmove="onFxMove"
+  bindtouchend="onFxEnd"
+  bindtouchcancel="onFxEnd"
+>
+  <!-- 装饰层（不拦截点击，内容可读性不受影响）
+       签名：flow + blob-b（服务详情动线）—— 一条行进虚线贯穿首屏，带着视线往下读。
+       流线红线（≤2）由本页 `.ov-flow` 与这条共同占用，故装饰层只放一条 -->
+  <view class="qz-deco">
+    <view class="qz-fx" style="{{fxStyle}}">
+      <view class="svc-flow qz-flow"></view>
+      <view class="qz-blob qz-blob-b"></view>
+    </view>
+  </view>
+
+  <view class="qz-content">
+    <!-- 页头 -->
+    <view class="qz-head">
+      <view class="qz-head-row qz-an-in">
+        <view class="qz-ico qz-ico-l qz-ico-float">
+          <view class="qz-i qz-i-workbench"></view>
+        </view>
+        <view class="qz-head-main">
+          <text class="qz-head-title">服务详情</text>
+          <text class="qz-head-sub">看清价格与交付，再决定找谁做</text>
+        </view>
+      </view>
+      <view wx:if="{{item}}" class="qz-head-chips qz-an-in qz-d1">
+        <view class="qz-chip qz-chip-on">{{item.priceText}}</view>
+        <view class="qz-chip qz-chip-ghost">{{item.statusText}}</view>
+        <view wx:if="{{item.categoryName}}" class="qz-chip qz-chip-ghost">{{item.categoryName}}</view>
+        <view wx:if="{{isMine}}" class="qz-chip qz-chip-ghost">我上架的</view>
+      </view>
+      <!-- 底部扇贝波浪：首屏"有水在流" -->
+      <view class="svc-wave qz-wave"></view>
+    </view>
+
+    <!-- ① 加载中 -->
+    <view wx:if="{{stage === 'loading'}}" class="qz-container">
+      <view class="qz-skeleton qz-an-in">
+        <view class="qz-skeleton-line"></view>
+        <view class="qz-skeleton-line"></view>
+        <view class="qz-skeleton-line qz-skeleton-line-short"></view>
+      </view>
+    </view>
+
+    <!-- ② 看不了：下架 / 不存在 / 没带编号。⚠️ 不是"加载失败"，也不是"功能开发中" -->
+    <view wx:elif="{{stage === 'gone'}}" class="qz-container">
+      <view class="qz-empty qz-an-in">
+        <view class="qz-empty-ico qz-ico qz-ico-xl qz-ico-float">
+          <view class="qz-i qz-i-empty"></view>
+        </view>
+        <text class="qz-empty-title">{{goneText}}</text>
+        <text class="qz-empty-text">服务者可以随时下架自己的服务。去服务市场看看还有谁在接单，或把你的需求发出去。</text>
+        <view class="qz-empty-flow qz-flow"></view>
+        <view class="qz-btn-main qz-press" bindtap="onGoHall">去服务市场看看</view>
+        <view class="qz-btn-sub qz-press svc-empty-sub" bindtap="onGoPublish">去发布需求</view>
+      </view>
+    </view>
+
+    <!-- ③ 加载失败：说清原因 + 给重试，不拿空壳冒充"没有服务" -->
+    <view wx:elif="{{stage === 'error'}}" class="qz-container">
+      <view class="qz-err qz-an-in">
+        <text class="qz-err-text">{{error}}</text>
+        <view class="qz-err-btn qz-press" bindtap="onRetry">重试</view>
+      </view>
+    </view>
+
+    <block wx:else>
+      <!-- 概览：主卡型（描边卡 + 左侧彩条，视觉规范第十一节 service 行） -->
+      <view class="qz-container">
+        <view class="qz-card qz-card-line qz-card-bar overview qz-an-in qz-d2">
+          <text class="ov-title">{{item.title}}</text>
+          <view class="ov-price">
+            <text class="ov-amount">{{item.priceText}}</text>
+            <text class="ov-unit">{{item.priceUnitText}}</text>
+          </view>
+          <view class="ov-info">
+            <view class="qz-ico qz-ico-s"><view class="qz-i qz-i-clock"></view></view>
+            <text class="ov-info-text">{{item.deliveryText}}</text>
+          </view>
+          <view class="ov-info">
+            <view class="qz-ico qz-ico-s"><view class="qz-i qz-i-station"></view></view>
+            <text class="ov-info-text">服务地区：{{item.areaText}}</text>
+          </view>
+          <view wx:if="{{isMine}}" class="ov-info">
+            <view class="qz-ico qz-ico-s"><view class="qz-i qz-i-chart"></view></view>
+            <text class="ov-info-text">浏览 {{item.viewCount}} 次 · 成交 {{item.orderCount}} 单</text>
+          </view>
+          <view class="ov-tags">
+            <view wx:for="{{item.skillTags}}" wx:for-item="tag" wx:key="*this" class="qz-chip">{{tag}}</view>
+          </view>
+          <view class="ov-flow qz-flow"></view>
+        </view>
+      </view>
+
+      <!-- 已下架时的说明：为什么市场上找不到它 -->
+      <view wx:if="{{isMine && item.status !== 'on'}}" class="qz-container">
+        <view class="qz-card qz-card-tint qz-an-in qz-d3">
+          <text class="notice-title">{{item.statusText}}的服务不会出现在服务市场</text>
+          <text class="notice-text">下面「重新上架」可以把它放回大厅；在架期间别人打不开这个链接。</text>
+        </view>
+      </view>
+
+      <!-- 服务说明：描边卡（密集文字用最轻的卡型） -->
+      <view class="qz-container">
+        <view class="qz-card qz-card-line qz-an-in qz-d4">
+          <view class="card-head">
+            <view class="qz-ico qz-ico-s"><view class="qz-i qz-i-doc"></view></view>
+            <text class="qz-sec-title card-head-title">服务说明</text>
+          </view>
+          <text class="desc">{{item.description}}</text>
+        </view>
+      </view>
+
+      <!-- 服务者：渐变卡，整块可点进 TA 的主页（可点卡片 → 抬升反馈 .qz-lift） -->
+      <view class="qz-container">
+        <view class="qz-card qz-card-grad provider-card qz-an-in qz-d5 qz-lift" bindtap="onProviderTap">
+          <view class="card-head">
+            <view class="qz-ico qz-ico-s"><view class="qz-i qz-i-verify"></view></view>
+            <text class="qz-sec-title card-head-title">服务者</text>
+            <text class="card-head-more">看 TA 的主页 ›</text>
+          </view>
+          <view class="pr">
+            <view class="pr-avatar">
+              <image wx:if="{{item.providerAvatar}}" class="pr-avatar-img" src="{{item.providerAvatar}}" mode="aspectFill" />
+              <view wx:else class="qz-i qz-i-mine pr-ico"></view>
+            </view>
+            <view class="pr-body">
+              <text class="pr-name">{{item.providerName}}</text>
+              <view class="pr-meta">
+                <text>{{item.creditText}}</text>
+                <text class="pr-dot">·</text>
+                <text>{{item.completedText}}</text>
+              </view>
+              <text class="pr-rating">{{item.ratingText}}</text>
+            </view>
+          </view>
+        </view>
+      </view>
+
+      <!-- 底部留白：别让最后一张卡贴住操作栏 -->
+      <view class="foot-space"></view>
+    </block>
+  </view>
+
+  <!-- 底部操作栏（详情拉到了才出现）
+       · 本人 → 主按钮是"管理这个服务"（下架 / 重新上架）
+       · 他人 → 后端没有直接下单接口，所以主按钮是**真能走完**的"去发布需求" -->
+  <view wx:if="{{stage === 'ready' && item}}" class="qz-footer-bar foot">
+    <view wx:if="{{isMine && item.status === 'off'}}" class="qz-btn-main act qz-press {{acting ? 'disabled' : ''}}" bindtap="onRelist">
+      {{acting ? '处理中…' : '重新上架'}}
+    </view>
+    <view wx:elif="{{isMine && item.status === 'on'}}" class="qz-btn-main act qz-press {{acting ? 'disabled' : ''}}" bindtap="onOffline">
+      {{acting ? '处理中…' : '下架这个服务'}}
+    </view>
+    <view wx:else class="qz-btn-main act qz-press" bindtap="onGoPublish">去发布需求</view>
+    <view class="qz-btn-sub act qz-press" bindtap="onGoHall">看看任务大厅</view>
+  </view>
+</view>

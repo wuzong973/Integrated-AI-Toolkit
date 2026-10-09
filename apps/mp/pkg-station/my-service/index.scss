@@ -1,0 +1,79 @@
+@import '../../styles/tokens.scss';
+
+/* 我上架的服务 · 葡萄紫主题（.th-provider，与"服务者主页/服务详情"同一套色板，
+   让"我的服务 → 服务详情"这两屏看起来是同一条路）
+   造型语言：圆角 28 + 光斑 + 扇贝波浪；空态统一用 .qz-empty */
+
+/* ---------- 装饰签名：dot-b + wave（与服务详情页同族、位置错开） ---------- */
+.ms-wave {
+  position: absolute; left: -60rpx; right: -60rpx; bottom: 18%; height: 220rpx;
+}
+
+/* 页头底部的行进流线 */
+.ms-flow { margin-top: $sp-4; }
+.ms-body { padding-bottom: $sp-6; }
+
+/* ---------- 档位筛选（全部 / 在架 / 已下架） ---------- */
+.ms-tabs {
+  display: flex;
+  margin-bottom: $sp-4;
+  padding: $sp-1;
+  border: 1rpx solid $border;
+  border-radius: $radius-pill;
+  background: $bg-card;
+}
+.ms-tab {
+  flex: 1;
+  display: flex; align-items: center; justify-content: center;
+  min-height: $hit-min;
+  border-radius: $radius-pill;
+  font-size: $fs-tag;
+  color: $text-3;
+}
+.ms-tab.on {
+  color: $text-1;
+  font-weight: $fw-semi;
+  background: $bg-page;
+  box-shadow: $shadow-soft;
+}
+
+/* ---------- 服务列表 ---------- */
+.ms-item + .ms-item { margin-top: $sp-3; }
+.ms-top { display: flex; align-items: center; }
+/* 状态是这一屏最先要被看到的字段：在架用模块主题色，已下架用中性色（不抢眼但可辨） */
+.ms-status { font-size: $fs-tag; font-weight: $fw-semi; color: $text-3; }
+.ms-status.is-on { color: var(--m1); }
+.ms-cat {
+  margin-left: $sp-2;
+  padding: 2rpx $sp-2;
+  border-radius: $radius-pill;
+  font-size: $fs-tag;
+  color: var(--mt);
+  background: var(--ms);
+}
+.ms-title {
+  display: block;
+  margin-top: $sp-2;
+  font-size: $fs-body; font-weight: $fw-semi; color: $text-1;
+}
+.ms-tags { display: flex; flex-wrap: wrap; margin-top: $sp-2; }
+.ms-tag {
+  margin: $sp-1 $sp-1 0 0;
+  padding: 2rpx $sp-2;
+  border-radius: $radius-pill;
+  font-size: $fs-tag;
+  color: $text-3;
+  background: $bg-page;
+}
+.ms-bottom {
+  display: flex; align-items: baseline; justify-content: space-between;
+  margin-top: $sp-3;
+}
+.ms-price { font-size: $fs-h3; font-weight: $fw-bold; color: var(--m1); }
+.ms-meta { font-size: $fs-tag; color: $text-3; }
+
+.ms-new { margin-top: $sp-5; }
+
+/* ---------- 底部说明卡 ---------- */
+.ms-tip { display: block; font-size: $fs-tag; color: $text-3; line-height: 1.7; }
+.ms-tip-btn { margin-top: $sp-4; }

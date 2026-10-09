@@ -1,0 +1,17 @@
+# qz-convert：文档转换隔离服务依赖（ADR-05）
+#
+# ⚠️ 本文件**故意没有内容**，这不是遗漏。
+#
+# 转换引擎（LibreOffice / Pandoc / ConvertX）是 GPL / AGPL / MPL 混合许可，
+# 按仓库红线**不得进 apps/ 或 services/ 主工程**，只能独立部署 + HTTP 调用。
+# 本服务自身只用 Python 标准库（subprocess 调 CLI），因此不需要任何 pip 依赖；
+# 真正要装的是**系统级二进制**，由部署方安装：
+#
+#   LibreOffice（docx/xlsx/pptx → pdf）  https://www.libreoffice.org/download/
+#   Pandoc      （md/html ↔ docx/txt）   https://pandoc.org/installing.html
+#
+# 装好后用这两个环境变量指向它们（或放进 PATH）：
+#   SOFFICE_BIN=C:/Program Files/LibreOffice/program/soffice.exe
+#   PANDOC_BIN=C:/Program Files/Pandoc/pandoc.exe
+#
+# 许可登记：docs/compliance/OPEN_SOURCE_LICENSES.md（新增引擎前必须先登记）

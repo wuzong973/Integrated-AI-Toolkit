@@ -1,0 +1,85 @@
+<!-- 认证中心：把 GET /provider/profile 的真实状态摊开，并按状态给出下一步
+     视觉：靛蓝主题 · 圆角 24 · 页头 + 状态卡 -->
+<view
+  class="qz-page th-verify verify"
+  bindtouchstart="onFxStart"
+  bindtouchmove="onFxMove"
+  bindtouchend="onFxEnd"
+  bindtouchcancel="onFxEnd"
+>
+  <!-- 装饰层（不拦截点击，内容可读性不受影响）
+       签名：flow + blob-a —— 一条行进虚线穿过页面上部（认证进度流） -->
+  <view class="qz-deco">
+    <view class="qz-fx" style="{{fxStyle}}">
+      <view class="qz-blob qz-blob-a"></view>
+      <view class="qz-flow qz-flow-soft deco-flow"></view>
+    </view>
+  </view>
+
+  <view class="qz-content">
+    <!-- 页头 -->
+    <view class="qz-head">
+      <view class="qz-head-row">
+        <view class="qz-ico qz-ico-l qz-ico-float">
+          <view class="qz-i qz-i-verify"></view>
+        </view>
+        <view class="qz-head-main">
+          <text class="qz-head-title">认证中心</text>
+          <text class="qz-head-sub">认证后即可在驿站接单</text>
+        </view>
+      </view>
+    </view>
+
+    <view class="qz-container">
+      <!-- 错误态 -->
+      <view wx:if="{{error}}" class="qz-err qz-an-in">
+        <text class="qz-err-text">{{error}}</text>
+        <view class="qz-err-btn qz-press" bindtap="onRetry">重新加载</view>
+      </view>
+
+      <!-- 加载态 -->
+      <view wx:elif="{{loading}}" class="qz-card qz-card-line">
+        <view class="qz-skeleton qz-skeleton-line"></view>
+        <view class="qz-skeleton qz-skeleton-line qz-skeleton-line-short"></view>
+      </view>
+
+      <block wx:else>
+        <!-- 状态卡：色调随状态变（idle / wait / ok / bad） -->
+        <view class="qz-card qz-card-grad status-card status-{{tone}} qz-an-in qz-d1">
+          <view class="status-row">
+            <view class="qz-ico qz-ico-m"><view class="qz-i qz-i-verify"></view></view>
+            <view class="status-main">
+              <text class="status-label">{{statusLabel}}</text>
+              <text class="status-desc">{{statusDesc}}</text>
+            </view>
+          </view>
+
+          <!-- 已认证：把技能标签摊出来，让用户确认"我的画像是什么" -->
+          <view wx:if="{{skills.length}}" class="status-skills">
+            <view wx:for="{{skills}}" wx:key="*this" class="qz-chip">{{item}}</view>
+          </view>
+        </view>
+
+        <!--
+          驳回原因：M3-02 的验收标准是"驳回时给出具体原因"。
+          必须在这一屏就能看到，而不是让用户再点进入驻页才发现。
+        -->
+        <view wx:if="{{rejectReason}}" class="qz-card reject-card qz-an-in qz-d2">
+          <text class="reject-title">未通过原因</text>
+          <text class="reject-why">{{rejectReason}}</text>
+        </view>
+
+        <!-- 下一步动作：三种状态各去一个真实存在的地方，没有"即将开放"的占位 -->
+        <view class="qz-btn-main act-btn qz-press qz-an-in qz-d3" bindtap="onAction">
+          {{actionText}}
+        </view>
+
+        <view class="tips qz-an-in qz-d4">
+          <text class="tips-line">· 需上传学生证照片并填写真实姓名与学号</text>
+          <text class="tips-line">· 审核通过后自动获得服务者身份，可在任务大厅报名</text>
+          <text class="tips-line">· 材料仅用于身份核验，不对其他用户展示</text>
+        </view>
+      </block>
+    </view>
+  </view>
+</view>

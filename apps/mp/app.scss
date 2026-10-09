@@ -1,0 +1,118 @@
+@import './styles/tokens.scss';
+@import './styles/themes.scss';
+@import './styles/motion.scss';
+@import './styles/icons.scss';
+@import './styles/deco.scss';
+@import './styles/components.scss';
+
+/**
+ * 全局样式（reset + 通用类 + 页面进场过渡）
+ * 纪律：通用类只放"跨页面复用"的样式，页面私有样式写在页面自己的 scss 里。
+ *
+ * 视觉体系见 docs/dev/MP-VISUAL-SYSTEM.md：
+ *   themes.scss     模块主题色板（页面挂 .th-xxx 类，用 var(--m1) 取色）
+ *   motion.scss     动效库（入场 / 循环 / 反馈）
+ *   icons.scss      糖果图标库（.qz-i-xxx）
+ *   deco.scss       装饰层（流线 / 水波 / 曲线 / 光斑 / 视差）
+ *   components.scss 共享组件（卡片 / 图标底座 / 空态 / 标签 / 按钮）
+ */
+
+page {
+  background-color: $bg-page;
+  /* 极淡的双色光斑底纹：让白底页面也有空气感，不抢内容 */
+  background-image:
+    radial-gradient(circle at 8% 2%, rgba(0, 184, 169, .07), transparent 40%),
+    radial-gradient(circle at 94% 6%, rgba(124, 107, 248, .07), transparent 38%);
+  color: $text-1;
+  font-family: -apple-system, 'PingFang SC', 'Helvetica Neue', sans-serif;
+  font-size: $fs-body;
+  line-height: 1.6;
+}
+
+view, text, button, input, textarea, image, scroll-view {
+  box-sizing: border-box;
+}
+
+/* ---------- 页面骨架 ---------- */
+.qz-page {
+  position: relative;
+  min-height: 100vh;
+  padding-bottom: env(safe-area-inset-bottom);
+  /* 页面切换过渡：整页淡入上浮，配合各页 .qz-an-* 形成层次 */
+  animation: qzPageIn $dur-slow $ease-out both;
+}
+
+/* ---------- 布局通用类 ---------- */
+.qz-container { padding: 0 $page-padding; }
+.qz-row { display: flex; flex-direction: row; align-items: center; }
+.qz-between { display: flex; flex-direction: row; align-items: center; justify-content: space-between; }
+.qz-col { display: flex; flex-direction: column; }
+.qz-center { display: flex; align-items: center; justify-content: center; }
+.qz-flex-1 { flex: 1; min-width: 0; }
+.qz-wrap { display: flex; flex-wrap: wrap; }
+
+/* ---------- 文本 ---------- */
+.qz-h1 { font-size: $fs-h1; font-weight: $fw-semi; color: $text-1; }
+.qz-h2 { font-size: $fs-h2; font-weight: $fw-semi; color: $text-1; }
+.qz-body { font-size: $fs-body; color: $text-2; }
+.qz-aux { font-size: $fs-aux; color: $text-3; }
+.qz-tag-text { font-size: $fs-tag; }
+.qz-price { color: $accent-500; font-weight: $fw-semi; }
+.qz-ellipsis { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.qz-ellipsis-2 {
+  display: -webkit-box; -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2; overflow: hidden;
+}
+
+/* ---------- 标签 ---------- */
+.qz-tag {
+  display: inline-flex; align-items: center;
+  padding: 2rpx 12rpx; border-radius: $radius-sm;
+  font-size: $fs-tag; background: $brand-50; color: $brand-600;
+}
+.qz-tag-ai { background: $tech-50; color: $tech-500; }
+.qz-tag-hot { background: $soft-peach; color: $accent-500; }
+
+/* ---------- AI 内容角标（核心语义标记，文档 5.1.2） ---------- */
+.qz-ai-badge {
+  display: inline-flex; align-items: center; justify-content: center;
+  padding: 0 8rpx; height: 28rpx; border-radius: $radius-sm;
+  background: $tech-500; color: $text-inverse;
+  font-size: 18rpx; font-weight: $fw-semi;
+}
+
+/* ---------- 分割线 ---------- */
+.qz-divider { height: 1rpx; background: $border; margin: $sp-6 0; }
+
+/* ---------- 底部固定操作栏 ---------- */
+.qz-footer-bar {
+  position: fixed; left: 0; right: 0; bottom: 0;
+  padding: $sp-3 $page-padding calc(#{$sp-3} + env(safe-area-inset-bottom));
+  background: $bg-card; border-top: 1rpx solid $border;
+  z-index: $z-sticky;
+  box-shadow: 0 -6rpx 24rpx rgba(16, 24, 40, .05);
+}
+
+/* ---------- 演示模式角标（红线 10） ---------- */
+.qz-demo-badge {
+  position: fixed; right: $sp-4; bottom: 200rpx;
+  padding: 6rpx 14rpx; border-radius: $radius-pill;
+  background: rgba(247, 144, 9, .92); color: $text-inverse;
+  font-size: $fs-tag; z-index: $z-float;
+  box-shadow: 0 6rpx 18rpx rgba(247, 144, 9, .35);
+  animation: qzFloatY 4.8s $ease-inout infinite;
+}
+
+/* ---------- 错误提示条（所有页面共用同一种语气） ---------- */
+.qz-err {
+  display: flex; align-items: center;
+  padding: $sp-3 $sp-4; border-radius: $radius-md;
+  background: rgba(240, 68, 56, .08);
+  border: 1rpx solid rgba(240, 68, 56, .16);
+}
+.qz-err-text { flex: 1; font-size: $fs-aux; color: $danger; }
+.qz-err-btn {
+  margin-left: $sp-3; padding: 6rpx 20rpx; border-radius: $radius-pill;
+  background: $danger; color: $text-inverse; font-size: $fs-tag;
+}
+.qz-err-btn:active { opacity: .85; }

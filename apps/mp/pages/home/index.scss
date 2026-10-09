@@ -1,0 +1,241 @@
+@import '../../styles/tokens.scss';
+
+/* 首页 · 青碧主题（模块色板见 styles/themes.scss 的 .th-home）
+   造型语言：大圆角 + 泡泡 + 水波，是"最有空气感"的一页 */
+
+.home { padding-bottom: 200rpx; }
+
+/* ---------- 自定义导航 ---------- */
+/* 两条血泪教训（都在这张导航上翻过车）：
+   ① 全局 border-box 下，height 不含安全区 → padding-top 吃掉高度、内容区变负，
+      logo 被顶出屏幕顶（刘海机上直接裁切）；
+   ② `padding: env(...) 48rpx 0` 这种**简写里塞 env() 会被 WXSS 整条判非法丢弃**，
+      连左右内边距一起失效——上一版就这么"改了但没生效"。
+      必须用 longhand，并用 constant() 兜住旧机型。
+   右侧不放任何按钮 —— 那个位置是微信胶囊的，摆什么都会被盖。 */
+.nav {
+  position: fixed; top: 0; left: 0; right: 0;
+  /* 顶部避让取 JS 注入的 --qz-sb（见 utils/system.ts）：env(safe-area-inset-top)
+     在 Android 微信恒为 0，只能当兜底，独用时标题会顶进状态栏。
+     height 必须同步加上这段高度，否则全局 border-box 下 padding 会吃掉内容区。 */
+  height: calc(#{$nav-height} + var(--qz-sb, env(safe-area-inset-top)));
+  padding-top: var(--qz-sb, env(safe-area-inset-top));
+  padding-left: $page-padding;
+  padding-right: $page-padding;
+  display: flex; align-items: center; justify-content: flex-start;
+  z-index: $z-sticky;
+  transition: background $dur-base $ease-out, box-shadow $dur-base $ease-out;
+}
+.nav-solid { background: $glass-card; box-shadow: $shadow-soft; }
+.nav-left { display: flex; align-items: center; }
+.brand-ico { width: 48rpx; height: 48rpx; margin-right: $sp-2; }
+.school { font-size: $fs-h2; font-weight: $fw-bold; color: $text-1; letter-spacing: .4rpx; }
+.arrow { margin-left: 8rpx; font-size: $fs-tag; color: $text-3; }
+/* 铃铛移到标题行右侧（胶囊下方），不再与右上角胶囊重叠 */
+.bell {
+  flex-shrink: 0;
+  width: $hit-min; height: $hit-min;
+  display: flex; align-items: center; justify-content: center;
+}
+.bell-ico { width: 52rpx; height: 52rpx; animation: qzBob 4.6s $ease-inout infinite; }
+
+/* ---------- 搜索区 ---------- */
+.hero {
+  position: relative; overflow: hidden;
+  /* 顶到导航栏下方：跟着 .nav 一起用 --qz-sb 同步下移（两者必须同一个变量，
+     否则导航栏下移了、内容没下移，就变成压在导航栏上）。
+     这里必须 longhand —— 简写里嵌 var()/env() 会被 WXSS 整条判非法丢弃，
+     连左右留白一起失效（文件头教训②）。 */
+  padding-top: calc(#{$nav-height} + var(--qz-sb, env(safe-area-inset-top)) + #{$sp-8});
+  padding-right: $page-padding;
+  padding-bottom: $sp-8;
+  padding-left: $page-padding;
+}
+/* 底部波浪曲线 + 行进流线：让首屏"有水在流" */
+.hero::after {
+  content: '';
+  position: absolute; left: 0; right: 0; bottom: 0; height: 34rpx;
+  background-image: radial-gradient(circle at 50% 100%, var(--m2) 0 44%, transparent 46%);
+  background-size: 62rpx 34rpx; background-repeat: repeat-x;
+  animation: qzWaterFlow 9s linear infinite;
+  opacity: .38; pointer-events: none;
+}
+.hero::before {
+  content: '';
+  position: absolute; left: 0; right: 0; bottom: 34rpx; height: 3rpx;
+  background-image: repeating-linear-gradient(90deg, var(--m1) 0 10rpx, transparent 10rpx 26rpx);
+  background-size: 26rpx 3rpx;
+  animation: qzMarchX 1.4s linear infinite;
+  opacity: .3; pointer-events: none;
+}
+/* 签名装饰：头部泡泡水波（元素在 .qz-deco > .qz-fx 里，所以它跟着指针视差一起动）
+   顶缘贴到自定义导航下沿，与 .hero::after 的底部波上下呼应，头部就成了一条"活水带"。
+   透明度压到 .3（装饰红线 ≤ .4），且它在内容层之下，不会压住任何文字。 */
+.home-wave {
+  position: absolute; left: 0; right: 0;
+  top: calc(#{$nav-height} + var(--qz-sb, env(safe-area-inset-top)));
+  opacity: .3;
+}
+.hero-hello {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: $sp-6;
+}.hero-hello-main { flex: 1; min-width: 0; }
+.hero-hi {
+  display: block; font-size: 40rpx; font-weight: $fw-black; color: $text-1;
+  letter-spacing: .6rpx;
+}
+.hero-tip { display: block; font-size: $fs-aux; color: $text-3; margin-top: 4rpx; }
+
+.search-box {
+  position: relative;
+  height: 96rpx; background: $bg-card;
+  border-radius: $radius-pill;
+  display: flex; align-items: center;
+  padding: 0 $sp-4 0 $sp-6;
+  box-shadow: 0 10rpx 28rpx var(--sh), 0 2rpx 6rpx rgba($text-1, .03);
+  border: 2rpx solid $glass-text;
+}
+.search-icon { width: 44rpx; height: 44rpx; margin-right: $sp-3; }
+.search-ph { flex: 1; color: $text-3; font-size: $fs-body; }
+.search-ai {
+  height: 44rpx; padding: 0 18rpx; border-radius: $radius-pill;
+  background: linear-gradient(135deg, var(--m1), var(--m2));
+  color: $text-inverse; font-size: $fs-tag; font-weight: $fw-bold;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 6rpx 14rpx var(--sh);
+}
+
+.chips { margin-top: $sp-4; white-space: nowrap; }
+.chip {
+  display: inline-flex; align-items: center;
+  padding: 12rpx $sp-4; margin-right: $sp-3;
+  background: $bg-card; border-radius: $radius-pill;
+  font-size: $fs-aux; color: $text-2;
+  box-shadow: $shadow-card;
+  border: 1rpx solid $line-soft;
+}
+.chip-dot { width: 12rpx; height: 12rpx; border-radius: 50%; margin-right: $sp-2; }
+.chip-text { max-width: 300rpx; overflow: hidden; text-overflow: ellipsis; }
+/* 四个色调轮换，让快捷指令一眼看出"这是不同的事" */
+.tone-0 .chip-dot { background: var(--m1); }
+.tone-1 .chip-dot { background: var(--m3); }
+.tone-2 .chip-dot { background: var(--m4); }
+.tone-3 .chip-dot { background: $accent-500; }
+.chip:active { background: var(--ms); color: var(--mt); }
+
+/* ---------- 连通状态 ---------- */
+.container { padding: 0 $page-padding; }
+.status-card {
+  display: flex; align-items: center;
+  padding: $sp-3 $sp-4; border-radius: $radius-pill;
+  font-size: $fs-aux; margin-bottom: $sp-6;
+  background: $bg-card;
+  border: 1rpx solid $line-soft;
+}
+/* 成功态柔底：颜色取 $success 令牌，页面不出现裸色值 */
+.status-card.ok { background: rgba($success, .08); border-color: rgba($success, .16); }
+/* 连接失败改用全局 .qz-err（自带文案 + 重试按钮），这里只补两处间距/点击区 */
+.qz-err { margin-bottom: $sp-6; }
+.qz-err-btn { padding: 12rpx $sp-5; }
+.status-pulse {
+  width: 14rpx; height: 14rpx; border-radius: 50%;
+  margin-right: $sp-3; flex-shrink: 0;
+  background: $text-3;
+  animation: qzBreath 2.2s $ease-inout infinite;
+}
+.status-card.ok .status-pulse { background: $success; }
+.status-text { flex: 1; color: $text-2; }
+.status-badge {
+  padding: 2rpx 12rpx; border-radius: $radius-pill;
+  background: $warning-veil; color: $warning; font-size: $fs-tag;
+}
+
+/* ---------- 金刚区 ---------- */
+.grid {
+  display: flex; padding: $sp-6 0 $sp-4;
+  border-radius: var(--r-card);
+}
+.grid-item {
+  flex: 1; display: flex; flex-direction: column; align-items: center;
+  position: relative; z-index: 1;
+}
+.grid-ico { margin-bottom: $sp-3; }
+/* 每个入口的浮动节奏错开，避免"整块一起动"的呆板 */
+.delay-0 { animation-delay: 0s; }
+.delay-1 { animation-delay: -.9s; }
+.delay-2 { animation-delay: -1.8s; }
+.delay-3 { animation-delay: -2.7s; }
+.delay-4 { animation-delay: -3.6s; }
+.grid-name { font-size: $fs-aux; color: $text-2; font-weight: $fw-medium; }
+
+/* ---------- 区块 ---------- */
+.section { margin-bottom: $sp-6; }
+.hscroll { white-space: nowrap; padding: 0 $page-padding; }
+
+/* ---------- 工具卡 ---------- */
+/* 可点击卡片一律挂 .qz-lift（抬升-下沉，见 motion.scss）：
+   .qz-lift:active 的特异度高于本条基础阴影，所以按压时的"收影下沉"照常生效。
+   胶囊（搜索框 / chip）与小按钮仍用 .qz-press，卡片反馈分工见规范第十一节。 */
+.tool-card {
+  display: inline-block; width: 296rpx; padding: $card-padding;
+  background: $bg-card;
+  border-radius: var(--r-card);
+  margin-right: $sp-3; vertical-align: top;
+  box-shadow: $shadow-soft;
+  border: 1rpx solid $line-soft;
+  position: relative; overflow: hidden;
+}
+/* 卡片顶部的彩色渐隐条：同一屏里四张卡颜色不同，层次就出来了 */
+.tool-card::before {
+  content: '';
+  position: absolute; left: 0; right: 0; top: 0; height: 6rpx;
+  opacity: .85;
+}
+.tone-0::before { background: linear-gradient(90deg, var(--m1), var(--m2)); }
+.tone-1::before { background: linear-gradient(90deg, var(--m3), var(--m2)); }
+.tone-2::before { background: linear-gradient(90deg, var(--m4), var(--m2)); }
+.tone-3::before { background: linear-gradient(90deg, #{$accent-500}, #{$warning}); }
+.tool-ico { margin-bottom: $sp-3; }
+.tool-name { display: block; font-size: $fs-body; font-weight: $fw-semi; color: $text-1; margin-bottom: 4rpx; }
+.tool-desc { display: block; font-size: $fs-tag; color: $text-3; height: 60rpx; line-height: 1.5; margin-bottom: $sp-2; }
+.tool-meta { display: flex; align-items: center; justify-content: space-between; }
+.tool-price { font-size: $fs-tag; color: $accent-500; font-weight: $fw-semi; }
+.tool-free { font-size: $fs-tag; color: $success; font-weight: $fw-semi; }
+.tool-count { font-size: $fs-tag; color: $text-3; }
+
+/* ---------- 任务卡 ---------- */
+.task-card { padding: $card-padding $card-padding $card-padding $sp-6; }
+.task-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: $sp-2; }
+.task-title { flex: 1; font-size: $fs-body; font-weight: $fw-semi; color: $text-1; margin-right: $sp-3; }
+.task-budget { font-size: $fs-h3; font-weight: $fw-bold; color: $accent-500; }
+.task-desc { display: block; font-size: $fs-aux; color: $text-2; margin-bottom: $sp-3; }
+.task-foot { display: flex; align-items: center; justify-content: space-between; }
+.task-tags { display: flex; flex-wrap: wrap; }
+.task-tag {
+  padding: 2rpx 12rpx; margin-right: $sp-2; border-radius: $radius-pill;
+  background: var(--ms); color: var(--mt); font-size: $fs-tag;
+}
+.task-apply { font-size: $fs-tag; color: $text-3; }
+
+/* ---------- 首屏骨架（空态/加载统一用共享组件，见 styles/components.scss） ---------- */
+.skeleton-box { padding-bottom: $sp-6; }
+
+/* ---------- 悬浮 AI 球 ---------- */
+.float-ai {
+  position: fixed; right: $sp-6; bottom: calc(240rpx + env(safe-area-inset-bottom));
+  width: 108rpx; height: 108rpx; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  background: radial-gradient(circle at 32% 28%, var(--m2) 0%, var(--m4) 100%);
+  box-shadow: 0 14rpx 32rpx $shadow-tint-violet;
+  z-index: $z-float;
+  animation: qzFloatY 5.4s $ease-inout infinite;
+}
+.float-ico { width: 60rpx; height: 60rpx; }
+/* 两圈扩散光环，提示"AI 在线" */
+.float-ring {
+  position: absolute; left: 0; top: 0; right: 0; bottom: 0;
+  border-radius: 50%; border: 3rpx solid var(--m4);
+  animation: qzPulse 3.2s $ease-out infinite;
+  pointer-events: none;
+}
+.float-ring-2 { animation-delay: 1.6s; }

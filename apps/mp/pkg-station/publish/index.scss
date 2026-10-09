@@ -1,0 +1,90 @@
+@import '../../styles/tokens.scss';
+
+/* 发布需求 · 品红主题（模块色板见 styles/themes.scss 的 .th-publish）
+   造型语言：圆角 30 + 顶部彩条 + 扫光，突出"把想法变成需求"的创作感 */
+
+.publish { padding-bottom: 220rpx; }
+
+/* ---------- 装饰签名：blob-c + shine（表达起点） ----------
+   右下小光斑用库默认（.13），扫光从左侧缓慢掠过表单区上方；
+   透明度压在红线（≤.4）以下，只衬底不压文字 */
+.pub-shine {
+  left: 8%; width: 220rpx; top: 200rpx; bottom: auto; height: 480rpx;
+  opacity: .32;
+}
+
+/* 卡片内小标题：复用全局 .qz-sec-title 的字形，只补图标与间距 */
+.card-head { display: flex; align-items: center; margin-bottom: $sp-4; }
+.card-head-title { margin-left: $sp-2; }
+.card-head-hint { margin-left: auto; font-size: $fs-tag; color: $text-3; }
+
+/* ---------- ① AI 极速发布 ---------- */
+.ai-card { padding-top: $sp-8; }
+.ai-head { display: flex; align-items: center; }
+.ai-title { margin-left: $sp-2; }
+.ai-badge { margin-left: auto; }
+.ai-tip { display: block; font-size: $fs-tag; color: $text-3; margin: $sp-2 0 $sp-3; }
+/* 扫光只扫背景：内容抬到扫光之上，掠过时不压文字 */
+.ai-head, .ai-tip, .raw-input, .parse-row, .parsed-tip { position: relative; z-index: 1; }
+.raw-input {
+  width: 100%; min-height: 160rpx; background: $bg-page;
+  border-radius: $radius-md; padding: $sp-3 $sp-4;
+  font-size: $fs-body; color: $text-1;
+}
+.parse-row { display: flex; align-items: center; justify-content: space-between; margin-top: $sp-3; }
+.parse-tip { font-size: $fs-tag; color: $text-3; }
+.parse-btn { padding: 0 $sp-6; }
+.parse-btn-disabled { background: $border-strong; color: $text-3; }
+.parsed-tip {
+  display: block; margin-top: $sp-3; padding: $sp-2 $sp-4;
+  border-radius: $radius-pill; background: var(--ms); color: var(--mt);
+  font-size: $fs-tag;
+}
+
+/* ---------- ② 确认信息 ---------- */
+.field { margin-bottom: $sp-6; }
+.field:last-child { margin-bottom: 0; }
+.label-row { display: flex; align-items: center; margin-bottom: $sp-2; }
+.label-ico { width: 32rpx; height: 32rpx; margin-right: $sp-2; }
+.label { font-size: $fs-aux; color: $text-2; }
+.req { color: $danger; margin-left: 4rpx; }
+.input {
+  height: 80rpx; background: $bg-page; border-radius: $radius-md;
+  padding: 0 $sp-4; font-size: $fs-body; color: $text-1;
+}
+.textarea {
+  width: 100%; min-height: 200rpx; background: $bg-page;
+  border-radius: $radius-md; padding: $sp-3 $sp-4;
+  font-size: $fs-body; color: $text-1;
+}
+.budget-row { display: flex; }
+.budget-input { flex: 1; }
+.budget-type { width: 220rpx; margin-left: $sp-3; }
+.picker {
+  height: 80rpx; background: $bg-page; border-radius: $radius-md;
+  padding: 0 $sp-4; display: flex; align-items: center; justify-content: space-between;
+  font-size: $fs-body; color: $text-1;
+}
+.picker-small { font-size: $fs-aux; }
+.picker-arrow { color: $text-3; }
+
+/* 上传参考附件：虚线框 + 糖果图标 */
+.upload {
+  display: flex; align-items: center; margin-top: $sp-4;
+  padding: $sp-4; background: $bg-card;
+  border: 2rpx dashed var(--m2); border-radius: $radius-lg;
+}
+.upload-body { flex: 1; min-width: 0; margin-left: $sp-3; }
+.upload-title { display: block; font-size: $fs-body; color: $text-1; }
+.upload-desc { display: block; font-size: $fs-tag; color: $text-3; }
+.upload-arrow { margin-left: $sp-2; color: $text-3; font-size: $fs-h2; }
+.upload-count { display: block; margin-top: $sp-2; padding-left: $sp-2; font-size: $fs-tag; color: var(--mt); }
+
+/* ---------- 估价 / 来源提示 ---------- */
+.hint { display: flex; align-items: center; }
+.hint-text { margin-left: $sp-3; font-size: $fs-aux; color: var(--mt); }
+.source-tip { display: flex; align-items: center; padding-left: $sp-6; }
+.source-text { margin-left: $sp-3; font-size: $fs-tag; color: $text-2; line-height: 1.7; }
+
+/* ---------- 底部提交 ---------- */
+.submit-disabled { background: $border-strong; color: $text-3; box-shadow: none; }

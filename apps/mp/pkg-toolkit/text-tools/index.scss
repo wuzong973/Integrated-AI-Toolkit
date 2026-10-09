@@ -1,0 +1,206 @@
+@import '../../styles/tokens.scss';
+
+/* 字数统计与文本整理 —— 只用 Design Token 取色：
+   主题色走 var(--m1/--ms/--mt/--r-card)，中性色与间距走 tokens.scss 变量，
+   本页不出现裸色值，也不出现裸的透明度函数。 */
+
+/* ---------- 装饰签名 blob-a + shine 里的"扫光" ----------
+ * 库内 `.qz-shine`（styles/deco.scss）那道光的峰值浓度是 rgba 白 .55，
+ * 而视觉规范的硬红线是"装饰总不透明度 ≤ 0.4"（blob-a 自己占 .16）。
+ * 所以**在本页压一档 opacity**（.6 × .55 ≈ .33，与光斑相加仍在红线内），
+ * 不去改库文件 —— 改库会连带影响其余 10 个用了 shine 的页面。 */
+.tt-shine {
+  opacity: .6;
+}
+
+.text-tools {
+  padding-bottom: $sp-12;
+
+  /* ⚠️ 卡片标题类名是 `.card-title`，不是 `qz-card-title`
+     （后者在 styles/ 里根本没有定义，写了就是静默失效 —— 见 MP-VISUAL-SYSTEM 第 9 节） */
+  .card-title {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: $sp-3;
+    font-size: $fs-h3;
+    font-weight: $fw-semi;
+    color: var(--mt);
+
+    &-hint {
+      font-size: $fs-tag;
+      font-weight: 400;
+      color: $text-3;
+    }
+  }
+
+  .hint {
+    display: block;
+    margin-top: $sp-3;
+    font-size: $fs-tag;
+    line-height: 1.5;
+    color: $text-3;
+  }
+
+  /* ---------- 输入 ---------- */
+  .body {
+    box-sizing: border-box;
+    width: 100%;
+    min-height: 240rpx;
+    padding: $sp-4;
+    font-size: $fs-body;
+    line-height: 1.6;
+    color: var(--mt);
+    background: var(--ms);
+    border-radius: var(--r-card);
+  }
+
+  .body-ph {
+    font-size: $fs-body;
+    color: $text-3;
+  }
+
+  /* ---------- 统计（六格 · 两列） ---------- */
+  .stat-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: $sp-2;
+    margin-top: $sp-2;
+  }
+
+  .stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    box-sizing: border-box;
+    /* 两列：50% 减掉半个 gap（上面是 8rpx），才不会因为取整挤成一行一个 */
+    width: calc(50% - 4rpx);
+    padding: $sp-3 0;
+    background: $bg-card;
+    border: 1rpx solid $border;
+    border-radius: var(--r-card);
+
+    &-value {
+      font-size: 40rpx;
+      font-weight: $fw-bold;
+      line-height: 1.2;
+      color: var(--m1);
+    }
+
+    &-label {
+      margin-top: 4rpx;
+      font-size: $fs-tag;
+      color: $text-3;
+    }
+  }
+
+  /* ---------- 字数要求 ---------- */
+  .limit-row {
+    display: flex;
+    align-items: center;
+    margin-top: $sp-4;
+  }
+
+  .limit-label {
+    font-size: $fs-aux;
+    color: var(--mt);
+  }
+
+  .limit-input {
+    flex: 1;
+    height: $hit-min; /* 点击区下限，无障碍硬要求 */
+    padding: 0 $sp-4;
+    margin-left: $sp-3;
+    font-size: $fs-body;
+    text-align: right;
+    color: var(--mt);
+    background: $bg-card;
+    border: 1rpx solid $border-strong;
+    border-radius: $radius-pill;
+  }
+
+  .limit-ph {
+    font-size: $fs-aux;
+    color: $text-3;
+  }
+
+  .limit-hint {
+    display: block;
+    margin-top: $sp-2;
+    padding: $sp-2 $sp-3;
+    font-size: $fs-aux;
+    color: var(--m1);
+    background: $bg-card;
+    border-radius: $radius-md;
+  }
+
+  /* ---------- 整理操作（8 个胶囊） ---------- */
+  .ops {
+    display: flex;
+    flex-wrap: wrap;
+    gap: $sp-3;
+
+    /* 未粘文字时整排淡一点：点了会 toast 说明原因，不是没反应 */
+    &-off {
+      opacity: .55;
+    }
+  }
+
+  .op {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    height: $hit-min;
+    padding: 0 $sp-5;
+    font-size: $fs-aux;
+    color: var(--mt);
+    background: var(--ms);
+    border-radius: $radius-pill;
+  }
+
+  /* ---------- 结果 ---------- */
+  /* 不设 max-height：结果卡随内容长高，整页滚动。
+     截断却不给滚动条是"看着少了内容又不知道少了什么"的那种错。 */
+  .result-body {
+    padding: $sp-3;
+    background: $bg-card;
+    border: 1rpx solid $border;
+    border-radius: var(--r-card);
+  }
+
+  .result-text {
+    font-size: $fs-body;
+    line-height: 1.6;
+    color: var(--mt);
+    white-space: pre-wrap;
+    word-break: break-all;
+  }
+
+  /* ---------- 按钮 ---------- */
+  .actions {
+    display: flex;
+    gap: $sp-4;
+    margin-top: $sp-4;
+  }
+
+  .btn {
+    padding: $sp-4 0;
+    text-align: center;
+    font-size: $fs-aux;
+    border-radius: var(--r-card);
+
+    &-ghost {
+      flex: 1;
+      color: var(--m1);
+      border: 1rpx solid var(--m1);
+    }
+
+    &-solid {
+      flex: 1;
+      font-weight: $fw-semi;
+      color: $text-inverse;
+      background: var(--m1);
+    }
+  }
+}

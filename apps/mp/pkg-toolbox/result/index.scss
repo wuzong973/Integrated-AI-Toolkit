@@ -1,0 +1,138 @@
+@import '../../styles/tokens.scss';
+
+/* 生成结果 · 湖蓝主题（模块色板见 styles/themes.scss 的 .th-tool-result）
+   造型语言：圆角 28 + 三种卡型轮换（渐变预览 / 描边列表 / 彩条转化位），
+   交付感来自"顶部流动线 + 底部流水条纹" */
+
+.result { padding-bottom: 60rpx; }
+
+/* ---------- 装饰签名：shine + rise + dot-c（庆祝扫光 + 粒子上升） ----------
+   扫光 / 粒子的动效本体全在 deco 库（qzShine / qzRise），页面只补定位与尺寸；
+   粒子取主题点缀色，10~12rpx 的体量压得住"交付庆祝"又不抢内容 */
+.result-shine { left: 44%; }
+.result-rise-a {
+  position: absolute; left: 96rpx; bottom: 240rpx;
+  width: 12rpx; height: 12rpx; border-radius: 50%;
+  background: var(--m3);
+}
+.result-rise-b {
+  position: absolute; left: 260rpx; bottom: 420rpx;
+  width: 10rpx; height: 10rpx; border-radius: 50%;
+  background: var(--m4);
+  animation-delay: -1.7s;
+}
+
+/* ---------- 页头 ---------- */
+.head-flow { margin-top: $sp-4; }
+.head-retry { flex-shrink: 0; margin-left: $sp-2; }
+
+/* ---------- 跟踪中（作业还没跑完） ---------- */
+.tracking { padding: $sp-6; }
+.tracking-row { display: flex; align-items: baseline; justify-content: space-between; }
+.tracking-stage {
+  flex: 1; min-width: 0; margin-right: $sp-3;
+  font-size: $fs-aux; color: var(--mt);
+}
+.tracking-pct { font-size: $fs-h2; font-weight: $fw-bold; color: var(--mt); }
+.tracking-bar {
+  position: relative; height: 20rpx; margin-top: $sp-3; overflow: hidden;
+  background: var(--ms); border-radius: $radius-pill;
+}
+.tracking-water { position: absolute; left: 0; top: 0; right: 0; bottom: 0; }
+.tracking-fill {
+  position: relative; height: 100%;
+  background: linear-gradient(90deg, var(--m1), var(--m2));
+  border-radius: $radius-pill;
+  transition: width $dur-base $ease-out;
+}
+.tracking-channel {
+  display: block; margin-top: $sp-3;
+  font-size: $fs-tag; color: $text-3;
+}
+
+/* ---------- 产物预览（渐变卡） ---------- */
+.preview {
+  position: relative;
+  padding: $sp-8 $card-padding $sp-6;
+  text-align: center;
+}
+.preview-water { position: absolute; left: 0; right: 0; bottom: 0; height: 90rpx; }
+.preview-ico { margin-bottom: $sp-4; }
+.preview-title { display: block; font-size: $fs-body; font-weight: $fw-semi; color: $text-1; }
+.preview-tip { display: block; margin-top: 4rpx; font-size: $fs-tag; color: $text-3; }
+
+/* ---------- 产物列表（彩色柔影卡，整卡可点） ---------- */
+.file-list { padding: 0; }
+.file-list .qz-item { padding-left: $card-padding; padding-right: $card-padding; }
+
+/* ---------- 产出指标（左标签右数值，密集两列） ---------- */
+.metrics { padding: $sp-5 $card-padding; }
+.metric-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  padding: 12rpx 0;
+
+  & + .metric-row { border-top: 1rpx solid var(--ms); }
+}
+.metric-label { flex: 0 0 auto; font-size: $fs-tag; color: $text-3; }
+.metric-value {
+  flex: 1;
+  text-align: right;
+  margin-left: $sp-3;
+  font-size: $fs-body;
+  color: $text-1;
+  word-break: break-all;
+}
+
+/* 未达标 / 需注意：用主题点缀色提示，避免与正常项同色而被忽略 */
+.metric-row.is-warn .metric-value,
+.metric-row.is-warn .metric-label { color: var(--m1); }
+.metric-quality.is-ok .metric-value { color: var(--m1); }
+
+/* ---------- 操作区 ---------- */
+.actions { margin-top: $sp-2; }
+.act-row { display: flex; margin-top: $sp-3; }
+.act-sub {
+  flex: 1; height: auto; min-height: 128rpx; line-height: 1.3;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  padding: $sp-2 0;
+  background: $bg-card; color: $text-2;
+  box-shadow: $shadow-card;
+  margin-right: $sp-3;
+}
+.act-sub:last-child { margin-right: 0; }
+.act-ico { margin-bottom: 2rpx; }
+.act-text { font-size: $fs-tag; }
+
+/* 分享入口必须是原生 `<button open-type="share">`（view 触发不了微信分享面板），
+   而原生 button 自带灰底、1px 边框（画在 ::after 上）和 `margin: auto`，
+   不重置干净就和左右两个动作块对不齐 */
+.act-btn {
+  padding: 0;
+  /* 原生 button 的 `margin: auto` 在 flex 行里会把剩余空间整个吃掉，必须清零 */
+  margin: 0;
+  border: none;
+  border-radius: $radius-pill;
+  font-size: inherit;
+}
+.act-btn::after { display: none; }
+.act-btn:active { opacity: .85; }
+
+/* ---------- 版权提示（暖黄提示条，区别于红色错误条） ---------- */
+.warn-tip {
+  display: flex; align-items: center;
+  padding: $sp-3 $sp-4; margin-bottom: $sp-4;
+  border-radius: $radius-md;
+  background: $soft-lemon;
+  border: 1rpx solid $warning-line;
+}
+.warn-text { flex: 1; margin-left: $sp-3; font-size: $fs-tag; color: $warning; line-height: 1.7; }
+
+/* ---------- 下一步转化位（左侧彩条卡） ---------- */
+.next { padding: 0 $card-padding 0 0; }
+.next .qz-item { padding-left: $sp-6; }
+.next-hint {
+  display: block; margin-top: $sp-3;
+  font-size: $fs-tag; color: $text-3; line-height: 1.6;
+}

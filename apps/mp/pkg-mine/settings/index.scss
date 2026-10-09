@@ -1,0 +1,36 @@
+@import '../../styles/tokens.scss';
+
+/* 设置 · 石墨青主题（模块色板见 styles/themes.scss 的 .th-settings）
+   造型语言：小圆角（16）+ 克制装饰，是"最安静"的一页。
+   装饰签名（第十一节）：`.qz-deco` 内只留一枚 `qz-blob-b`，别的光斑/流线/圆点都不放；
+   卡型统一 `.qz-card-line`（描边），可点的设置组卡挂 `.qz-lift`、
+   开关与"清理演示数据"这类小控件保持 `.qz-press`。本页不需要任何色值字面量。 */
+
+.settings { padding-bottom: 60rpx; }
+
+/* ---------- 通知开关（自绘） ----------
+   原生 <switch> 的着色只能写死色值、取不到模块主题变量，
+   而本模块的纪律是"页面里不出现 #RRGGBB"，所以用两行 view 自己拼。 */
+.sw {
+  position: relative; flex-shrink: 0;
+  width: 88rpx; height: 48rpx; margin-left: $sp-3;
+  border-radius: $radius-pill;
+  background: $border-strong;
+  transition: background $dur-fast $ease-out;
+}
+.sw-on { background: var(--m1); }
+.sw-dot {
+  position: absolute; top: 6rpx; left: 6rpx;
+  width: 36rpx; height: 36rpx; border-radius: 50%;
+  background: $text-inverse; box-shadow: $shadow-card;
+  transition: transform $dur-base $ease-spring;
+}
+.sw-on .sw-dot { transform: translateX(40rpx); }
+
+/* ---------- 缓存卡 ---------- */
+.cache-card { display: flex; flex-direction: column; }
+.clean-btn { margin: 0 $card-padding $sp-3; }
+.clean-hint {
+  padding: 0 $card-padding $card-padding;
+  font-size: $fs-tag; color: $text-3; line-height: 1.7;
+}

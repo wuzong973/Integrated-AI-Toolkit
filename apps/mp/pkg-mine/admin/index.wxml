@@ -1,0 +1,180 @@
+<!-- 管理后台 · 概览（数据源 GET /admin/dashboard/stats，本页只渲染接口真给出的字段）
+     视觉：樱花粉主题 · 装饰签名「topline + dot-c」· 主卡型 .qz-card-bar
+     反馈：待办卡真的会跳页才挂 .qz-lift，指标卡是纯信息卡不挂（防误以为可点）
+     ⚠️ 没有轮询：想看新数用下拉刷新或右侧「手动刷新」，理由见 index.ts 文件头 -->
+<view
+  class="qz-page th-mine ad ad-index"
+  bindtouchstart="onFxStart"
+  bindtouchmove="onFxMove"
+  bindtouchend="onFxEnd"
+  bindtouchcancel="onFxEnd"
+>
+  <!-- 装饰层（pointer-events:none，不拦截点击）：顶边一条数据线 + 一枚呼吸光点 -->
+  <view class="qz-deco">
+    <view class="qz-fx" style="{{fxStyle}}">
+      <view class="ad-topline qz-topline"></view>
+      <view class="ad-dot qz-dot qz-dot-c"></view>
+    </view>
+  </view>
+
+  <view class="qz-content">
+    <!-- ===== 权限闸门（fail closed）：没过去就连后台框架都不铺 ===== -->
+    <block wx:if="{{gate !== 'ok'}}">
+      <view wx:if="{{gate === 'checking'}}" class="qz-container ad-body">
+        <view class="ad-skh qz-skeleton"></view>
+        <view class="ad-skm qz-card qz-card-bar">
+          <view class="qz-skeleton ad-sk-label"></view>
+          <view class="qz-skeleton ad-sk-num"></view>
+        </view>
+      </view>
+
+      <view wx:elif="{{gate === 'denied'}}" class="qz-container ad-body">
+        <view class="qz-empty qz-an-in">
+          <view class="qz-empty-ico qz-ico qz-ico-xl qz-ico-float">
+            <view class="qz-i qz-i-lock"></view>
+          </view>
+          <text class="qz-empty-title">没有权限</text>
+          <text class="qz-empty-text">当前账号不是平台管理员，后台数据不会在这里展示。返回「我的」可继续使用学生功能。</text>
+          <view class="qz-empty-flow qz-flow"></view>
+          <view class="qz-btn-main qz-press" bindtap="onBack">返回</view>
+        </view>
+      </view>
+
+      <view wx:elif="{{gate === 'error'}}" class="qz-container ad-body">
+        <view class="qz-err qz-an-in">
+          <text class="qz-err-text">{{gateError}}</text>
+          <view class="qz-err-btn qz-press" bindtap="onRetryGate">重新验证</view>
+        </view>
+      </view>
+    </block>
+
+    <block wx:else>
+      <!-- ① 身份带（图二：彩色头区 = 后台标题 + 当前管理员身份） -->
+      <view class="ad-band qz-an-in">
+        <view class="ad-band-row">
+          <view class="qz-ico qz-ico-m qz-ico-plain ad-band-ico">
+            <view class="qz-i qz-i-chart"></view>
+          </view>
+          <view class="ad-band-main">
+            <text class="ad-band-title">管理后台</text>
+            <text class="ad-band-sub">{{adminName}} · 管理员</text>
+          </view>
+          <view class="ad-band-back qz-press" bindtap="onBack">返回</view>
+        </view>
+        <view class="ad-band-chips">
+          <view wx:for="{{roleChips}}" wx:key="*this" class="ad-chip">{{item}}</view>
+        </view>
+      </view>
+
+      <!-- ② Tab 条：四页之间用 redirectTo 互换，不叠页面栈 -->
+      <view class="ad-tabs qz-an-in qz-d1">
+        <view
+          wx:for="{{tabs}}"
+          wx:key="key"
+          class="ad-tab {{item.on ? 'ad-tab-on' : ''}} qz-press"
+          data-url="{{item.url}}"
+          bindtap="onTabTap"
+        >{{item.label}}</view>
+      </view>
+
+      <!-- ③ 这一次请求的真实完成时刻 + 手动刷新（这就是"不轮询"的替代件） -->
+      <view class="ad-sync qz-an-in qz-d2">
+        <text class="ad-sync-time">{{updatedAt ? '更新于 ' + updatedAt : '首次拉取中…'}}</text>
+        <view class="ad-sync-btn qz-press" bindtap="onRefresh">{{busy ? '刷新中…' : '手动刷新'}}</view>
+      </view>
+
+      <!-- ④ 首屏骨架 / 错误重试 -->
+      <view wx:if="{{view === 'loading'}}" class="qz-container ad-body">
+        <view wx:for="{{[1,2,3,4]}}" wx:key="*this" class="ad-skm qz-card qz-card-bar">
+          <view class="qz-skeleton ad-sk-label"></view>
+          <view class="qz-skeleton ad-sk-num"></view>
+        </view>
+      </view>
+
+      <view wx:elif="{{view === 'error'}}" class="qz-container ad-body">
+        <view class="qz-err qz-an-in">
+          <text class="qz-err-text">{{error}}</text>
+          <view class="qz-err-btn qz-press" bindtap="onRetry">重试</view>
+        </view>
+      </view>
+
+      <!-- ⑤ 数据本体 -->
+      <block wx:else>
+        <!-- 待办：数字来自 stats.todos，前两格可点 -->
+        <view class="qz-container ad-todos qz-an-in qz-d3">
+          <view
+            wx:for="{{todos}}"
+            wx:key="label"
+            class="ad-todo qz-card qz-card-bar {{item.url ? 'qz-lift' : 'ad-todo-off'}}"
+            data-i="{{index}}"
+            bindtap="onTodoTap"
+          >
+            <view class="qz-ico qz-ico-s ad-todo-ico"><view class="qz-i {{item.icon}}"></view></view>
+            <text class="ad-todo-num">{{item.value}}</text>
+            <text class="ad-todo-label">{{item.label}}</text>
+            <text class="ad-todo-hint">{{item.hint}}</text>
+          </view>
+        </view>
+
+        <!-- 指标分区：标签在上、大数字居中、口径说明在下，可选环比行（图三口径） -->
+        <view
+          wx:for="{{sections}}"
+          wx:key="key"
+          wx:for-item="sec"
+          class="qz-container ad-sec qz-an-in qz-d4"
+        >
+          <view class="ad-sec-head">
+            <view class="qz-ico qz-ico-s"><view class="qz-i {{sec.icon}}"></view></view>
+            <text class="ad-sec-title">{{sec.title}}</text>
+            <text class="ad-sec-sub">{{sec.sub}}</text>
+          </view>
+          <view class="ad-grid">
+            <view
+              wx:for="{{sec.metrics}}"
+              wx:for-item="mt"
+              wx:key="label"
+              class="qz-card qz-card-bar ad-metric {{mt.anim}}"
+            >
+              <text class="ad-m-label">{{mt.label}}</text>
+              <text class="ad-m-num">{{mt.value}}</text>
+              <text class="ad-m-hint">{{mt.hint}}</text>
+              <view
+                wx:for="{{mt.rates}}"
+                wx:for-item="r"
+                wx:key="label"
+                class="ad-rate r-{{r.cls}}"
+              >
+                <text class="ad-rate-label">{{r.label}}</text>
+                <text class="ad-rate-text">{{r.text}}</text>
+                <text wx:if="{{r.window}}" class="ad-rate-win">{{r.window}}</text>
+              </view>
+            </view>
+          </view>
+        </view>
+
+        <!-- 近 7 日热门工具榜（topTools 由后端排序，本页只照抄顺序编号） -->
+        <view class="qz-container ad-sec qz-an-in qz-d5">
+          <view class="ad-sec-head">
+            <view class="qz-ico qz-ico-s"><view class="qz-i qz-i-star"></view></view>
+            <text class="ad-sec-title">近 7 日热门工具</text>
+            <text class="ad-sec-sub">按作业数排序</text>
+          </view>
+          <block wx:if="{{topTools.length}}">
+            <view
+              wx:for="{{topTools}}"
+              wx:key="rank"
+              class="qz-card qz-card-bar ad-rank-row"
+            >
+              <text class="ad-rank-no">{{item.rank}}</text>
+              <text class="ad-rank-name qz-ellipsis">{{item.name}}</text>
+              <text class="ad-rank-jobs">{{item.jobs}} 次</text>
+            </view>
+          </block>
+          <view wx:else class="qz-card qz-card-tint ad-note">
+            <text class="ad-note-text">近 7 日没有工具作业记录 —— 这是接口回的空列表，不是加载失败，也不是"数据还没统计"。</text>
+          </view>
+        </view>
+      </block>
+    </block>
+  </view>
+</view>

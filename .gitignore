@@ -1,0 +1,72 @@
+# ---------- 依赖 ----------
+node_modules/
+.pnpm-store/
+
+# ---------- 构建产物 ----------
+dist/
+build/
+coverage/
+*.tsbuildinfo
+apps/mp/miniprogram_npm/
+
+# ---------- 环境变量：只允许模板入库 ----------
+.env
+.env.local
+.env.*.local
+!.env.example
+# 由 scripts/dev/setup-env.mjs 从根 .env 复制而来（Prisma 只认 schema 同级目录），属于生成物
+apps/api/.env
+
+# ---------- 日志与本地运行数据 ----------
+logs/
+*.log
+npm-debug.log*
+# ⚠️ 必须写成 `/data/` 而不是 `data/` —— 后者会连 `scripts/db/data/` 一起忽略，
+#    于是 27 本词书语料与句子语料**全部不入库**，别人 clone 下来跑不了 `db:gen-words`。
+#    这是既有缺陷（2026-09-21 发现：`git ls-files scripts/db/data/` 为 0 条），
+#    当时界面上一切正常，只有换台机器重新灌库才会暴露。
+/data/
+/uploads/
+*.sqlite
+# API 用户上传和生成的运行时文件
+/apps/api/data/uploads/
+
+# 词表下载缓存：由 scripts/db/fetch-wordlists.mjs 从网络拉取，
+# 属于可再生的中间产物（`data/*.txt` 才是入库的那份，必须保留）
+scripts/db/.cache/
+# 临时语料下载目录（手工 curl 时用过，正式缓存走 scripts/db/.cache/）
+tmp-corpus/
+
+# ---------- 本地临时文件 ----------
+# 兜底：调试脚本、改前备份、导出样本一律以 `_` 开头，防止误入库
+_*
+*.orig
+*.bak
+
+# ---------- 编辑器 / 操作系统 ----------
+.vscode/*
+!.vscode/extensions.json
+.idea/
+.DS_Store
+Thumbs.db
+
+# ---------- Python ----------
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.mypy_cache/
+.ruff_cache/
+
+# ---------- 微信开发者工具 ----------
+# 个人编译设置（基础库版本、域名校验等）不入库；团队共享配置见 project.config.json
+project.private.config.json
+
+# ---------- AI 助手本地记忆（非工程产物）----------
+.workbuddy/
+.workbuddy-ai/
+
+# ---------- Vite 临时配置产物 ----------
+# vite 把 vite.config.ts 编译到同目录的 .timestamp-*.mjs，正常退出会自删；
+# 强杀进程时会残留（2026-09-20 反复重启 dev server 时踩到，被 lint 当成源码扫）
+vite.config.ts.timestamp-*

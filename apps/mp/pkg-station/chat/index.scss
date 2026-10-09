@@ -1,0 +1,107 @@
+@import '../../styles/tokens.scss';
+
+/* 订单会话 · 蓝绿主题（模块色板见 styles/themes.scss 的 .th-chat）
+   造型语言：大圆角 + 反向流线 + 扇贝流水；气泡用"收尖的一角"标出谁在说话。
+   取色只用 var(--m*) 与 tokens 令牌，不出现色值字面量、不自造 @keyframes。 */
+
+/* 整页撑满一屏：消息区自己滚，底部输入条固定（与「我的文件」等页的整屏布局同一写法） */
+.chat { display: flex; flex-direction: column; height: 100vh; }
+.chat-inner { flex: 1; display: flex; flex-direction: column; min-height: 0; }
+.chat-body { flex: 1; display: flex; flex-direction: column; min-height: 0; }
+
+/* ---------- 装饰签名：wave + blob-b（对话流水） ----------
+   两道扇贝曲线一上一下横贯消息区，只画在内容之下（.qz-deco 已在 z-index 0）；
+   库内 .qz-wave 默认 .35，这里按"背景层该有的浓度"再压一档，绝不压住气泡 */
+.chat-wave {
+  position: absolute; left: -40rpx; right: -40rpx; top: 220rpx;
+  opacity: .3;
+}
+.chat-wave-up { top: auto; bottom: 280rpx; opacity: .18; }
+
+/* 页头底部的反向流线 */
+.chat-flow { margin-top: $sp-4; }
+
+/* 错误分支：重试按钮点击区补到 $hit-min，次选入口与错误条拉开一档 */
+.qz-err-btn {
+  display: flex; align-items: center;
+  min-height: $hit-min; padding: 0 $sp-6;
+}
+.err-alt { margin-top: $sp-4; }
+
+/* ---------- 消息滚动区 ---------- */
+/* scroll-view 要有确定高度才滚得起来：flex 算出来的高度得用 overflow 兜住，
+   否则内容一多就把整页顶高（与青智 OS 会话页同一写法） */
+.msgs { flex: 1; min-height: 0; overflow: hidden; }
+/* 底部留白是给固定输入条的：.qz-footer-bar 不参与 flex 布局，
+   不留这一截就会压住最新一条消息（口径与订单详情页的 220rpx 一致） */
+.msgs-inner { padding: $sp-2 0 220rpx; }
+.msgs-tail { height: $sp-4; }
+
+/* ---------- 会话起点：这条会话因哪一单而起 ---------- */
+.ctx-card { margin-bottom: $sp-5; padding-left: $sp-6; }
+.ctx-label { display: block; font-size: $fs-tag; color: var(--mt); }
+.ctx-title {
+  display: block; margin-top: 2rpx;
+  font-size: $fs-body; font-weight: $fw-semi; color: $text-1;
+}
+.ctx-meta { display: flex; align-items: center; flex-wrap: wrap; margin-top: $sp-2; }
+.ctx-sub { margin-right: $sp-3; font-size: $fs-tag; color: $text-3; }
+.ctx-amount { margin-right: $sp-3; font-size: $fs-aux; font-weight: $fw-bold; color: var(--m1); }
+.ctx-status {
+  padding: 2rpx $sp-2; border-radius: $radius-pill;
+  font-size: $fs-tag; background: $glass-text; color: var(--mt);
+}
+
+/* ---------- 时间分隔（跨自然日才插一条） ---------- */
+.day-sep { display: flex; justify-content: center; margin: $sp-4 0 $sp-3; }
+.day-text {
+  padding: 2rpx $sp-3; border-radius: $radius-pill;
+  font-size: $fs-tag; color: $text-3;
+  background: $glass-text;
+}
+
+/* ---------- 气泡 ---------- */
+.msg { display: flex; flex-direction: column; align-items: flex-start; margin-bottom: $sp-4; }
+.msg-mine { align-items: flex-end; }
+.bubble { max-width: 78%; padding: $sp-3 $sp-4; }
+/* 对方在左、右下收尖；我在右、左下收尖 —— 只用现成圆角令牌做方向感 */
+.bubble-peer {
+  border-radius: $radius-lg $radius-lg $radius-lg $radius-xs;
+  background: $bg-card; border: 1rpx solid var(--ms);
+  box-shadow: $shadow-soft;
+}
+.bubble-mine {
+  border-radius: $radius-lg $radius-lg $radius-xs $radius-lg;
+  background: linear-gradient(135deg, var(--m1), var(--m2));
+  box-shadow: 0 8rpx 20rpx var(--sh);
+}
+.bubble-text { font-size: $fs-body; line-height: 1.6; color: $text-1; word-break: break-all; }
+.msg-mine .bubble-text { color: $text-inverse; }
+.bubble-time { margin-top: 4rpx; font-size: $fs-tag; color: $text-3; }
+
+/* 会话里的"还没有消息"：比整页空态轻一档，别抢输入条的注意力 */
+.chat-hint { padding: 60rpx $card-padding $sp-8; }
+/* 引导态里那句"为什么没有订单"：比主说明小一档 */
+.empty-note {
+  display: block; margin: 0 0 $sp-6; padding: 0 $sp-2;
+  font-size: $fs-tag; color: $text-3; line-height: 1.7; text-align: left;
+}
+
+/* ---------- 底部输入条（固定与安全区由全局 .qz-footer-bar 负责，这里只排内容） ---------- */
+.chat-footer { display: flex; align-items: center; }
+.chat-input {
+  flex: 1; min-width: 0; height: $hit-min; padding: 0 $sp-5;
+  border-radius: $radius-pill;
+  background: var(--ms); color: $text-1; font-size: $fs-body;
+}
+.chat-input-ph { color: $text-3; }
+.send-btn {
+  flex-shrink: 0; margin-left: $sp-3;
+  height: $hit-min; line-height: $hit-min; padding: 0 $sp-6;
+  border-radius: $radius-pill;
+  background: linear-gradient(135deg, var(--m1), var(--m2));
+  color: $text-inverse; font-size: $fs-body; font-weight: $fw-semi;
+  box-shadow: 0 8rpx 20rpx var(--sh);
+}
+/* 发送中 / 空内容：换成柔底灰字，禁用态"看着就不太能点"，而不是把白字压到不可读 */
+.send-btn-off { background: var(--ms); color: $text-3; box-shadow: none; }

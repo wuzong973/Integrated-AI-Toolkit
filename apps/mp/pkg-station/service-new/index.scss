@@ -1,0 +1,105 @@
+@import '../../styles/tokens.scss';
+
+/* 上架服务 · 暖橙主题（模块色板见 styles/themes.scss 的 .th-station）
+   造型语言：中圆角 22 + 渐变表单主卡 + 门面扫光，与"发布需求"（品红·卡内扫光）拉开区别。
+   取色只用 var(--m*) / var(--ms) / var(--mt) / tokens，不出现任何 #RRGGBB（红线 2），
+   动效一律用 motion.scss / deco.scss 现成类，本文件不自造 @keyframes。 */
+
+/* ---------- 装饰签名：shine + blob-a（门面扫光） ----------
+   库内 `.qz-shine` 只给了宽 140rpx 的一道柔光，这里把它加宽成一整块门面的扫光带，
+   并压到装饰红线（≤.4）以内；只动 transform，不参与布局 */
+.svc-new .new-shine {
+  width: 260rpx; top: 96rpx; bottom: auto; height: 520rpx;
+  opacity: .4;
+}
+
+/* 页头底部的行进虚线（与驿站大厅 `.head-flow` 同一写法，保持同族） */
+.head-flow { margin-top: $sp-4; }
+
+/* 内容区：底部留白，最后一颗按钮不贴安全区 */
+.new-body { padding-bottom: $sp-12; }
+
+/* 错误分支的重试按钮：沿用全局 .qz-err-btn 配色，只把点击区补到 $hit-min */
+.qz-err-btn {
+  display: flex; align-items: center;
+  min-height: $hit-min; padding: 0 $sp-6;
+}
+
+/* ---------- 表单（与 pkg-station/apply 同族：柔底输入块 + 上方小标签） ---------- */
+.field { display: flex; flex-direction: column; margin-bottom: $sp-5; }
+.field:last-child { margin-bottom: 0; }
+.field-label {
+  margin-bottom: $sp-2; font-size: $fs-aux; font-weight: $fw-medium; color: var(--mt);
+}
+.field-input, .field-picker {
+  height: $hit-min; padding: 0 $sp-4;
+  border-radius: $radius-md;
+  background: var(--ms); color: var(--mt);
+  font-size: $fs-body;
+}
+/* 已填的内容比占位语气更实，用中性正文色而不是主色 */
+.field-input { color: $text-1; }
+.field-picker { display: flex; align-items: center; }
+/* 还没选分类：整体压暗，让人一眼看出这项是空的 */
+.field-picker.placeholder { opacity: .55; }
+.field-textarea {
+  width: 100%; min-height: 200rpx; padding: $sp-3 $sp-4;
+  border-radius: $radius-md;
+  background: var(--ms); color: $text-1;
+  font-size: $fs-body; line-height: 1.7;
+}
+
+/* 主卡型是渐变卡：卡底会从纯白走到柔底，这一张卡里的输入块换成近白玻璃 + 中性描边，
+   保证在渐变两端都还看得出边界（只换底色与边界，不动尺寸、文案、交互） */
+.qz-card-grad .field-input,
+.qz-card-grad .field-picker,
+.qz-card-grad .field-textarea {
+  background: $glass-card;
+  border: 1rpx solid $border-strong;
+}
+
+/* 计价方式 / 服务地区：一行胶囊，点击区从 46rpx 抬到 $hit-min */
+.opt-row { display: flex; flex-wrap: wrap; }
+.opt-row .opt {
+  height: $hit-min; min-width: 176rpx; padding: 0 $sp-6; margin: 0 $sp-2 $sp-2 0;
+  justify-content: center;
+  font-size: $fs-aux;
+}
+
+/* 选了"面议"就没有价格输入框：用虚线框说明"这里不是漏填"（同发布页的虚线附件框语言） */
+.negotiable-tip {
+  padding: $sp-3 $sp-4; border: 2rpx dashed var(--m2); border-radius: $radius-md;
+  font-size: $fs-aux; color: var(--mt); line-height: 1.6;
+}
+
+/* ---------- 技能标签：输入 + 添加同行，已加的标签可点掉 ---------- */
+.tag-add { display: flex; align-items: center; }
+.tag-input { flex: 1; min-width: 0; }
+.tag-btn { margin-left: $sp-2; padding: 0 $sp-6; flex-shrink: 0; }
+.tag-list { display: flex; flex-wrap: wrap; margin-top: $sp-3; }
+.tag-list .tag-chip { margin: 0 $sp-2 $sp-2 0; font-size: $fs-aux; }
+
+/* ---------- 上架后的规则说明（说"会发生什么"，不承诺成交） ---------- */
+.notice-title {
+  display: block; font-size: $fs-body; font-weight: $fw-semi; color: var(--mt);
+}
+.notice-text {
+  display: block; margin-top: $sp-1; font-size: $fs-aux; color: $text-2; line-height: 1.75;
+}
+
+/* 分类接口挂了、用的兜底列表：把这件事说在前面，别让人以为分类就这么点 */
+.cat-notice { margin-bottom: $sp-4; }
+
+/* ---------- 引导态（非认证服务者）：上次驳回的原因要显眼，不许留白 ---------- */
+.reject-why {
+  display: block; margin-bottom: $sp-3; padding: $sp-2 $sp-4;
+  border-radius: $radius-md; background: $bg-card;
+  font-size: $fs-aux; color: var(--mt); line-height: 1.6;
+}
+/* 空态里的次操作：与主按钮错开，避免两颗胶囊糊在一起 */
+.new-empty-sub { margin-top: $sp-3; }
+
+/* ---------- 提交 ---------- */
+.submit { margin-top: $sp-2; }
+/* 请求进行中：看着按不动，比"按了没反应"诚实 */
+.submit.disabled { opacity: .55; }

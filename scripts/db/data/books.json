@@ -1,0 +1,111 @@
+{
+  "generatedAt": "2026-09-21T13:34:27.994Z",
+  "source": "KyleBing/english-vocabulary · full_line_jsonl/sentence/正序",
+  "note": "本清单由 scripts/db/fetch-wordlists.mjs 生成；gen-words.mjs 与 check-vocab-books 都读它",
+  "books": [
+    {
+      "code": "junior_bnu",
+      "name": "初中词汇（北师大）",
+      "desc": "外研社版初中英语课本词汇",
+      "category": "school",
+      "level": -1,
+      "wordCount": 1652
+    },
+    {
+      "code": "highschool_bs",
+      "name": "高中词汇（北师大）",
+      "desc": "北师大版高中英语课本词汇",
+      "category": "school",
+      "level": 0,
+      "wordCount": 2874
+    },
+    {
+      "code": "cet4",
+      "name": "四级核心词汇",
+      "desc": "全国大学英语四级考试大纲词表",
+      "category": "exam",
+      "level": 1,
+      "wordCount": 4543
+    },
+    {
+      "code": "cet6",
+      "name": "六级核心词汇",
+      "desc": "全国大学英语六级考试大纲词表",
+      "category": "exam",
+      "level": 2,
+      "wordCount": 3991
+    },
+    {
+      "code": "tem4",
+      "name": "英语专业四级词汇",
+      "desc": "英语专业四级考试（TEM-4）词表",
+      "category": "exam",
+      "level": 3,
+      "wordCount": 4338
+    },
+    {
+      "code": "tem8",
+      "name": "英语专业八级词汇",
+      "desc": "英语专业八级考试（TEM-8）词表",
+      "category": "exam",
+      "level": 4,
+      "wordCount": 12405
+    },
+    {
+      "code": "kaoyan",
+      "name": "考研核心词汇",
+      "desc": "硕士研究生入学考试英语（一/二）词表",
+      "category": "exam",
+      "level": 3,
+      "wordCount": 5044
+    },
+    {
+      "code": "ielts",
+      "name": "雅思核心词汇",
+      "desc": "IELTS 学术/培训类高频词",
+      "category": "abroad",
+      "level": 5,
+      "wordCount": 5254
+    },
+    {
+      "code": "toefl",
+      "name": "托福核心词汇",
+      "desc": "TOEFL iBT 学术场景高频词",
+      "category": "abroad",
+      "level": 5,
+      "wordCount": 10363
+    },
+    {
+      "code": "sat",
+      "name": "SAT 核心词汇",
+      "desc": "SAT 阅读理解高频词",
+      "category": "abroad",
+      "level": 6,
+      "wordCount": 4437
+    },
+    {
+      "code": "gre",
+      "name": "GRE 核心词汇",
+      "desc": "GRE 填空与阅读高频词",
+      "category": "abroad",
+      "level": 7,
+      "wordCount": 9982
+    },
+    {
+      "code": "gmat",
+      "name": "GMAT 核心词汇",
+      "desc": "GMAT 逻辑与阅读高频词",
+      "category": "abroad",
+      "level": 7,
+      "wordCount": 3301
+    },
+    {
+      "code": "business",
+      "name": "商务英语词汇",
+      "desc": "职场与商务场景常用词",
+      "category": "career",
+      "level": 4,
+      "wordCount": 2801
+    }
+  ]
+}

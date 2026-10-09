@@ -1,0 +1,264 @@
+<!-- 信用与评价（文档 6.6.4）
+     视觉：琥珀主题 · 圆角 24 · 信用分糖果圆环 + 光斑，流水走彩色指示条卡 -->
+<view
+  class="qz-page th-credit credit"
+  bindtouchstart="onFxStart"
+  bindtouchmove="onFxMove"
+  bindtouchend="onFxEnd"
+  bindtouchcancel="onFxEnd"
+>
+  <!-- 装饰层（不拦截点击，内容可读性不受影响）
+       签名：shine + dot-a —— 扫光缓缓掠过整页，配一枚呼吸光点（信用光环） -->
+  <view class="qz-deco">
+    <view class="qz-fx" style="{{fxStyle}}">
+      <view class="qz-shine qz-shine-slow"></view>
+      <view class="qz-dot qz-dot-a"></view>
+    </view>
+  </view>
+
+  <view class="qz-content">
+    <!-- 页头 -->
+    <view class="qz-head">
+      <view class="qz-head-row">
+        <view class="qz-ico qz-ico-l qz-ico-float">
+          <view class="qz-i qz-i-credit"></view>
+        </view>
+        <view class="qz-head-main">
+          <text class="qz-head-title">信用与评价</text>
+          <text class="qz-head-sub">{{headSub}}</text>
+        </view>
+      </view>
+    </view>
+
+    <view class="qz-container">
+      <!-- 加载失败：如实给错误条 + 重试。绝不让默认 80 分顶着"没加载出来"出场 -->
+      <view wx:if="{{creditError}}" class="qz-err qz-an-in">
+        <text class="qz-err-text">{{creditError}}</text>
+        <view class="qz-err-btn qz-press" bindtap="onRetry">重试</view>
+      </view>
+
+      <!-- 信用分卡：渐变卡 + 彩色柔影 + 糖果圆环 -->
+      <view wx:else class="score-card qz-card qz-card-grad qz-card-glow qz-an-in qz-d1">
+        <view class="score-deco">
+          <view class="s-blob s-blob-a"></view>
+          <view class="s-blob s-blob-b"></view>
+        </view>
+        <view class="qz-shine qz-shine-slow"></view>
+
+        <view class="score-ring">
+          <view class="qz-halo"></view>
+          <text class="score-num">{{score}}</text>
+          <text class="score-unit">分</text>
+        </view>
+
+        <view class="score-body">
+          <text class="score-level">{{level.label}}</text>
+          <text class="score-desc">{{level.desc}}</text>
+          <text class="score-tip">初始 80 分，完成订单与好评可提升</text>
+          <view class="score-bar">
+            <view class="score-bar-fill" style="width: {{scorePct}}%"></view>
+          </view>
+        </view>
+
+        <view class="score-flow qz-flow"></view>
+      </view>
+
+      <!-- Tab：积分流水仅在计费模式出现（免费开放期整块隐藏） -->
+      <view class="tabs">
+        <view
+          class="qz-chip tab {{tab === 'credit' ? 'qz-chip-on' : ''}} qz-press"
+          data-tab="credit"
+          bindtap="onTabTap"
+        >信用流水</view>
+        <view
+          wx:if="{{showPoints}}"
+          class="qz-chip tab {{tab === 'points' ? 'qz-chip-on' : ''}} qz-press"
+          data-tab="points"
+          bindtap="onTabTap"
+        >{{pointsTabLabel}}</view>
+      </view>
+    </view>
+
+    <!-- 信用流水 -->
+    <block wx:if="{{tab === 'credit'}}">
+      <view class="qz-container">
+        <view class="qz-card qz-card-line qz-an-in qz-d2">
+          <view class="card-head">
+            <view class="qz-i qz-i-chart card-head-ico"></view>
+            <text class="card-title">信用分变化规则</text>
+          </view>
+          <view wx:for="{{rules}}" wx:key="action" class="qz-item qz-item-line rule">
+            <view class="qz-ico qz-ico-s">
+              <view class="qz-i {{item.icon}}"></view>
+            </view>
+            <view class="qz-item-main">
+              <text class="qz-item-title">{{item.action}}</text>
+            </view>
+            <text class="rule-delta {{item.delta[0] === '+' ? 'pos' : 'neg'}}">{{item.delta}}</text>
+          </view>
+        </view>
+      </view>
+
+      <view class="qz-sec">
+        <view class="qz-sec-bar"></view>
+        <text class="qz-sec-title">我的流水</text>
+        <text class="qz-sec-sub">信用分变化记录</text>
+      </view>
+
+      <view class="qz-container">
+        <view wx:if="{{creditLogs.length}}" class="qz-card qz-card-bar qz-card-glow qz-an-in qz-d3">
+          <view wx:for="{{creditLogs}}" wx:key="index" class="qz-item qz-item-line log">
+            <view class="qz-ico qz-ico-s">
+              <view class="qz-i {{item.positive ? 'qz-i-check' : 'qz-i-close'}}"></view>
+            </view>
+            <view class="qz-item-main">
+              <text class="qz-item-title">{{item.reason}}</text>
+              <text class="qz-item-desc">{{item.time}}</text>
+            </view>
+            <view class="log-right">
+              <text class="log-delta {{item.positive ? 'pos' : 'neg'}}">{{item.delta}}</text>
+              <text class="log-balance">余额 {{item.balance}}</text>
+            </view>
+          </view>
+        </view>
+
+        <!-- 信用数据没加载成功时不渲染"还没有信用流水"空态 —— 那是把失败演成空 -->
+        <view wx:elif="{{!creditError}}" class="qz-empty qz-an-in qz-d3">
+          <view class="qz-empty-ico qz-ico qz-ico-xl qz-ico-float">
+            <view class="qz-i qz-i-empty"></view>
+          </view>
+          <text class="qz-empty-title">还没有信用流水</text>
+          <text class="qz-empty-text">完成第一单后，信用加减分记录会出现在这里</text>
+          <view class="qz-empty-flow qz-flow"></view>
+        </view>
+      </view>
+
+      <!-- ========== 收到的评价（M3-16）：分数是结果，评价是原因 ========== -->
+      <view class="qz-sec">
+        <view class="qz-sec-bar"></view>
+        <text class="qz-sec-title">收到的评价</text>
+        <text class="qz-sec-sub">共 {{reviewsTotal}} 条 · 来自已验收的订单</text>
+      </view>
+
+      <view class="qz-container">
+        <!-- 拉失败先给错误条：「拉不到」与「确实一条都没有」必须是两种样子 -->
+        <view wx:if="{{reviewsError}}" class="qz-err qz-an-in">
+          <text class="qz-err-text">{{reviewsError}}</text>
+          <view class="qz-err-btn qz-press" bindtap="onRetryReviews">重试</view>
+        </view>
+
+        <!-- 主题浅底卡：与本 Tab 的描边规则卡、彩条流水卡区分开（层次不能只靠文字） -->
+        <view wx:elif="{{reviews.length}}" class="qz-card qz-card-tint qz-an-in qz-d4">
+          <view wx:for="{{reviews}}" wx:key="id" class="review">
+            <view class="review-head">
+              <view class="qz-ico qz-ico-s qz-ico-plain">
+                <view class="qz-i qz-i-mine"></view>
+              </view>
+              <view class="review-who">
+                <text class="review-name">{{item.who}}</text>
+                <text class="review-time">{{item.timeText}}</text>
+              </view>
+              <text class="review-stars">{{item.stars}}</text>
+            </view>
+            <text class="review-content">{{item.content || '对方只打了星，没写文字'}}</text>
+            <view wx:if="{{item.tags.length}}" class="review-tags">
+              <view
+                wx:for="{{item.tags}}"
+                wx:for-item="tag"
+                wx:key="*this"
+                class="qz-chip review-tag"
+              >{{tag}}</view>
+            </view>
+          </view>
+        </view>
+
+        <!-- 加载中给骨架，不把"还在拉"演成"没有评价" -->
+        <view wx:elif="{{reviewsLoading}}" class="qz-card qz-card-line qz-an-in">
+          <view class="qz-skeleton qz-skeleton-line"></view>
+          <view class="qz-skeleton qz-skeleton-line qz-skeleton-line-short"></view>
+        </view>
+
+        <view wx:else class="qz-empty qz-an-in qz-d4">
+          <view class="qz-empty-ico qz-ico qz-ico-xl qz-ico-float">
+            <view class="qz-i qz-i-star"></view>
+          </view>
+          <text class="qz-empty-title">还没有收到评价</text>
+          <text class="qz-empty-text">完成第一单、让对方验收打分之后，评价与星级会出现在这里</text>
+          <view class="qz-empty-flow qz-flow"></view>
+        </view>
+      </view>
+    </block>
+
+    <!-- 积分流水（仅计费模式；免费期 showPoints=false，两个 block 都不渲染） -->
+    <block wx:elif="{{showPoints}}">
+      <view class="qz-container">
+        <view wx:if="{{pointsError}}" class="qz-err qz-an-in">
+          <text class="qz-err-text">{{pointsError}}</text>
+          <view class="qz-err-btn qz-press" bindtap="onRetry">重试</view>
+        </view>
+      </view>
+      <view class="qz-container">
+        <view class="qz-card qz-card-tint qz-an-in qz-d2">
+          <view class="card-head">
+            <view class="qz-i qz-i-sparkle card-head-ico"></view>
+            <text class="card-title">{{pointsEarnTitle}}</text>
+          </view>
+          <view class="rule qz-item qz-item-line">
+            <view class="qz-ico qz-ico-s"><view class="qz-i qz-i-gift"></view></view>
+            <view class="qz-item-main"><text class="qz-item-title">新用户注册</text></view>
+            <text class="rule-delta pos">+20</text>
+          </view>
+          <view class="rule qz-item qz-item-line">
+            <view class="qz-ico qz-ico-s"><view class="qz-i qz-i-check"></view></view>
+            <view class="qz-item-main"><text class="qz-item-title">每日签到</text></view>
+            <text class="rule-delta pos">+1</text>
+          </view>
+          <view class="rule qz-item qz-item-line">
+            <view class="qz-ico qz-ico-s"><view class="qz-i qz-i-rocket"></view></view>
+            <view class="qz-item-main"><text class="qz-item-title">完成任务</text></view>
+            <text class="rule-delta pos">+2</text>
+          </view>
+          <view class="rule qz-item qz-item-line">
+            <view class="qz-ico qz-ico-s"><view class="qz-i qz-i-star"></view></view>
+            <view class="qz-item-main"><text class="qz-item-title">首单奖励</text></view>
+            <text class="rule-delta pos">+5</text>
+          </view>
+          <text class="rules-tip">{{pointsRulesTip}}</text>
+        </view>
+      </view>
+
+      <view class="qz-sec">
+        <view class="qz-sec-bar"></view>
+        <text class="qz-sec-title">{{pointsLedgerTitle}}</text>
+        <text class="qz-sec-sub">{{pointsLedgerSub}}</text>
+      </view>
+
+      <view class="qz-container">
+        <view wx:if="{{pointsLogs.length}}" class="qz-card qz-card-bar qz-card-glow qz-an-in qz-d3">
+          <view wx:for="{{pointsLogs}}" wx:key="index" class="qz-item qz-item-line log">
+            <view class="qz-ico qz-ico-s">
+              <view class="qz-i {{item.positive ? 'qz-i-check' : 'qz-i-close'}}"></view>
+            </view>
+            <view class="qz-item-main">
+              <text class="qz-item-title">{{item.reason}}</text>
+              <text class="qz-item-desc">{{item.time}}</text>
+            </view>
+            <view class="log-right">
+              <text class="log-delta {{item.positive ? 'pos' : 'neg'}}">{{item.delta}}</text>
+              <text class="log-balance">余额 {{item.balance}}</text>
+            </view>
+          </view>
+        </view>
+
+        <view wx:elif="{{!pointsError}}" class="qz-empty qz-an-in qz-d3">
+          <view class="qz-empty-ico qz-ico qz-ico-xl qz-ico-float">
+            <view class="qz-i qz-i-empty"></view>
+          </view>
+          <text class="qz-empty-title">{{pointsEmptyTitle}}</text>
+          <text class="qz-empty-text">{{pointsEmptyText}}</text>
+          <view class="qz-empty-flow qz-flow"></view>
+        </view>
+      </view>
+    </block>
+  </view>
+</view>

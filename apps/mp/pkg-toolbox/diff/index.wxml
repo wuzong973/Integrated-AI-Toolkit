@@ -1,0 +1,101 @@
+<!-- 文本对比 —— 两段文本按行 diff，新增/删除行红绿区分（颜色全部走令牌）
+     视觉：星蓝主题（th-toolbox）· 装饰签名：blob-a + dot-c -->
+<view
+  class="qz-page th-toolbox diff-page"
+  bindtouchstart="onFxStart"
+  bindtouchmove="onFxMove"
+  bindtouchend="onFxEnd"
+  bindtouchcancel="onFxEnd"
+>
+  <view class="qz-deco">
+    <view class="qz-fx" style="{{fxStyle}}">
+      <view class="qz-blob qz-blob-a"></view>
+      <view class="qz-dot qz-dot-c"></view>
+    </view>
+  </view>
+
+  <view class="qz-content">
+    <view class="qz-head">
+      <view class="qz-head-row qz-an-in">
+        <view class="qz-ico qz-ico-l qz-ico-float">
+          <view class="qz-i qz-i-files"></view>
+        </view>
+        <view class="qz-head-main">
+          <text class="qz-head-title">文本对比</text>
+          <text class="qz-head-sub">按行找出新增与删除 · 本地完成</text>
+        </view>
+      </view>
+    </view>
+
+    <view class="qz-container">
+      <!-- 两段输入 -->
+      <view class="qz-card qz-card-grad qz-an-in qz-d1">
+        <view class="pane">
+          <view class="pane-head">
+            <text class="pane-tag pane-old">旧文本</text>
+            <text class="pane-sub">改动前的内容</text>
+          </view>
+          <textarea
+            class="io-area"
+            value="{{oldText}}"
+            maxlength="-1"
+            placeholder="粘贴改动前的文本"
+            placeholder-class="io-ph"
+            bindinput="onOldInput"
+          ></textarea>
+        </view>
+
+        <view class="pane">
+          <view class="pane-head">
+            <text class="pane-tag pane-new">新文本</text>
+            <text class="pane-sub">改动后的内容</text>
+          </view>
+          <textarea
+            class="io-area"
+            value="{{newText}}"
+            maxlength="-1"
+            placeholder="粘贴改动后的文本"
+            placeholder-class="io-ph"
+            bindinput="onNewInput"
+          ></textarea>
+        </view>
+
+        <view class="btn-row">
+          <view class="qz-btn-main qz-press" bindtap="onDiff">开始对比</view>
+          <view wx:if="{{oldText || newText}}" class="btn-clear qz-btn-sub qz-press" bindtap="onClear">
+            清空
+          </view>
+        </view>
+      </view>
+
+      <!-- 结果 -->
+      <view wx:if="{{result}}" class="qz-card qz-an-in qz-d2">
+        <view class="card-title">
+          <text>对比结果</text>
+          <view class="diff-stats">
+            <text class="stat-add">+{{result.adds}}</text>
+            <text class="stat-del">-{{result.dels}}</text>
+          </view>
+        </view>
+
+        <view wx:if="{{result.truncated}}" class="qz-err cut-tip">
+          <text class="qz-err-text">文本过长，两侧各取前 1500 行参与对比</text>
+        </view>
+
+        <scroll-view scroll-y class="diff-scroll">
+          <view wx:for="{{result.rows}}" wx:key="idx" class="diff-row row-{{item.cls}}">
+            <text class="row-mark">{{item.cls === 'add' ? '+' : item.cls === 'del' ? '-' : ''}}</text>
+            <text class="row-text">{{item.text}}</text>
+          </view>
+        </scroll-view>
+
+        <text class="hint">按行对比：改了一个词的整段会算成"删一行 + 加一行"。</text>
+      </view>
+
+      <view wx:elif="{{!result}}" class="qz-card blank qz-an-in qz-d2">
+        <text class="blank-title">分别粘入两段文本，点「开始对比」</text>
+        <text class="hint">绿色是新增行，红色是删除行；对比在这台手机上完成。</text>
+      </view>
+    </view>
+  </view>
+</view>

@@ -1,0 +1,72 @@
+@import '../../styles/tokens.scss';
+
+/* 服务详情（M3-05）· 葡萄紫主题（模块色板见 styles/themes.scss 的 .th-provider）
+   造型语言：大圆角 + 行进虚线 + 扇贝波浪，强调"商品卡"的体积感。
+   取色只用 var(--m*) 与 tokens，不出现任何 #RRGGBB（红线 2）。 */
+
+/* ---------- 装饰签名：flow + blob-b（服务详情动线） ----------
+   库内 .qz-flow 默认 .45，高于装饰红线（≤.4），这一层压到 .3；
+   装饰只在 .qz-deco 内（pointer-events:none），不会压到卡片文字 */
+.svc-flow {
+  position: absolute; left: -40rpx; right: -40rpx; top: 210rpx;
+  opacity: .3;
+}
+
+/* 页头底部的扇贝波浪 */
+.svc-wave { margin-top: $sp-4; }
+
+/* 卡片内小标题：复用全局 .qz-sec-title 的字形，只补图标间距 */
+.card-head { display: flex; align-items: center; margin-bottom: $sp-3; }
+.card-head-title { margin-left: $sp-2; }
+.card-head-more { margin-left: auto; font-size: $fs-tag; color: var(--mt); }
+
+/* ---------- 概览卡 ---------- */
+.overview { padding-left: $sp-6; }
+.ov-title { display: block; font-size: $fs-h2; font-weight: $fw-black; color: $text-1; line-height: 1.45; }
+.ov-price { display: flex; align-items: baseline; margin: $sp-3 0 $sp-2; }
+.ov-amount {
+  font-size: $fs-display; font-weight: $fw-black; color: $accent-500;
+  margin-right: $sp-3; line-height: 1.1;
+}
+.ov-unit { font-size: $fs-tag; color: $text-3; }
+.ov-info { display: flex; align-items: center; margin-top: $sp-3; }
+.ov-info-text { margin-left: $sp-2; font-size: $fs-aux; color: $text-2; }
+.ov-tags { display: flex; flex-wrap: wrap; margin-top: $sp-4; }
+.ov-tags .qz-chip { margin: 0 $sp-2 $sp-2 0; }
+.ov-flow { margin-top: $sp-2; }
+
+/* ---------- 状态说明（本人 + 非在架时才出现） ---------- */
+.notice-title { display: block; font-size: $fs-body; font-weight: $fw-semi; color: var(--mt); }
+.notice-text { display: block; margin-top: $sp-1; font-size: $fs-aux; color: $text-2; line-height: 1.7; }
+
+/* ---------- 服务说明 ---------- */
+.desc { display: block; font-size: $fs-body; color: $text-2; line-height: 1.85; word-break: break-all; }
+
+/* ---------- 服务者卡 ---------- */
+.provider-card { margin-bottom: 0; }
+.pr { display: flex; align-items: center; }
+.pr-avatar {
+  width: $ico-md; height: $ico-md; border-radius: $radius-pill;
+  background: $bg-card; box-shadow: $shadow-card;
+  display: flex; align-items: center; justify-content: center;
+  overflow: hidden; margin-right: $sp-3; flex-shrink: 0;
+}
+.pr-avatar-img { width: 100%; height: 100%; }
+.pr-ico { width: 60rpx; height: 60rpx; }
+.pr-body { flex: 1; min-width: 0; }
+.pr-name { display: block; font-size: $fs-body; font-weight: $fw-semi; color: $text-1; }
+.pr-meta { display: flex; align-items: center; margin-top: 2rpx; font-size: $fs-tag; color: $text-3; }
+.pr-dot { margin: 0 6rpx; }
+.pr-rating { display: block; margin-top: 2rpx; font-size: $fs-tag; color: $warning; }
+
+/* 底部留白：最后一张卡不贴住固定操作栏（小屏也只有这一处 padding，不会挤） */
+.foot-space { height: $sp-12; }
+
+/* ---------- 空态次按钮与底部操作栏 ---------- */
+.svc-empty-sub { margin-top: $sp-3; }
+
+.foot { display: flex; }
+.act { flex: 1; min-width: 0; margin-right: $sp-3; }
+.act:last-child { margin-right: 0; }
+/* 请求进行中：看着按不动，比"按了没反应"诚实 */
+.disabled { opacity: .55; }

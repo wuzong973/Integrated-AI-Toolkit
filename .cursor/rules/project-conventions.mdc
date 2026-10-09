@@ -1,0 +1,22 @@
+---
+description: 青智校园项目核心约定（始终适用）
+alwaysApply: true
+---
+
+# 青智校园 · 项目约定（指针）
+
+本规则**不再复制规范正文**，避免与权威版本漂移。请阅读并遵守：
+
+- `docs/rules/DEVELOPMENT-STANDARDS.md` —— 十条红线、架构约束、目录与命名规范、代码风格、测试、提交、合规
+- `docs/architecture/OVERVIEW.md` —— 系统架构与代码分层（后端在 `apps/api`）
+- `docs/product/青智校园_开发任务清单.md` —— 任务编号与验收标准
+- `docs/compliance/OPEN_SOURCE_LICENSES.md` —— 引入新依赖前必须登记
+
+同一份内容也被仓库根的 `AGENTS.md` 引用（供其他 AI 协作者使用）。
+
+## 最常踩的四条（速记）
+
+1. 单文件 ≤ 300 行、函数 ≤ 50 行、禁 `any` —— `npm run lint` 会拦；
+2. 状态变更只走 `packages/core/src/state-machine` 的 `transition()`；
+3. 金额用「分」整数，外部依赖走 Provider，Mock 必须带 `X-Provider: mock`；
+4. 交付前 `npm run lint && npm run typecheck && npm test && npm run build` 必须全绿。

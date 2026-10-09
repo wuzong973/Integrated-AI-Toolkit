@@ -1,0 +1,157 @@
+@import '../../styles/tokens.scss';
+
+/* 工具执行 · 靛青主题（模块色板见 styles/themes.scss 的 .th-tool-run）
+   造型语言：圆角 24 + 白→柔底渐变卡 + 顶部流动彩线，"一步一步来"的步骤感 */
+
+.run { padding-bottom: 220rpx; }
+
+/* ---------- 装饰签名：flow-thick（进度流动线，配合执行状态） ----------
+   一正一反两条粗流线横贯屏后；流线默认 .55 不透明度压到 0.4 红线以下，
+   只当地底动线，不抢表单（用量纪律见 MP-VISUAL-SYSTEM 第五节） */
+.run-flow-a {
+  position: absolute; left: -40rpx; right: -40rpx; top: 300rpx;
+  opacity: .30;
+}
+.run-flow-b {
+  position: absolute; left: -40rpx; right: -40rpx; top: 620rpx;
+  opacity: .18;
+}
+
+/* ---------- 加载骨架（页头 + 表单各一段） ---------- */
+/* 与全局 `.qz-skeleton` 组合使用；输入框形状的块比三条细横线更像"这里马上会有表单" */
+.sk-field { height: $hit-min; margin-bottom: $sp-5; border-radius: $radius-md; }
+.head-skl-title { width: 62%; height: 40rpx; margin-bottom: $sp-2; }
+
+/* ---------- 错误条 / 兜底告示上的按钮 ---------- */
+/* 沿用全局 .qz-err-btn 配色，只把点击区补到 $hit-min */
+.qz-err-btn {
+  display: flex; align-items: center;
+  min-height: $hit-min; padding: 0 $sp-6;
+}
+
+/* ---------- 「已转后台执行」回流条 ---------- */
+.bg-run { display: flex; align-items: center; padding: $sp-5; }
+.bg-run-main { flex: 1; min-width: 0; }
+.bg-run-title { display: block; font-size: $fs-body; font-weight: $fw-bold; color: var(--mt); }
+.bg-run-text {
+  display: block; margin-top: 4rpx;
+  font-size: $fs-tag; color: $text-3; line-height: 1.6;
+}
+.bg-run-acts { display: flex; flex-direction: column; align-items: stretch; margin-left: $sp-4; }
+.bg-run-btn { padding: 0 $sp-5; font-size: $fs-tag; white-space: nowrap; }
+.bg-run-close {
+  margin-top: $sp-2; padding: 6rpx 0; text-align: center;
+  font-size: $fs-tag; color: $text-3;
+}
+.bg-run-close:active { opacity: .7; }
+
+/* ---------- 参数表单卡 ---------- */
+.form-card { padding: $card-padding $card-padding $sp-4; }
+
+.field { margin-bottom: $sp-4; }
+.field:last-child { margin-bottom: 0; }
+.field-head { display: flex; align-items: center; margin-bottom: $sp-2; }
+/* 每个字段一枚呼吸小圆点，四个色调轮换，让长表单不"糊成一片" */
+.field-dot {
+  width: 14rpx; height: 14rpx; border-radius: 50%;
+  margin-right: $sp-2; flex-shrink: 0;
+  animation: qzBreath 4.2s $ease-inout infinite;
+}
+.tone-0 .field-dot { background: var(--m1); }
+.tone-1 .field-dot { background: var(--m3); }
+.tone-2 .field-dot { background: var(--m4); }
+.tone-3 .field-dot { background: var(--m2); }
+.field-label { font-size: $fs-aux; color: $text-2; font-weight: $fw-medium; }
+.required {
+  margin-left: $sp-2; padding: 2rpx 12rpx;
+  border-radius: $radius-pill; font-size: $fs-tag;
+  background: var(--ms); color: var(--mt);
+}
+
+.field-input {
+  height: $hit-min; background: var(--ms); border-radius: $radius-md;
+  padding: 0 $sp-4; font-size: $fs-body; color: $text-1;
+}
+.field-textarea {
+  width: 100%; min-height: 160rpx; background: var(--ms); border-radius: $radius-md;
+  padding: $sp-3 $sp-4; font-size: $fs-body; color: $text-1;
+}
+.field-picker { background: var(--ms); border-radius: $radius-md; }
+.picker-value {
+  height: $hit-min; padding: 0 $sp-4;
+  display: flex; align-items: center; justify-content: space-between;
+  font-size: $fs-body; color: $text-1;
+}
+.picker-arrow { color: var(--m1); font-size: $fs-aux; }
+
+/* 上传区：虚线 + 柔底，比纯描边更有"放东西进来"的暗示 */
+.upload {
+  display: flex; align-items: center;
+  min-height: $hit-min; margin-top: $sp-4; padding: $sp-2 $sp-4;
+  border: 2rpx dashed var(--m2); border-radius: $radius-md;
+  background: var(--ms);
+}
+.upload-ico { margin-right: $sp-3; }
+.upload-text { flex: 1; font-size: $fs-aux; color: $text-2; }
+.upload-count { display: block; margin-top: $sp-2; font-size: $fs-tag; color: var(--mt); }
+
+/* ---------- 版权声明卡 ---------- */
+.copyright { padding: $card-padding; }
+.copyright-text {
+  display: block; font-size: $fs-aux; color: $text-2;
+  line-height: 1.75; margin-bottom: $sp-3;
+}
+.copyright-check { display: flex; align-items: center; min-height: $hit-min; }
+.checkbox {
+  width: 44rpx; height: 44rpx; flex-shrink: 0; margin-right: $sp-3;
+  border: 2rpx solid var(--m2); border-radius: $radius-sm;
+  background: $bg-card;
+  display: flex; align-items: center; justify-content: center;
+  transition: transform $dur-fast $ease-spring;
+}
+.checkbox-on { border-color: transparent; transform: scale(1.08); }
+.checkbox-ico { width: 100%; height: 100%; }
+.copyright-label { flex: 1; font-size: $fs-aux; color: $text-1; line-height: 1.6; }
+
+/* ---------- 底部操作栏 ---------- */
+.run-foot { display: flex; align-items: center; }
+.cost { flex: 1; min-width: 0; }
+.cost-value { display: block; font-size: $fs-body; font-weight: $fw-bold; color: var(--mt); }
+.cost-tip { display: block; font-size: $fs-tag; color: $text-3; }
+.submit { width: 300rpx; margin-left: $sp-3; }
+.submit-off { background: $border-strong; color: $text-3; box-shadow: none; }
+
+/* ---------- 运行进度层（背景透明，透出同一套装饰） ---------- */
+/* bottom 让开全面屏手势区：进度卡居中时不能贴住底部横条，
+   否则"后台运行"按钮落在安全区里按不准 */
+.progress-layer {
+  position: fixed; left: 0; top: 0; right: 0;
+  bottom: calc(0rpx + env(safe-area-inset-bottom));
+  display: flex; align-items: center; justify-content: center;
+  z-index: $z-popup;
+}
+.progress-card { width: 560rpx; padding: $sp-12 $sp-8; text-align: center; }
+.progress-ico { margin-bottom: $sp-6; }
+.progress-title { display: block; font-size: $fs-h1; font-weight: $fw-black; color: $text-1; }
+.progress-stage { display: block; font-size: $fs-aux; color: var(--mt); margin: $sp-2 0 $sp-8; }
+.progress-bar {
+  position: relative; height: 20rpx; overflow: hidden;
+  background: var(--ms); border-radius: $radius-pill;
+}
+.progress-water { position: absolute; left: 0; top: 0; right: 0; bottom: 0; }
+.progress-fill {
+  position: relative; height: 100%;
+  background: linear-gradient(90deg, var(--m1), var(--m2));
+  border-radius: $radius-pill;
+  transition: width $dur-base $ease-out;
+}
+.progress-pct {
+  display: block; margin-top: $sp-3;
+  font-size: $fs-h2; font-weight: $fw-bold; color: var(--mt);
+}
+.progress-channel {
+  display: block; margin-top: $sp-2;
+  font-size: $fs-tag; color: var(--m1);
+}
+.progress-tip { display: block; margin-top: $sp-3; font-size: $fs-tag; color: $text-3; }
+.progress-cancel { margin-top: $sp-8; }

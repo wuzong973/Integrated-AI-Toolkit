@@ -1,0 +1,141 @@
+<!-- 订单会话：四个方法都接真接口（conversationApi 建/取会话 + 拉消息 + 发送），不做 WebSocket
+     视觉：蓝绿主题 · 反向流线 + 扇贝流水；气泡左右分侧、跨自然日插一条时间分隔 -->
+<view
+  class="qz-page th-chat chat"
+  bindtouchstart="onFxStart"
+  bindtouchmove="onFxMove"
+  bindtouchend="onFxEnd"
+  bindtouchcancel="onFxEnd"
+>
+  <!-- 装饰层（不拦截点击，内容可读性不受影响）
+       签名：wave + blob-b（对话流水）—— 两道扇贝曲线一上一下错开，像消息在你来我往地流 -->
+  <view class="qz-deco">
+    <view class="qz-fx" style="{{fxStyle}}">
+      <view class="chat-wave qz-wave"></view>
+      <view class="chat-wave chat-wave-up qz-wave qz-wave-up"></view>
+      <view class="qz-blob qz-blob-b"></view>
+    </view>
+  </view>
+
+  <view class="qz-content chat-inner">
+    <!-- 页头：会话态显示对方昵称，其余态显示功能名 -->
+    <view class="qz-head">
+      <view class="qz-head-row qz-an-in">
+        <view class="qz-ico qz-ico-m qz-ico-float">
+          <view class="qz-i qz-i-chat"></view>
+        </view>
+        <view class="qz-head-main">
+          <text class="qz-head-title">{{stage === 'chat' ? peerName : '订单会话'}}</text>
+          <text class="qz-head-sub">{{stage === 'chat' ? '站内沟通，双方都看得到' : '围绕某一笔订单的站内沟通'}}</text>
+        </view>
+      </view>
+      <!-- 反向流线：像一句话"往回飘"，保留你来我往的对话感 -->
+      <view class="chat-flow qz-flow qz-flow-rev"></view>
+    </view>
+
+    <view class="qz-container chat-body">
+      <!-- ① 首屏骨架 -->
+      <view wx:if="{{stage === 'loading'}}" class="qz-skeleton qz-an-in">
+        <view class="qz-skeleton-line"></view>
+        <view class="qz-skeleton-line qz-skeleton-line-short"></view>
+      </view>
+
+      <!-- ② 建/取会话失败：说清原因 + 真能重拉的按钮 -->
+      <view wx:elif="{{stage === 'error'}}" class="qz-col qz-an-in">
+        <view class="qz-err">
+          <text class="qz-err-text">{{error}}</text>
+          <view class="qz-err-btn qz-press" bindtap="onRetry">重试</view>
+        </view>
+        <view class="qz-btn-sub err-alt qz-press" bindtap="onGoOrders">去我的订单</view>
+      </view>
+
+      <!-- ③ 没带订单进来：如实引导，不给一个发不出东西的输入框 -->
+      <view wx:elif="{{stage === 'guide'}}" class="qz-empty qz-an-in qz-d1">
+        <view class="qz-empty-ico qz-ico qz-ico-xl qz-ico-float">
+          <view class="qz-i qz-i-chat"></view>
+        </view>
+        <text class="qz-empty-title">先有一单，再开一段会话</text>
+        <text class="qz-empty-text">站内沟通是围绕某一笔订单进行的。订单生成后，从订单详情点「联系对方」就会进入这里，双方的消息只有你和对方能看到。</text>
+        <text wx:if="{{taskId}}" class="empty-note">
+          你带进来的是任务编号 {{taskId}}：这条需求还没选定服务者，所以还没有订单可谈。
+        </text>
+        <view class="qz-empty-flow qz-flow"></view>
+        <view class="qz-btn-main qz-press" bindtap="onGoOrders">去我的订单</view>
+      </view>
+
+      <!-- ④ 会话本体 -->
+      <scroll-view
+        wx:else
+        class="msgs"
+        scroll-y
+        scroll-into-view="{{scrollIntoView}}"
+        scroll-with-animation
+      >
+        <view class="msgs-inner">
+          <!-- 这条会话因哪一单而起（摘要卡：单号/金额/状态都是 GET /orders/:id 真给的） -->
+          <view
+            wx:if="{{order}}"
+            class="qz-card qz-card-tint qz-card-bar ctx-card qz-press"
+            bindtap="onOpenOrder"
+          >
+            <text class="ctx-label">正在沟通的订单</text>
+            <text class="ctx-title">{{order.title}}</text>
+            <view class="ctx-meta">
+              <text class="ctx-sub">单号 {{order.orderNo}}</text>
+              <text class="ctx-amount">￥{{order.amountYuan}}</text>
+              <text class="ctx-status">{{order.statusText}}</text>
+            </view>
+          </view>
+
+          <!-- 一条消息都没有：说清"现在能发第一条"，不演成"对方没回" -->
+          <view wx:if="{{!bubbles.length}}" class="qz-empty chat-hint qz-an-in">
+            <view class="qz-empty-ico qz-ico qz-ico-l qz-ico-float">
+              <view class="qz-i qz-i-chat"></view>
+            </view>
+            <text class="qz-empty-title">还没有消息</text>
+            <text class="qz-empty-text">把交付内容、时间或注意事项说清楚，对方会收到一条未读提醒。急事也可以先按订单页留的联系方式沟通。</text>
+            <view class="qz-empty-flow qz-flow"></view>
+          </view>
+
+          <!-- 气泡：左右分侧靠服务端算好的 mine；相邻两条跨自然日才插一条时间分隔 -->
+          <block wx:for="{{bubbles}}" wx:key="id">
+            <view wx:if="{{item.showDay}}" class="day-sep">
+              <text class="day-text">{{item.dayText}}</text>
+            </view>
+            <view
+              id="msg_{{item.id}}"
+              class="msg {{item.mine ? 'msg-mine' : 'msg-peer'}} qz-an-fade"
+            >
+              <view class="bubble {{item.mine ? 'bubble-mine' : 'bubble-peer'}}">
+                <text class="bubble-text">{{item.content}}</text>
+              </view>
+              <text class="bubble-time">{{item.timeText}}</text>
+            </view>
+          </block>
+
+          <view class="msgs-tail" id="chat_end"></view>
+        </view>
+      </scroll-view>
+    </view>
+  </view>
+
+  <!-- 输入条：只有会话态出现（引导态/错误态没有会话可发，留个输入框就是假功能）
+       底部安全区由全局 .qz-footer-bar 的 calc() 负责，不在本页另写一套 -->
+  <view wx:if="{{stage === 'chat'}}" class="qz-footer-bar chat-footer">
+    <input
+      class="chat-input"
+      placeholder="把需求或交付安排说清楚…"
+      placeholder-class="chat-input-ph"
+      value="{{input}}"
+      disabled="{{sending}}"
+      confirm-type="send"
+      cursor-spacing="24"
+      bindinput="onInput"
+      bindconfirm="onSend"
+    />
+    <view
+      class="send-btn {{sending || !input ? 'send-btn-off' : ''}} qz-press"
+      bindtap="onSend"
+    >{{sending ? '发送中' : '发送'}}</view>
+  </view>
+</view>

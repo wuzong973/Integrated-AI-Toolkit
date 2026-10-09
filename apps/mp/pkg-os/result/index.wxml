@@ -1,0 +1,90 @@
+<!-- 编排结果：交付包（M2-16）占位页 —— 运行数据（M2-06）上线前不展示任何产物
+     视觉：幻紫主题 · 圆角 36 · 流线感；装饰层随指针视差 -->
+<view
+  class="qz-page th-os os-result"
+  bindtouchstart="onFxStart"
+  bindtouchmove="onFxMove"
+  bindtouchend="onFxEnd"
+  bindtouchcancel="onFxEnd"
+>
+  <view class="qz-deco">
+    <view class="qz-fx" style="{{fxStyle}}">
+      <!-- 签名：wave + shine（交付包波浪：两道扇贝曲线 + 一道缓慢扫光） -->
+      <view class="result-wave-a qz-wave"></view>
+      <view class="result-wave-b qz-wave qz-wave-up"></view>
+      <view class="result-shine qz-shine qz-shine-slow"></view>
+    </view>
+  </view>
+
+  <view class="qz-content">
+    <!-- 页头 -->
+    <view class="qz-head">
+      <view class="qz-head-row qz-an-in">
+        <view class="qz-ico qz-ico-l qz-ico-float">
+          <view class="qz-i qz-i-gift"></view>
+        </view>
+        <view class="qz-head-main">
+          <text class="qz-head-title">编排结果</text>
+          <text class="qz-head-sub">交付包：全部产物 + 一份 Markdown 总结</text>
+        </view>
+      </view>
+      <view class="qz-head-chips qz-an-in qz-d1">
+        <view class="qz-chip qz-chip-on">交付包</view>
+        <view class="qz-chip">产物 + 总结</view>
+      </view>
+      <view class="head-flow qz-flow"></view>
+    </view>
+
+    <view class="qz-container">
+      <!-- 本页无数据源：只有如实说明 + 一个真能到的去处（不放零效果的"重新加载"） -->
+      <view class="qz-empty qz-an-in">
+        <view class="qz-empty-ico qz-ico qz-ico-xl qz-ico-float">
+          <view class="qz-i qz-i-empty"></view>
+        </view>
+        <text class="qz-empty-title">交付包生成开发中</text>
+        <text class="qz-empty-text">计划运行数据（M2-06）上线后，这里会汇总全部节点产物与一份 Markdown 总结。当前不会生成任何文件，也没有产物可下载。</text>
+        <text wx:if="{{runId}}" class="run-note">本次带进来的运行编号：{{runId}}（仅用于回看，服务端暂无该运行的记录可查）</text>
+        <view class="qz-empty-flow qz-flow"></view>
+        <view class="qz-btn-main qz-press" bindtap="onBack">返回任务看板</view>
+      </view>
+    </view>
+
+    <!-- 交付包上线后会有哪些东西：与上面文案同源，帮用户理解这一页的价值 -->
+    <view class="qz-sec qz-an-in qz-d3">
+      <view class="qz-sec-bar"></view>
+      <text class="qz-sec-title">交付包包含</text>
+      <text class="qz-sec-sub">打开即用</text>
+    </view>
+    <view class="qz-container">
+      <view class="qz-card qz-card-glow pack qz-an-in qz-d3">
+        <view class="qz-item qz-item-line qz-lift">
+          <view class="qz-ico qz-ico-s">
+            <view class="qz-i qz-i-files"></view>
+          </view>
+          <view class="qz-item-main">
+            <text class="qz-item-title">全部节点产物</text>
+            <text class="qz-item-desc">各节点生成的文件按阶段归拢</text>
+          </view>
+        </view>
+        <view class="qz-item qz-item-line qz-lift">
+          <view class="qz-ico qz-ico-s">
+            <view class="qz-i qz-i-copy"></view>
+          </view>
+          <view class="qz-item-main">
+            <text class="qz-item-title">Markdown 总结</text>
+            <text class="qz-item-desc">把整条编排链路的结论串成一篇</text>
+          </view>
+        </view>
+        <view class="qz-item qz-item-line qz-lift">
+          <view class="qz-ico qz-ico-s">
+            <view class="qz-i qz-i-verify"></view>
+          </view>
+          <view class="qz-item-main">
+            <text class="qz-item-title">可追溯的执行记录</text>
+            <text class="qz-item-desc">AI 与真人的分工和时间线都留档</text>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+</view>

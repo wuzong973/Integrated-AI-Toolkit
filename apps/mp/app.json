@@ -1,0 +1,174 @@
+{
+  "pages": [
+    "pages/home/index",
+    "pages/toolbox/index",
+    "pages/os/index",
+    "pages/station/index",
+    "pages/mine/index",
+    "pages/common/login",
+    "pages/common/webview"
+  ],
+  "subpackages": [
+    {
+      "root": "pkg-toolbox",
+      "name": "toolbox",
+      "pages": [
+        "run/index",
+        "result/index",
+        "files/index",
+        "text/index",
+        "timestamp/index",
+        "base64/index",
+        "password/index",
+        "json/index",
+        "diff/index",
+        "unit/index",
+        "datecalc/index"
+      ]
+    },
+    {
+      "root": "pkg-toolkit",
+      "name": "toolkit",
+      "pages": [
+        "home/index",
+        "gpa/index",
+        "split-bill/index",
+        "countdown/index",
+        "timetable/index",
+        "lottery/index",
+        "trip/index",
+        "unit-convert/index",
+        "date-calc/index",
+        "text-tools/index"
+      ]
+    },
+    {
+      "root": "pkg-station",
+      "name": "station",
+      "pages": [
+    "service/index",
+    "my-service/index",
+    "provider/index",
+        "publish/index",
+        "task/index",
+        "order-list/index",
+        "order-detail/index",
+        "apply/index",
+        "workbench/index",
+        "skill/index",
+        "chat/index",
+        "service-new/index"
+      ]
+    },
+    {
+      "root": "pkg-os",
+      "name": "os",
+      "pages": ["plan/index", "result/index", "history/index"]
+    },
+    {
+      "root": "pkg-mine",
+      "name": "mine",
+      "pages": [
+        "wallet/index",
+        "credit/index",
+        "verify/index",
+        "settings/index",
+        "notifications/index",
+        "profile/index",
+        "admin/index",
+        "admin/users/index",
+        "admin/verifications/index",
+        "admin/orders/index"
+      ]
+    },
+    {
+      "root": "pkg-vocab",
+      "name": "vocab",
+      "pages": ["home/index", "study/index", "stats/index"]
+    },
+    {
+      "root": "pkg-practice",
+      "name": "practice",
+      "pages": ["home/index", "session/index", "stats/index"]
+    }
+  ],
+  "preloadRule": {
+    "pages/home/index": {
+      "network": "all",
+      "packages": ["vocab", "practice"]
+    },
+    "pages/toolbox/index": {
+      "network": "all",
+      "packages": ["toolbox"]
+    },
+    "pages/station/index": {
+      "network": "all",
+      "packages": ["station"]
+    },
+    "pages/os/index": {
+      "network": "all",
+      "packages": ["os"]
+    },
+    "pages/mine/index": {
+      "network": "all",
+      "packages": ["mine"]
+    }
+  },
+  "window": {
+    "backgroundTextStyle": "dark",
+    "navigationBarBackgroundColor": "#FFFFFF",
+    "navigationBarTitleText": "青智校园",
+    "navigationBarTextStyle": "black",
+    "backgroundColor": "#F5F7FA",
+    "enablePullDownRefresh": false
+  },
+  "tabBar": {
+    "color": "#98A2B3",
+    "selectedColor": "#00B8A9",
+    "backgroundColor": "#FFFFFF",
+    "borderStyle": "white",
+    "list": [
+      {
+        "pagePath": "pages/home/index",
+        "text": "首页",
+        "iconPath": "assets/icons/home.png",
+        "selectedIconPath": "assets/icons/home-active.png"
+      },
+      {
+        "pagePath": "pages/toolbox/index",
+        "text": "工具箱",
+        "iconPath": "assets/icons/toolbox.png",
+        "selectedIconPath": "assets/icons/toolbox-active.png"
+      },
+      {
+        "pagePath": "pages/os/index",
+        "text": "AI",
+        "iconPath": "assets/icons/ai.png",
+        "selectedIconPath": "assets/icons/ai-active.png"
+      },
+      {
+        "pagePath": "pages/station/index",
+        "text": "驿站",
+        "iconPath": "assets/icons/station.png",
+        "selectedIconPath": "assets/icons/station-active.png"
+      },
+      {
+        "pagePath": "pages/mine/index",
+        "text": "我的",
+        "iconPath": "assets/icons/mine.png",
+        "selectedIconPath": "assets/icons/mine-active.png"
+      }
+    ]
+  },
+  "permission": {
+    "scope.userLocation": {
+      "desc": "用于展示本校/附近的服务与任务"
+    }
+  },
+  "requiredPrivateInfos": ["getLocation", "chooseLocation"],
+  "darkmode": true,
+  "themeLocation": "theme.json",
+  "sitemapLocation": "sitemap.json",
+  "style": "v2",
+  "lazyCodeLoading": "requiredComponents"
+}

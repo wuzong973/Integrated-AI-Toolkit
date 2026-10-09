@@ -1,0 +1,43 @@
+<!-- 校园小工具（列表页）
+     视觉：工具主题 · 卡片列表，纯本地工具，无网络请求
+     装饰签名（见 docs/dev/MP-VISUAL-SYSTEM.md）：flow-soft + dot-a -->
+<view
+  class="qz-page th-toolkit toolkit-home"
+  bindtouchstart="onFxStart"
+  bindtouchmove="onFxMove"
+  bindtouchend="onFxEnd"
+  bindtouchcancel="onFxEnd"
+>
+  <!-- 装饰层（不拦截点击；只有装饰层跟随指针，内容区不跟随） -->
+  <view class="qz-deco">
+    <view class="qz-fx" style="{{fxStyle}}">
+      <view class="qz-flow qz-flow-soft"></view>
+      <view class="qz-dot qz-dot-a"></view>
+    </view>
+  </view>
+
+  <view class="qz-content">
+    <view class="head qz-an-in">
+      <text class="title">校园小工具</text>
+      <text class="sub">全部本地计算，不联网、不占额度</text>
+    </view>
+
+    <!-- 容器不再整块淡入：九个工具自己逐条弹性上浮（anim 字段由 staggerClass 生成，见 index.ts） -->
+    <view class="list">
+      <view
+        class="item qz-press {{item.anim}}"
+        wx:for="{{tools}}"
+        wx:key="key"
+        data-url="{{item.url}}"
+        bindtap="onToolTap"
+      >
+        <view class="qz-i {{item.icon}}"></view>
+        <view class="item-body">
+          <text class="item-name">{{item.name}}</text>
+          <text class="item-desc">{{item.desc}}</text>
+        </view>
+        <text class="item-arrow">›</text>
+      </view>
+    </view>
+  </view>
+</view>

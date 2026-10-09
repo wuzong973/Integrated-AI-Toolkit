@@ -1,0 +1,212 @@
+<!-- 发布需求（文档 5.3.8）
+     视觉：品红主题 · 圆角 30 · 顶部彩条 + 扫光，突出"把想法变成需求"的创作感 -->
+<view
+  class="qz-page th-publish publish"
+  bindtouchstart="onFxStart"
+  bindtouchmove="onFxMove"
+  bindtouchend="onFxEnd"
+  bindtouchcancel="onFxEnd"
+>
+  <!-- 装饰层（不拦截点击，内容可读性不受影响）
+       装饰签名 blob-c + shine（表达起点），与同模块其余页刻意错开 -->
+  <view class="qz-deco">
+    <view class="qz-fx" style="{{fxStyle}}">
+      <view class="qz-blob qz-blob-c"></view>
+      <view class="pub-shine qz-shine qz-shine-slow"></view>
+    </view>
+  </view>
+
+  <view class="qz-content">
+    <!-- 页头 -->
+    <view class="qz-head">
+      <view class="qz-head-row qz-an-in">
+        <view class="qz-ico qz-ico-l qz-ico-float">
+          <view class="qz-i qz-i-sparkle"></view>
+        </view>
+        <view class="qz-head-main">
+          <text class="qz-head-title">发布需求</text>
+          <text class="qz-head-sub">说一句话，AI 帮你把表单填好</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- ① AI 极速发布 -->
+    <view class="qz-container">
+      <view class="qz-card qz-card-glow ai-card qz-an-in qz-d1">
+        <view class="qz-topline"></view>
+        <view class="qz-shine qz-shine-slow"></view>
+
+        <view class="ai-head">
+          <view class="qz-ico qz-ico-s"><view class="qz-i qz-i-ai"></view></view>
+          <text class="qz-sec-title ai-title">① 说需求</text>
+          <view class="qz-ai-badge ai-badge">AI</view>
+        </view>
+        <text class="ai-tip">AI 只帮你填表，预填后每一项都还能改</text>
+
+        <textarea
+          class="raw-input"
+          placeholder="例：我想找人拍毕业照，6月10日，3人，预算300"
+          value="{{rawText}}"
+          bindinput="onRawInput"
+          maxlength="500"
+          auto-height
+        />
+        <view class="parse-row">
+          <text class="parse-tip">{{rawText.length}}/500</text>
+          <view class="qz-btn-sub parse-btn {{parsing ? 'parse-btn-disabled' : ''}} qz-press" bindtap="onParse">
+            {{parsing ? '解析中…' : 'AI 帮我填表单'}}
+          </view>
+        </view>
+        <view wx:if="{{parsed}}" class="parsed-tip">✓ 已预填，可在下方修改后发布</view>
+      </view>
+    </view>
+
+    <!-- ② 确认信息 -->
+    <view class="qz-container">
+      <view class="qz-card qz-card-line qz-an-in qz-d2">
+        <view class="card-head">
+          <view class="qz-ico qz-ico-s"><view class="qz-i qz-i-doc"></view></view>
+          <text class="qz-sec-title card-head-title">② 确认信息</text>
+          <text class="card-head-hint">带 * 为必填</text>
+        </view>
+
+        <!-- 表单顶部的如实说明（复用 .qz-err 的错误条样式，`.field` 只借它的行距）：
+             这两条都不是"报错"，但用户必须知道自己正在什么前提下操作 ——
+             「编辑」其实是再发一条新需求；分类下拉当前是内置兜底而非平台真实分类。 -->
+        <view wx:if="{{editNotice}}" class="qz-err field qz-an-in">
+          <text class="qz-err-text">{{editNotice}}</text>
+        </view>
+        <view wx:if="{{catNotice}}" class="qz-err field qz-an-in">
+          <text class="qz-err-text">{{catNotice}}</text>
+        </view>
+
+        <view class="field">
+          <view class="label-row">
+            <view class="qz-i qz-i-doc label-ico"></view>
+            <text class="label">标题<text class="req">*</text></text>
+          </view>
+          <input class="input" placeholder="一句话说明你的需求" value="{{form.title}}"
+            data-key="title" bindinput="onInput" maxlength="60" />
+        </view>
+
+        <view class="field">
+          <view class="label-row">
+            <view class="qz-i qz-i-toolbox label-ico"></view>
+            <text class="label">分类<text class="req">*</text></text>
+          </view>
+          <picker range="{{categoryNames}}" value="{{categoryIndex}}" bindchange="onCategoryChange">
+            <view class="picker qz-press">
+              <text>{{categoryNames[categoryIndex]}}</text>
+              <text class="picker-arrow">▾</text>
+            </view>
+          </picker>
+        </view>
+
+        <view class="field">
+          <view class="label-row">
+            <view class="qz-i qz-i-wallet label-ico"></view>
+            <text class="label">预算（元）<text class="req">*</text></text>
+            <!-- 断网兜底走的是关键词正则，猜出来的金额必须自己说明白：
+                 不标就会被当成"系统估价"，而它只是一个从原话里抠出来的数字（红线 10） -->
+            <text wx:if="{{budgetGuessed}}" class="card-head-hint">（本地估算，请核对）</text>
+          </view>
+          <view class="budget-row">
+            <input class="input budget-input" type="digit" placeholder="如 300"
+              value="{{form.budget}}" data-key="budget" bindinput="onInput" />
+            <picker class="budget-type" range="{{budgetTypeNames}}" value="{{budgetTypeIndex}}" bindchange="onBudgetTypeChange">
+              <view class="picker picker-small qz-press">
+                <text>{{budgetTypeNames[budgetTypeIndex]}}</text>
+                <text class="picker-arrow">▾</text>
+              </view>
+            </picker>
+          </view>
+        </view>
+
+        <view class="field">
+          <view class="label-row">
+            <view class="qz-i qz-i-clock label-ico"></view>
+            <text class="label">时间</text>
+          </view>
+          <!-- 一行两件事：左边是**口语**时间（"6月10日 14:00"，只做说明），
+               右边是能真正提交的截止日期（后端 deadline 只认 ISO datetime，
+               所以只有用户点了选择器，onSubmit 才带 deadline）。 -->
+          <view class="budget-row">
+            <input class="input budget-input" placeholder="如 6月10日 14:00" value="{{form.time}}"
+              data-key="time" bindinput="onInput" />
+            <picker class="budget-type" mode="date" start="{{today}}" value="{{form.deadline}}"
+              bindchange="onDeadlineChange">
+              <view class="picker picker-small qz-press">
+                <text>{{form.deadline || '选截止日期'}}</text>
+                <text class="picker-arrow">▾</text>
+              </view>
+            </picker>
+          </view>
+          <!-- AI 听懂了但后端收不下的那部分（口语时间），如实回显，不静默丢弃
+               （口径与理由见 index.ts 的 displayNotes） -->
+          <text wx:if="{{parsedTimeNote}}" class="ai-tip">{{parsedTimeNote}}</text>
+        </view>
+
+        <view class="field">
+          <view class="label-row">
+            <view class="qz-i qz-i-station label-ico"></view>
+            <text class="label">地点</text>
+          </view>
+          <input class="input" placeholder="如 xx大学 · 中心广场" value="{{form.location}}"
+            data-key="location" bindinput="onInput" />
+        </view>
+
+        <view class="field">
+          <view class="label-row">
+            <view class="qz-i qz-i-skill label-ico"></view>
+            <text class="label">技能标签</text>
+          </view>
+          <input class="input" placeholder="多个标签用顿号分隔，如 摄影、后期修图" value="{{form.skillTags}}"
+            data-key="skillTags" bindinput="onInput" />
+        </view>
+
+        <view class="field">
+          <view class="label-row">
+            <view class="qz-i qz-i-copy label-ico"></view>
+            <text class="label">详细描述<text class="req">*</text></text>
+          </view>
+          <textarea class="textarea" placeholder="把要求写清楚，服务者更容易接单"
+            value="{{form.description}}" data-key="description" bindinput="onInput"
+            maxlength="2000" auto-height />
+        </view>
+
+        <view class="upload qz-press" bindtap="onChooseImage">
+          <view class="qz-ico qz-ico-s"><view class="qz-i qz-i-image"></view></view>
+          <view class="upload-body">
+            <text class="upload-title">上传参考图或资料</text>
+            <text class="upload-desc">可选，帮服务者更准确理解需求</text>
+          </view>
+          <text class="upload-arrow">›</text>
+        </view>
+        <text wx:if="{{attachmentText}}" class="upload-count">已上传：{{attachmentText}}</text>
+      </view>
+    </view>
+
+    <!-- 估价提示（无数据时不显示，不编造） -->
+    <view class="qz-container" wx:if="{{priceHint}}">
+      <view class="qz-card qz-card-tint hint qz-an-in">
+        <view class="qz-ico qz-ico-s"><view class="qz-i qz-i-chart"></view></view>
+        <text class="hint-text">{{priceHint}}</text>
+      </view>
+    </view>
+
+    <!-- 来源提示 -->
+    <view class="qz-container" wx:if="{{source === 'os_plan'}}">
+      <view class="qz-card qz-card-bar source-tip qz-an-in">
+        <view class="qz-ico qz-ico-s"><view class="qz-i qz-i-ai"></view></view>
+        <text class="source-text">此需求来自青智 OS 的任务编排，发布后可在看板跟踪进度</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 提交 -->
+  <view class="qz-footer-bar">
+    <view class="qz-btn-main submit {{submitting ? 'submit-disabled' : ''}} qz-press" bindtap="onSubmit">
+      {{submitting ? '发布中…' : '发布需求'}}
+    </view>
+  </view>
+</view>

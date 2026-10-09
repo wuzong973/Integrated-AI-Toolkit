@@ -1,0 +1,36 @@
+@import '../../styles/tokens.scss';
+
+/* 编排结果（交付包占位页）· 幻紫主题（模块色板见 styles/themes.scss 的 .th-os）
+   造型语言：圆角 36（全站最"软"）+ 彩色柔影说明卡，
+   装饰签名 wave + shine：交付包波浪 + 一道缓慢扫光 */
+
+.os-result { padding-bottom: 60rpx; }
+
+/* ---------- 装饰签名：wave + shine（交付包波浪） ----------
+   两道扇贝波浪（一上一下反向）垫在页头与说明卡后方，透明度压到 0.4 以下；
+   扫光拉宽放慢，像给交付包"贴封条"的那道光 */
+.result-wave-a {
+  position: absolute; left: -40rpx; right: -40rpx; top: 210rpx;
+  opacity: .30;
+}
+.result-wave-b {
+  position: absolute; left: -40rpx; right: -40rpx; top: 52%;
+  opacity: .18;
+}
+.result-shine {
+  width: 320rpx; top: 120rpx; bottom: auto; height: 480rpx;
+  opacity: .40;
+}
+
+/* ---------- 页头 ---------- */
+.head-flow { margin-top: $sp-4; }
+
+/* 运行编号那行小字：跟在空态说明后面，比正文小一档，别抢主说明 */
+.run-note {
+  display: block; margin: 0 0 $sp-6; padding: 0 $sp-2;
+  font-size: $fs-tag; color: $text-3; line-height: 1.7;
+}
+
+/* ---------- 说明卡（描边卡，密集列表） ---------- */
+.pack { padding: 0; }
+.pack .qz-item { padding-left: $card-padding; padding-right: $card-padding; }

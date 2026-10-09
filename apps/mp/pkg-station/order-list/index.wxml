@@ -1,0 +1,124 @@
+<!-- 我的订单：订单列表（我买到的 / 我卖出的）
+     视觉：海青主题（与订单详情同一套色板）· 圆角 26 · 流水 + 光点；空态用统一 .qz-empty -->
+<view
+  class="qz-page th-order order-list"
+  bindtouchstart="onFxStart"
+  bindtouchmove="onFxMove"
+  bindtouchend="onFxEnd"
+  bindtouchcancel="onFxEnd"
+>
+  <!-- 装饰层（不拦截点击，内容可读性不受影响）
+       装饰签名 water + dot-a（账本流水），与订单详情页刻意错开 -->
+  <view class="qz-deco">
+    <view class="qz-fx" style="{{fxStyle}}">
+      <view class="ol-water qz-water"></view>
+      <view class="qz-dot qz-dot-a"></view>
+    </view>
+  </view>
+
+  <view class="qz-content">
+    <!-- 页头 -->
+    <view class="qz-head">
+      <view class="qz-head-row qz-an-in">
+        <view class="qz-ico qz-ico-l qz-ico-float">
+          <view class="qz-i qz-i-orders"></view>
+        </view>
+        <view class="qz-head-main">
+          <text class="qz-head-title">我的订单</text>
+          <text class="qz-head-sub">我买到的 / 我卖出的，都在这里</text>
+        </view>
+      </view>
+      <view class="order-flow qz-flow qz-flow-soft"></view>
+    </view>
+
+    <view class="qz-container order-body">
+      <!-- 视角切换（我买到的 / 我卖出的） -->
+      <view class="role-tabs qz-an-in">
+        <view
+          class="role-tab qz-press {{role === 'buyer' ? 'on' : ''}}"
+          data-role="buyer"
+          bindtap="onSwitchRole"
+          >我买到的</view
+        >
+        <view
+          class="role-tab qz-press {{role === 'provider' ? 'on' : ''}}"
+          data-role="provider"
+          bindtap="onSwitchRole"
+          >我卖出的</view
+        >
+      </view>
+
+      <!-- 错误分支 -->
+      <view wx:if="{{error}}" class="qz-err qz-an-in">
+        <text class="qz-err-text">{{error}}</text>
+        <view class="qz-err-btn qz-press" bindtap="onRetry">重试</view>
+      </view>
+
+      <!-- 加载分支 -->
+      <view wx:elif="{{loading}}" class="qz-card qz-card-line">
+        <view class="qz-skeleton qz-skeleton-line"></view>
+        <view class="qz-skeleton qz-skeleton-line qz-skeleton-line-short"></view>
+      </view>
+
+      <!-- 空态分支。
+           ⚠️ 文案在 2026-09-19 前是「订单功能即将上线」—— 那是因为订单模块后端
+           当时确实不存在（`GET /orders` 实测 404）。现在接口已注册，这里就是
+           正常的"你还没有订单"，不该再宣称功能没上线。 -->
+      <view wx:elif="{{empty}}" class="qz-empty qz-an-in qz-d1">
+        <view class="qz-empty-ico qz-ico qz-ico-xl qz-ico-float">
+          <view class="qz-i qz-i-orders"></view>
+        </view>
+        <text class="qz-empty-title">还没有订单</text>
+        <text class="qz-empty-text">在任务大厅接下第一单，或发布需求让人来帮你，订单就会出现在这里。</text>
+        <view class="qz-empty-flow qz-flow"></view>
+        <view class="qz-btn-main qz-press" bindtap="onGoHall">去任务大厅</view>
+      </view>
+
+      <!-- 内容分支：订单列表（点进详情） -->
+      <view wx:else class="order-list-body">
+        <view
+          class="order-item qz-card qz-card-line qz-lift qz-an-in"
+          wx:for="{{list}}"
+          wx:key="id"
+          data-id="{{item.id}}"
+          bindtap="onOpen"
+        >
+          <view class="oi-top">
+            <text class="oi-no">{{item.orderNo}}</text>
+            <text class="oi-status">{{item.statusText}}</text>
+          </view>
+          <text class="oi-title">{{item.task ? item.task.title : '服务订单'}}</text>
+          <view class="oi-bottom">
+            <text class="oi-amount">¥{{item.amountYuan}}</text>
+            <text class="oi-party">{{item.partyLabel}}</text>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 两种视角说明（接口接入前，先讲清这个列表会有什么） -->
+    <view class="qz-sec qz-an-in qz-d3">
+      <view class="qz-sec-bar"></view>
+      <text class="qz-sec-title">两种视角</text>
+      <text class="qz-sec-sub">按你的身份分开</text>
+    </view>
+    <view class="qz-container">
+      <view class="qz-card qz-card-tint qz-an-in qz-d4">
+        <view class="tip-row">
+          <view class="qz-ico qz-ico-s"><view class="qz-i qz-i-orders"></view></view>
+          <view class="tip-body">
+            <text class="tip-title">我买到的</text>
+            <text class="tip-desc">你发布需求后生成的订单，支付、验收、放款都在这里跟进</text>
+          </view>
+        </view>
+        <view class="tip-row">
+          <view class="qz-ico qz-ico-s"><view class="qz-i qz-i-workbench"></view></view>
+          <view class="tip-body">
+            <text class="tip-title">我卖出的</text>
+            <text class="tip-desc">你接单后的服务订单，交付物与收入进度在这里查看</text>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+</view>

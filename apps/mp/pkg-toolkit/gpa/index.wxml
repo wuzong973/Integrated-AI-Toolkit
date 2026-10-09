@@ -1,0 +1,106 @@
+<!-- 绩点计算（校园小工具）
+     视觉：工具主题 · 表单 + 结果双卡，全部本地计算，无网络请求 -->
+<view
+  class="qz-page th-toolkit gpa"
+  bindtouchstart="onFxStart"
+  bindtouchmove="onFxMove"
+  bindtouchend="onFxEnd"
+  bindtouchcancel="onFxEnd"
+>
+  <!-- 装饰层（不拦截点击；只有装饰层跟随指针，内容区不跟随） -->
+  <view class="qz-deco">
+    <view class="qz-fx" style="{{fxStyle}}">
+      <view class="qz-shine qz-shine-slow"></view>
+      <view class="qz-dot qz-dot-a"></view>
+    </view>
+  </view>
+
+  <view class="qz-content">
+    <view class="head qz-an-in qz-d1">
+      <text class="title">绩点计算</text>
+      <text class="sub">本地计算，不上传成绩</text>
+    </view>
+
+    <!-- 口径 -->
+    <view class="qz-card qz-an-in qz-d2">
+      <picker
+        mode="selector"
+        range="{{scales}}"
+        range-key="label"
+        value="{{scaleIndex}}"
+        bindchange="onScaleChange"
+      >
+        <view class="row">
+          <text class="row-label">绩点口径</text>
+          <text class="row-value">{{scales[scaleIndex].label}}</text>
+          <text class="row-arrow">›</text>
+        </view>
+      </picker>
+      <text class="hint">各校算法不同。这里只提供两种最常用的，换口径会立即重算。</text>
+    </view>
+
+    <!-- 课程输入 -->
+    <view class="qz-card qz-an-in qz-d3">
+      <view class="course-head">
+        <text class="col col-name">课程</text>
+        <text class="col col-num">成绩</text>
+        <text class="col col-num">学分</text>
+        <text class="col col-del"></text>
+      </view>
+
+      <view class="course-row" wx:for="{{courses}}" wx:key="index">
+        <input
+          class="col col-name input"
+          value="{{item.name}}"
+          placeholder="课程名"
+          data-index="{{index}}"
+          data-field="name"
+          bindinput="onCourseInput"
+        />
+        <input
+          class="col col-num input"
+          type="digit"
+          value="{{item.score}}"
+          placeholder="如 90"
+          data-index="{{index}}"
+          data-field="score"
+          bindinput="onCourseInput"
+        />
+        <input
+          class="col col-num input"
+          type="digit"
+          value="{{item.credit}}"
+          placeholder="如 4"
+          data-index="{{index}}"
+          data-field="credit"
+          bindinput="onCourseInput"
+        />
+        <view class="col col-del del qz-press" data-index="{{index}}" bindtap="onRemoveCourse">×</view>
+      </view>
+
+      <view class="actions">
+        <view class="btn btn-ghost qz-press" bindtap="onAddCourse">+ 添加一门</view>
+        <view class="btn btn-ghost qz-press" bindtap="onReset">清空</view>
+      </view>
+    </view>
+
+    <!-- 结果 -->
+    <view class="qz-card result qz-an-in" wx:if="{{computed && result.totalCredits > 0}}">
+      <view class="gpa-line">
+        <text class="gpa-num">{{result.gpa}}</text>
+        <text class="gpa-unit">绩点</text>
+      </view>
+      <view class="sub-line">
+        <text>加权平均分 {{result.average}}</text>
+        <text class="dot">·</text>
+        <text>总学分 {{result.totalCredits}}</text>
+      </view>
+      <text class="hint">已计入 {{result.items.length}} 门；成绩或学分为空的行会被自动跳过。</text>
+    </view>
+
+    <view class="qz-card empty qz-an-in" wx:elif="{{computed}}">
+      <text class="empty-title">填上成绩与学分，结果自动出来</text>
+      <text class="hint">纯本地计算，不用点提交按钮，也不会上传你的成绩。</text>
+    </view>
+  </view>
+</view>

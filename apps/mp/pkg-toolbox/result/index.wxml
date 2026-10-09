@@ -1,0 +1,236 @@
+<!-- 生成结果页（文档 5.3.6）
+     视觉：湖蓝主题 · 圆角 28 · 交付感；预览用渐变卡、产物列表用彩色柔影卡、
+     下一步用左侧彩条卡，三种卡型拉开层次。装饰层随指针视差。 -->
+<view
+  class="qz-page th-tool-result result"
+  bindtouchstart="onFxStart"
+  bindtouchmove="onFxMove"
+  bindtouchend="onFxEnd"
+  bindtouchcancel="onFxEnd"
+>
+  <!-- 装饰签名：shine + rise + dot-c —— 庆祝扫光 + 两粒上升粒子 + 点缀光点 -->
+  <view class="qz-deco">
+    <view class="qz-fx" style="{{fxStyle}}">
+      <view class="qz-shine qz-shine-slow result-shine"></view>
+      <view class="qz-rise result-rise-a"></view>
+      <view class="qz-rise result-rise-b"></view>
+      <view class="qz-dot qz-dot-c"></view>
+    </view>
+  </view>
+
+  <view class="qz-content">
+    <!-- 错误态 -->
+    <view wx:if="{{error}}" class="qz-container qz-an-in">
+      <view class="qz-err">
+        <text class="qz-err-text">{{error}}</text>
+        <view class="qz-err-btn qz-press" bindtap="onRetry">重试</view>
+      </view>
+    </view>
+
+    <!-- 加载态 -->
+    <view wx:elif="{{loading}}" class="qz-container">
+      <view class="qz-card qz-an-in">
+        <view class="qz-skeleton qz-skeleton-line"></view>
+        <view class="qz-skeleton qz-skeleton-line qz-skeleton-line-short"></view>
+        <view class="qz-skeleton qz-skeleton-line"></view>
+      </view>
+    </view>
+
+    <block wx:elif="{{job}}">
+      <!-- 页头：状态即标题 -->
+      <view class="qz-head">
+        <view class="qz-head-row qz-an-in">
+          <view class="qz-ico qz-ico-l qz-ico-float">
+            <view class="qz-i {{statusIcon}}"></view>
+          </view>
+          <view class="qz-head-main">
+            <text class="qz-head-title">{{statusTitle}}</text>
+            <text class="qz-head-sub">{{statusSub}}</text>
+          </view>
+          <view class="qz-chip qz-chip-ghost head-retry qz-press" bindtap="onRegenerate">重新生成</view>
+        </view>
+        <view class="qz-head-chips qz-an-in qz-d1">
+          <!-- 费用文案由 utils/billing.ts 统一决定（免费开放期显示"本次免费"） -->
+          <view class="qz-chip qz-chip-on">{{costLabel}}</view>
+          <view class="qz-chip">共 {{outFiles.length}} 个产物</view>
+        </view>
+        <view class="head-flow qz-flow"></view>
+      </view>
+
+      <!-- 未跑完：本页自己跟踪进度（WS 优先 + 轮询兜底），不再停在"处理中" -->
+      <view wx:if="{{tracking}}" class="qz-container qz-an-in">
+        <view class="qz-card qz-card-grad qz-card-glow tracking">
+          <view class="qz-topline"></view>
+          <view class="tracking-row">
+            <text class="tracking-stage">{{stage}}</text>
+            <text class="tracking-pct">{{progress}}%</text>
+          </view>
+          <view class="tracking-bar">
+            <view class="tracking-water qz-water"></view>
+            <view class="tracking-fill" style="width: {{progress}}%"></view>
+            <view class="qz-shine qz-shine-slow"></view>
+          </view>
+          <text class="tracking-channel">{{realtime ? '实时推送中' : '轮询同步中'}} · 也可以下拉刷新</text>
+        </view>
+      </view>
+
+      <!-- 产物预览（渐变卡 + 扫光 + 顶部流动线）；跑完之前不给预览区占位 -->
+      <view wx:if="{{!tracking}}" class="qz-container">
+        <view class="qz-card qz-card-grad qz-card-glow preview qz-an-pop qz-d2">
+          <view class="qz-topline"></view>
+          <view class="qz-shine qz-shine-slow"></view>
+          <view class="qz-water preview-water"></view>
+          <view class="qz-ico qz-ico-xl qz-ico-float preview-ico">
+            <view class="qz-i qz-i-doc"></view>
+          </view>
+          <text class="preview-title">文件预览区</text>
+          <text class="preview-tip">接入对象存储后展示封面与页面缩略图</text>
+        </view>
+      </view>
+
+      <!-- 产物列表（彩色柔影卡，整卡可点：点开任一条即打开/播放） -->
+      <block wx:if="{{outFiles.length}}">
+        <view class="qz-sec qz-an-in qz-d3">
+          <view class="qz-sec-bar"></view>
+          <text class="qz-sec-title">产物列表</text>
+          <text class="qz-sec-sub">点击打开 / 播放</text>
+        </view>
+        <view class="qz-container">
+          <view class="qz-card qz-card-glow file-list qz-lift qz-an-in qz-d3">
+            <view
+              wx:for="{{outFiles}}"
+              wx:key="key"
+              class="qz-item qz-item-line qz-press"
+              bindtap="onDownload"
+            >
+              <view class="qz-ico qz-ico-s">
+                <view class="qz-i {{item.iconClass}}"></view>
+              </view>
+              <view class="qz-item-main">
+                <text class="qz-item-title qz-ellipsis">{{item.name}}</text>
+                <text class="qz-item-desc">已生成 · 可打开</text>
+              </view>
+              <text class="qz-item-arrow">›</text>
+            </view>
+          </view>
+        </view>
+      </block>
+
+      <!-- 产出指标（MQ-01）：把"这次产出到底怎么样"直接摆给用户看。
+           以前这里只写"共 N 个产物"，产出好不好只能靠用户自己开文件判断。 -->
+      <block wx:if="{{metricRows.length || qualityText}}">
+        <view class="qz-sec qz-an-in qz-d3">
+          <view class="qz-sec-bar"></view>
+          <text class="qz-sec-title">产出指标</text>
+          <text class="qz-sec-sub">这次实际产出的数据</text>
+        </view>
+        <view class="qz-container">
+          <view class="qz-card qz-card-line metrics qz-an-in qz-d3">
+            <view wx:if="{{qualityText}}" class="metric-row metric-quality {{qualityWarn ? 'is-warn' : 'is-ok'}}">
+              <text class="metric-label">质量</text>
+              <text class="metric-value">{{qualityText}}</text>
+            </view>
+            <view
+              wx:for="{{metricRows}}"
+              wx:key="label"
+              class="metric-row {{item.warn ? 'is-warn' : ''}}"
+            >
+              <text class="metric-label">{{item.label}}</text>
+              <text class="metric-value">{{item.value}}</text>
+            </view>
+          </view>
+        </view>
+      </block>
+
+      <!-- 主要操作（任务还在跑时不给，避免"点了却没产物"） -->
+      <view wx:if="{{!tracking}}" class="qz-container actions qz-an-in qz-d4">
+        <view class="qz-btn-main qz-btn-block qz-press" bindtap="onDownload">{{openLabel}}</view>
+        <view class="act-row">
+          <view class="qz-btn-sub act-sub qz-press" bindtap="onSaveToFiles">
+            <view class="qz-ico qz-ico-s act-ico">
+              <view class="qz-i qz-i-files"></view>
+            </view>
+            <text class="act-text">保存到我的文件</text>
+          </view>
+          <view class="qz-btn-sub act-sub qz-press" bindtap="onReviseWithAi">
+            <view class="qz-ico qz-ico-s act-ico">
+              <view class="qz-i qz-i-ai"></view>
+            </view>
+            <text class="act-text">用 AI 修改</text>
+          </view>
+          <!-- 分享必须用原生 button 的 open-type="share"：以前这里只弹一句
+               "请点击右上角分享"，等于把一个能做的动作推给用户自己找 -->
+          <button
+            class="qz-btn-sub act-sub act-btn qz-press"
+            open-type="share"
+            hover-class="none"
+          >
+            <view class="qz-ico qz-ico-s act-ico">
+              <view class="qz-i qz-i-chat"></view>
+            </view>
+            <text class="act-text">分享给同学</text>
+          </button>
+        </view>
+      </view>
+
+      <!-- 版权提示（涉版权工具） -->
+      <view wx:if="{{showCopyrightTip}}" class="qz-container qz-an-in">
+        <view class="warn-tip">
+          <view class="qz-ico qz-ico-s">
+            <view class="qz-i qz-i-lock"></view>
+          </view>
+          <text class="warn-text">
+            本工具仅用于处理你拥有版权或已获得合法授权的内容，平台已记录本次操作。
+          </text>
+        </view>
+      </view>
+
+      <!-- 下一步：核心转化位（文档 5.3.6）；任务还在跑时先不催"接着往下做" -->
+      <block wx:if="{{!tracking && nextSteps.length}}">
+        <view class="qz-sec qz-an-in qz-d5">
+          <view class="qz-sec-bar"></view>
+          <text class="qz-sec-title">还需要什么？</text>
+          <text class="qz-sec-sub">接着往下做</text>
+        </view>
+        <view class="qz-container">
+          <view class="qz-card qz-card-glow qz-card-bar next qz-an-in qz-d5">
+            <view
+              wx:for="{{nextSteps}}"
+              wx:key="label"
+              class="qz-item qz-item-line qz-press"
+              data-kind="{{item.kind}}"
+              data-target="{{item.target}}"
+              data-query="{{item.query}}"
+              bindtap="onNextStep"
+            >
+              <view class="qz-ico qz-ico-s">
+                <view class="qz-i {{item.iconClass}}"></view>
+              </view>
+              <view class="qz-item-main">
+                <text class="qz-item-title">{{item.label}}</text>
+              </view>
+              <text class="qz-item-arrow">›</text>
+            </view>
+          </view>
+          <text class="next-hint">带「找人」的选项会把需求发布到青智驿站，由同学接单完成</text>
+        </view>
+      </block>
+    </block>
+
+    <!-- 兜底空态：既没拿到任务、又没报错（没带 jobId，或任务不属于当前账号被
+         服务端挡下）时整页不能留白 —— 空白屏会被当成"页面坏了" -->
+    <view wx:else class="qz-container">
+      <view class="qz-empty qz-an-in">
+        <view class="qz-empty-ico qz-ico qz-ico-xl qz-ico-float">
+          <view class="qz-i qz-i-empty"></view>
+        </view>
+        <text class="qz-empty-title">任务不存在或无权查看</text>
+        <text class="qz-empty-text">
+          这条任务可能已被清理，或者是别人分享给你的链接——文件类产物只归创建者可见。
+        </text>
+        <view class="qz-empty-flow qz-flow"></view>
+        <view class="qz-btn-main qz-press" bindtap="onGoToolbox">去工具箱</view>
+      </view>
+    </view>
+  </view>
+</view>

@@ -1,0 +1,171 @@
+@import '../../styles/tokens.scss';
+
+/* 文本对比 · 星蓝主题（th-toolbox）
+   红绿区分全部走令牌：$success / rgba($success, …) 与 $danger / $danger-veil，
+   页面里不出现裸色值与自造 keyframes */
+.diff-page {
+  padding-bottom: $sp-8;
+}
+
+.card-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: $sp-4;
+  font-size: $fs-h3;
+  font-weight: $fw-semi;
+  color: var(--mt);
+}
+
+/* ---------- 输入双栏 ---------- */
+.pane {
+  margin-bottom: $sp-4;
+}
+
+.pane-head {
+  display: flex;
+  align-items: center;
+  margin-bottom: $sp-2;
+}
+
+.pane-tag {
+  padding: 2rpx 16rpx;
+  border-radius: $radius-pill;
+  font-size: $fs-tag;
+  font-weight: $fw-semi;
+}
+
+.pane-old {
+  color: $text-2;
+  background: $border-strong;
+}
+
+.pane-new {
+  color: var(--m1);
+  background: var(--ms);
+}
+
+.pane-sub {
+  margin-left: $sp-3;
+  font-size: $fs-tag;
+  color: $text-3;
+}
+
+.io-area {
+  width: 100%;
+  height: 200rpx;
+  padding: $sp-3 $sp-4;
+  font-size: $fs-body;
+  line-height: 1.6;
+  color: var(--mt);
+  background: $bg-card;
+  border: 1rpx solid var(--m2);
+  border-radius: var(--r-card);
+}
+
+.io-ph {
+  font-size: $fs-body;
+  color: $text-3;
+}
+
+.btn-row {
+  display: flex;
+  gap: $sp-3;
+}
+
+.btn-row .qz-btn-main {
+  flex: 2;
+}
+
+.btn-clear {
+  flex: 1;
+}
+
+/* ---------- 结果 ---------- */
+.diff-stats {
+  display: flex;
+  align-items: center;
+  gap: $sp-3;
+}
+
+.stat-add {
+  font-size: $fs-body;
+  font-weight: $fw-bold;
+  color: $success;
+}
+
+.stat-del {
+  font-size: $fs-body;
+  font-weight: $fw-bold;
+  color: $danger;
+}
+
+.cut-tip {
+  margin-bottom: $sp-3;
+}
+
+.diff-scroll {
+  max-height: 640rpx;
+  border-radius: var(--r-card);
+  background: $bg-card;
+  border: 1rpx solid var(--ms);
+}
+
+.diff-row {
+  display: flex;
+  align-items: flex-start;
+  min-height: 40rpx;
+  padding: 2rpx $sp-3;
+  font-size: $fs-aux;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+.row-mark {
+  flex-shrink: 0;
+  width: 40rpx;
+  font-weight: $fw-bold;
+}
+
+.row-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.row-same {
+  color: $text-2;
+}
+
+.row-add {
+  color: $success;
+  background: rgba($success, .1);
+}
+
+.row-del {
+  color: $danger;
+  background: $danger-veil;
+}
+
+.hint {
+  display: block;
+  margin-top: $sp-3;
+  font-size: $fs-tag;
+  line-height: 1.6;
+  color: $text-3;
+}
+
+.blank {
+  text-align: center;
+}
+
+.blank-title {
+  display: block;
+  font-size: $fs-h2;
+  font-weight: $fw-semi;
+  color: var(--mt);
+}
+
+.blank .hint {
+  margin-top: $sp-3;
+}

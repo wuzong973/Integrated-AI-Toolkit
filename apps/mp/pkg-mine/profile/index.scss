@@ -1,0 +1,220 @@
+@import '../../styles/tokens.scss';
+
+/* 个人信息编辑 · th-mine（樱花粉）
+   装饰签名：curve + halo（登记于 MP-VISUAL-SYSTEM §十一）
+   表单页要"安静地能填字"，所以装饰只两处、都压到红线以下。 */
+
+.profile { min-height: 100vh; padding-bottom: 220rpx; }
+
+/* ---------- 装饰层 ----------
+   `.qz-curve` 库里只有 height + 背景，**没有 position**：进了 `.qz-fx` 会按普通流
+   排到视差层顶边（= 页面顶再往上 40rpx），整条被 `.qz-deco` 的 overflow 裁掉。
+   所以必须显式 absolute + 四边；`.qz-fx` 外扩 40rpx，故 left/right 用 -40rpx 铺满整宽、
+   bottom 用 180rpx 才落在屏幕上的 140rpx 处（刚好在保存栏上方）。
+   库里 opacity 是 .5，超了"装饰不透明度 ≤ .4"的红线 → 页内压到 .34，不改库。 */
+.profile-curve {
+  position: absolute;
+  left: -40rpx;
+  right: -40rpx;
+  bottom: 180rpx;
+  opacity: .34;
+}
+/* halo 库里自带 absolute + 居中，这里改挂到头像那一圈：
+   给了页内坐标就要按外扩量换算，top 300rpx 对应屏幕上的 260rpx。 */
+.profile-halo {
+  left: 50%;
+  top: 300rpx;
+  width: 300rpx;
+  height: 300rpx;
+  margin: -150rpx 0 0 -150rpx;
+  opacity: .3;
+}
+
+/* ---------- 头像 ---------- */
+.avatar-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: $sp-8 $card-padding;
+}
+/* 整枚头像是一枚 open-type 按钮：微信要求 chooseAvatar 必须由 <button> 触发，
+   所以把 button 本身做成圆形容器，而不是在按钮里再套一个可点的 view。 */
+.avatar-btn {
+  position: relative;
+  width: 176rpx;
+  height: 176rpx;
+  padding: 0;
+  margin: 0;
+  border-radius: 50%;
+  background: transparent;
+  border: none;
+  line-height: normal;
+  &::after { border: none; }
+}
+.avatar-ring {
+  position: relative;
+  width: 176rpx;
+  height: 176rpx;
+  border-radius: 50%;
+  overflow: hidden;
+  box-shadow: 0 12rpx 28rpx var(--sh);
+}
+.avatar-ring-line {
+  position: absolute;
+  left: -8rpx;
+  top: -8rpx;
+  right: -8rpx;
+  bottom: -8rpx;
+  border-radius: 50%;
+  border: 3rpx solid var(--m1);
+  opacity: .35;
+}
+.avatar { width: 100%; height: 100%; }
+.avatar-ph {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, var(--m1) 0%, var(--m2) 100%);
+}
+.avatar-ico { width: 88rpx; height: 88rpx; }
+.avatar-badge {
+  position: absolute;
+  right: -4rpx;
+  bottom: -4rpx;
+  width: 56rpx;
+  height: 56rpx;
+  border-radius: 50%;
+  background: $bg-card;
+  border: 2rpx solid var(--m1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.avatar-hint {
+  margin-top: $sp-4;
+  font-size: $fs-tag;
+  color: $text-3;
+}
+
+/* ---------- 表单 ---------- */
+.form-row {
+  display: flex;
+  align-items: center;
+  min-height: $hit-min;
+  padding: $sp-3 0;
+  border-bottom: 2rpx solid $border;
+}
+.form-row:last-child { border-bottom: none; }
+.form-row-col { flex-direction: column; align-items: flex-start; }
+.form-label {
+  width: 132rpx;
+  flex-shrink: 0;
+  font-size: $fs-body;
+  color: $text-2;
+}
+.form-row-col .form-label { width: auto; }
+.form-input {
+  flex: 1;
+  min-width: 0;
+  font-size: $fs-body;
+  color: $text-1;
+}
+.form-textarea {
+  width: 100%;
+  height: 150rpx;
+  margin-top: $sp-2;
+  padding: $sp-3;
+  box-sizing: border-box;
+  font-size: $fs-body;
+  color: $text-1;
+  background: var(--ms);
+  border-radius: var(--r-card);
+}
+.form-count {
+  align-self: flex-end;
+  font-size: $fs-tag;
+  color: $text-3;
+}
+.form-tip {
+  display: block;
+  padding: $sp-2 0 $sp-3;
+  font-size: $fs-tag;
+  line-height: 1.5;
+  color: $text-3;
+}
+.form-foot {
+  display: block;
+  padding: $sp-4 $sp-2;
+  font-size: $fs-tag;
+  line-height: 1.6;
+  color: $text-3;
+  text-align: center;
+}
+
+/* 手机号"未验证"标记：平台确实没做真实性校验，所以这个角标不能省（红线 10）。
+   用户一改手机号就转成警示色，提醒"填了也不代表验证过"。 */
+.form-tag {
+  flex-shrink: 0;
+  margin-left: $sp-2;
+  padding: 2rpx $sp-2;
+  font-size: $fs-tag;
+  color: $text-3;
+  background: var(--ms);
+  border-radius: $radius-pill;
+}
+.form-tag-warn {
+  color: $warning;
+  background: $warning-veil;
+}
+
+/* ---------- 性别 ---------- */
+.gender-chips {
+  display: flex;
+  flex-wrap: wrap;
+  margin-top: $sp-2;
+}
+.gender-chip {
+  min-width: 150rpx;
+  margin: 0 $sp-2 $sp-2 0;
+  padding: $sp-2 $sp-4;
+  text-align: center;
+  font-size: $fs-aux;
+  color: $text-2;
+  background: var(--ms);
+  border: 2rpx solid transparent;
+  border-radius: $radius-pill;
+  transition: background $dur-fast $ease-out, border-color $dur-fast $ease-out;
+}
+.gender-chip-on {
+  color: var(--mt);
+  border-color: var(--m1);
+  background: $glass-soft;
+}
+
+/* ---------- 底部保存栏（定位与安全区由全局 .qz-footer-bar 负责） ---------- */
+.save-row { display: flex; align-items: center; }
+.save-state {
+  flex: 1;
+  min-width: 0;
+  font-size: $fs-tag;
+  color: $text-3;
+}
+.save-btn {
+  flex-shrink: 0;
+  min-width: 220rpx;
+  height: 88rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: $fs-h3;
+  font-weight: $fw-bold;
+  color: $text-inverse;
+  background: linear-gradient(120deg, var(--m1) 0%, var(--m2) 100%);
+  border-radius: $radius-pill;
+  box-shadow: 0 12rpx 28rpx var(--sh);
+}
+.save-btn-off {
+  background: $border-strong;
+  color: $text-3;
+  box-shadow: none;
+}

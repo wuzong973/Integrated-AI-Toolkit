@@ -1,0 +1,144 @@
+@import '../../styles/tokens.scss';
+
+/* 订单详情 · 海青主题（模块色板见 styles/themes.scss 的 .th-order）
+   造型语言：圆角 26 + 顶部彩条 + 扇贝水波，突出"资金在流程里流动" */
+
+.order { padding-bottom: 220rpx; }
+
+/* ---------- 装饰签名：wave-up + blob-b（契约波浪） ----------
+   一道扇贝波浪横卧页头与状态卡之间（库默认 .35，未超红线 ≤.4），
+   左侧小光斑用库里的 blob-b（.12）；与订单列表页的 water + dot-a 错开 */
+.od-wave {
+  position: absolute; left: -40rpx; right: -40rpx; top: 44%;
+}
+
+/* 卡片内小标题：复用全局 .qz-sec-title 的字形，只补图标间距 */
+.card-head { display: flex; align-items: center; margin-bottom: $sp-3; }
+.card-head-title { margin-left: $sp-2; }
+/* 列表型卡片：去掉左右内边距，交给 .qz-item 自己控制 */
+.card-flush { padding: $sp-2 0; }
+
+/* ---------- 状态卡 ---------- */
+.status { padding-bottom: $sp-12; }
+.status-top { display: flex; align-items: center; }
+.status-text { flex: 1; font-size: $fs-display; font-weight: $fw-black; color: var(--mt); line-height: 1.2; }
+.status-tip { display: block; font-size: $fs-aux; color: $text-3; margin-top: $sp-1; }
+.status-wave { position: absolute; left: 0; right: 0; bottom: 0; }
+
+/* 进度条：线条在底层，圆点浮在上层 */
+.steps { display: flex; position: relative; margin-top: $sp-8; }
+.step { flex: 1; text-align: center; position: relative; z-index: 2; }
+.step-dot {
+  width: 20rpx; height: 20rpx; border-radius: $radius-pill;
+  background: $border-strong; margin: 0 auto $sp-2;
+  transition: background $dur-base $ease-out, transform $dur-base $ease-spring;
+}
+.step-dot-on { background: var(--m1); transform: scale(1.15); }
+.step-label { font-size: 18rpx; color: $text-3; }
+.step-label-on { color: var(--mt); font-weight: $fw-semi; }
+.step-line {
+  position: absolute; top: 10rpx; left: 10%; height: 4rpx;
+  border-radius: $radius-pill;
+  background: linear-gradient(90deg, var(--m1), var(--m2));
+  z-index: 1;
+}
+
+/* ---------- 费用明细 ---------- */
+.row { display: flex; align-items: center; justify-content: space-between; padding: $sp-2 0; }
+.row-label { font-size: $fs-aux; color: $text-2; }
+.row-value { font-size: $fs-aux; color: $text-1; }
+.row-small { font-size: $fs-tag; color: $text-3; }
+.amount { font-size: $fs-h1; font-weight: $fw-black; color: $accent-500; }
+
+/* ---------- 交易双方（整行可点的操作卡：反馈用 .qz-lift 抬升-下沉） ---------- */
+.person { min-height: $hit-min; }
+
+/* ---------- 担保说明 ---------- */
+.guarantee { padding-left: $sp-6; }
+.guarantee-text { display: block; font-size: $fs-tag; color: $text-2; line-height: 1.8; }
+
+/* ---------- 底部操作栏 ---------- */
+.order-footer { display: flex; }
+.foot-btn { flex: 1; margin-right: $sp-3; }
+.foot-btn:last-child { margin-right: 0; }
+.foot-disabled { color: $text-3; background: $border-strong; }
+
+/* ---------- 验收 + 评价弹层（M3-16）----------
+   从底部浮起的柔影卡；取色全部走主题变量与 tokens（红线 2），
+   点击区一律 ≥ $hit-min（星、标签、开关整行都能按准）。 */
+.rv-mask {
+  position: fixed; left: 0; top: 0; right: 0; bottom: 0;
+  z-index: $z-popup;
+  display: flex; align-items: flex-end;
+  background: $bg-mask;
+  padding: 0 $sp-4 calc(#{$sp-8} + env(safe-area-inset-bottom));
+}
+.rv-card { width: 100%; padding: $sp-6 $sp-5 $sp-5; }
+
+.rv-head { display: flex; align-items: flex-start; }
+.rv-head-main { flex: 1; min-width: 0; }
+.rv-title { display: block; font-size: $fs-h2; font-weight: $fw-bold; color: $text-1; }
+.rv-sub { display: block; margin-top: 4rpx; font-size: $fs-tag; color: $text-3; line-height: 1.6; }
+.rv-close {
+  flex-shrink: 0;
+  width: $hit-min; height: $hit-min;
+  display: flex; align-items: center; justify-content: center;
+  font-size: $fs-h2; color: $text-3;
+}
+
+/* 星级：五等分整行可点，未选用描边灰、选中用点缀色（与"钱"的暖色区分开） */
+.rv-row { display: flex; align-items: center; justify-content: space-between; margin-top: $sp-4; }
+.rv-label { font-size: $fs-aux; color: $text-2; }
+.rv-rating-text { font-size: $fs-aux; font-weight: $fw-semi; color: var(--mt); }
+.rv-stars { display: flex; align-items: center; margin-bottom: $sp-3; }
+.rv-star {
+  flex: 1; height: $hit-min; line-height: $hit-min; text-align: center;
+  font-size: 56rpx; color: $border-strong;
+  transition: color $dur-fast $ease-out, transform $dur-instant $ease-out;
+}
+.rv-star-on { color: var(--m3); transform: scale(1.08); }
+
+/* 正文 */
+.rv-textarea {
+  width: 100%; min-height: 140rpx; padding: $sp-3;
+  box-sizing: border-box;
+  border-radius: $radius-md;
+  background: var(--ms); color: var(--mt);
+  font-size: $fs-aux; line-height: 1.7;
+}
+.rv-ph { color: $text-3; }
+.rv-count { display: block; margin-top: $sp-1; font-size: $fs-tag; color: $text-3; }
+
+/* 标签胶囊：覆盖 .qz-chip 的 46rpx 高度，把点击区抬到 $hit-min */
+.rv-tags { display: flex; flex-wrap: wrap; margin-top: $sp-3; }
+.rv-tag { height: $hit-min; padding: 0 $sp-6; font-size: $fs-aux; margin: 0 $sp-2 $sp-2 0; }
+
+/* 匿名开关（整行可点，开关本身只是状态显示） */
+.rv-anon {
+  display: flex; align-items: center;
+  min-height: $hit-min; margin-top: $sp-2; padding: $sp-3 0;
+  border-top: 1rpx solid $border;
+}
+.rv-anon-main { flex: 1; min-width: 0; }
+.rv-anon-title { display: block; font-size: $fs-aux; font-weight: $fw-semi; color: $text-1; }
+.rv-anon-sub { display: block; margin-top: 2rpx; font-size: $fs-tag; color: $text-3; }
+.rv-switch {
+  position: relative; flex-shrink: 0;
+  width: 96rpx; height: 56rpx; border-radius: $radius-pill;
+  background: $border-strong;
+  transition: background $dur-fast $ease-out;
+}
+.rv-switch-on { background: linear-gradient(135deg, var(--m1), var(--m2)); }
+.rv-knob {
+  position: absolute; left: 6rpx; top: 6rpx;
+  width: 44rpx; height: 44rpx; border-radius: 50%;
+  background: $bg-card; box-shadow: $shadow-card;
+  transition: transform $dur-base $ease-spring;
+}
+.rv-switch-on .rv-knob { transform: translateX(40rpx); }
+
+.rv-foot { display: flex; margin-top: $sp-5; }
+.rv-btn { flex: 1; margin-right: $sp-3; font-size: $fs-aux; }
+.rv-btn:last-child { margin-right: 0; }
+.rv-btn-off { background: $border-strong; color: $text-3; box-shadow: none; }
+.rv-tip { display: block; margin-top: $sp-3; font-size: $fs-tag; color: $text-3; line-height: 1.7; }

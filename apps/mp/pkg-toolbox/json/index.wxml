@@ -1,0 +1,76 @@
+<!-- JSON 格式化 / 校验 —— 输入即时校验（错误落到行号），格式化与压缩一键完成
+     视觉：星蓝主题（th-toolbox）· 装饰签名：blob-b + dot-c -->
+<view
+  class="qz-page th-toolbox json-page"
+  bindtouchstart="onFxStart"
+  bindtouchmove="onFxMove"
+  bindtouchend="onFxEnd"
+  bindtouchcancel="onFxEnd"
+>
+  <view class="qz-deco">
+    <view class="qz-fx" style="{{fxStyle}}">
+      <view class="qz-blob qz-blob-b"></view>
+      <view class="qz-dot qz-dot-c"></view>
+    </view>
+  </view>
+
+  <view class="qz-content">
+    <view class="qz-head">
+      <view class="qz-head-row qz-an-in">
+        <view class="qz-ico qz-ico-l qz-ico-float">
+          <view class="qz-i qz-i-office"></view>
+        </view>
+        <view class="qz-head-main">
+          <text class="qz-head-title">JSON 格式化</text>
+          <text class="qz-head-sub">校验、美化、压缩 · 本地完成</text>
+        </view>
+      </view>
+    </view>
+
+    <view class="qz-container">
+      <!-- 输入 + 即时校验 -->
+      <view class="qz-card qz-card-grad qz-an-in qz-d1">
+        <view class="card-title">
+          <text>输入</text>
+          <view wx:if="{{inputText}}" class="clear-chip qz-press" bindtap="onClear">清空</view>
+        </view>
+        <textarea
+          class="io-area"
+          value="{{inputText}}"
+          maxlength="-1"
+          placeholder="粘贴 JSON，边输入边校验"
+          placeholder-class="io-ph"
+          bindinput="onInput"
+        ></textarea>
+
+        <view wx:if="{{errorText}}" class="qz-err status-err">
+          <text class="qz-err-text">{{errorText}}</text>
+        </view>
+        <view wx:elif="{{valid}}" class="ok-row">
+          <view class="qz-chip qz-chip-on">JSON 合法</view>
+        </view>
+
+        <view class="btn-row">
+          <view class="btn-main qz-btn-main qz-press" bindtap="onFormat">格式化</view>
+          <view class="btn-sub qz-btn-sub qz-press" bindtap="onMinify">压缩</view>
+        </view>
+      </view>
+
+      <!-- 结果 -->
+      <view wx:if="{{outputText}}" class="qz-card qz-card-glow qz-an-in qz-d2" bindtap="onCopy">
+        <view class="card-title">
+          <text>{{outputLabel}}</text>
+          <text class="result-copy">点此复制</text>
+        </view>
+        <scroll-view scroll-y class="out-scroll">
+          <text class="out-text" user-select="{{true}}">{{outputText}}</text>
+        </scroll-view>
+      </view>
+
+      <view wx:elif="{{!valid}}" class="qz-card blank qz-an-in qz-d2">
+        <text class="blank-title">校验通过后，再点「格式化」或「压缩」</text>
+        <text class="hint">出错时会精确到第几行第几列，改完立刻重判。</text>
+      </view>
+    </view>
+  </view>
+</view>

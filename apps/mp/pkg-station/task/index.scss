@@ -1,0 +1,66 @@
+@import '../../styles/tokens.scss';
+
+/* 任务详情 · 朱砂主题（模块色板见 styles/themes.scss 的 .th-task）
+   造型语言：圆角 24 + 左侧彩条 + 行进流线，突出"任务正在跑"的热度 */
+
+.task { padding-bottom: 220rpx; }
+
+/* 装饰签名 curve + dot-b（热榜点缀）：两段错位大弧从页头后方掠过，
+   库内默认 .5 高于装饰红线（≤.4），压到 .22，只衬不抢 */
+.task-curve {
+  position: absolute; left: -40rpx; right: -40rpx; top: 240rpx;
+  opacity: .22;
+}
+
+/* 卡片内小标题：复用全局 .qz-sec-title 的字形，只补图标间距 */
+.card-head { display: flex; align-items: center; margin-bottom: $sp-3; }
+.card-head-title { margin-left: $sp-2; }
+/* 需要整行内容的卡片（列表项自带内边距），去掉卡片左右内边距 */
+.card-flush { padding: $sp-2 0; }
+
+/* ---------- 概览卡 ---------- */
+.overview { padding-left: $sp-6; }
+.ov-title { display: block; font-size: $fs-h2; font-weight: $fw-black; color: $text-1; line-height: 1.45; }
+.ov-budget { display: flex; align-items: center; margin: $sp-3 0 $sp-2; }
+.ov-amount {
+  font-size: $fs-display; font-weight: $fw-black; color: $accent-500;
+  margin-right: $sp-3; line-height: 1.1;
+}
+.ov-info { display: flex; align-items: center; margin-top: $sp-3; }
+.ov-info-text { margin-left: $sp-2; font-size: $fs-aux; color: $text-2; }
+.ov-tags { display: flex; flex-wrap: wrap; margin-top: $sp-4; }
+.ov-tags .qz-chip { margin: 0 $sp-2 $sp-2 0; }
+.ov-flow { margin-top: $sp-2; }
+
+/* ---------- 描述 ---------- */
+.desc { display: block; font-size: $fs-body; color: $text-2; line-height: 1.85; }
+
+/* ---------- 发布者 ---------- */
+.pub { display: flex; align-items: center; }
+.pub-avatar {
+  width: $ico-md; height: $ico-md; border-radius: $radius-pill;
+  background: $bg-card; box-shadow: $shadow-card;
+  display: flex; align-items: center; justify-content: center;
+  margin-right: $sp-3;
+}
+.pub-ico { width: 60rpx; height: 60rpx; }
+.pub-body { flex: 1; min-width: 0; }
+.pub-name { display: block; font-size: $fs-body; font-weight: $fw-semi; color: $text-1; }
+.pub-meta { display: flex; align-items: center; margin-top: 2rpx; font-size: $fs-tag; color: $text-3; }
+.pub-meta-ico { width: 28rpx; height: 28rpx; margin-right: 6rpx; }
+.pub-dot { margin: 0 6rpx; }
+
+/* ---------- 报名列表 ---------- */
+.applicant-body { margin-left: $sp-3; }
+.applicant-btn { flex-shrink: 0; padding: 0 $sp-6; margin-left: $sp-2; }
+/* 报名留言：服务者写给发布者的一句话 */
+.applicant-msg { margin-top: $sp-1; opacity: 0.9; }
+/* 匹配度与依据：只展示服务端真算出来的，未算出不渲染 */
+.applicant-match { margin-top: $sp-1; color: var(--m1); }
+
+/* ---------- 底部操作栏 ---------- */
+.task-footer { display: flex; }
+.foot-btn { flex: 1; margin-right: $sp-3; }
+.foot-btn-main { flex: 1.5; }
+.foot-btn:last-child { margin-right: 0; }
+.foot-disabled { color: $text-3; background: $border-strong; }

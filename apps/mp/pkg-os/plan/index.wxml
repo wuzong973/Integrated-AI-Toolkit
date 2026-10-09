@@ -1,0 +1,162 @@
+<!-- 任务看板（文档 5.3.3）
+     视觉：星紫主题 · 圆角 34 · 时间轴感；阶段左侧一条彩色脊线，
+     节点用糖果图标区分状态，装饰层随指针视差。 -->
+<view
+  class="qz-page th-plan plan"
+  bindtouchstart="onFxStart"
+  bindtouchmove="onFxMove"
+  bindtouchend="onFxEnd"
+  bindtouchcancel="onFxEnd"
+>
+  <view class="qz-deco">
+    <view class="qz-fx" style="{{fxStyle}}">
+      <!-- 签名：flow-thick + blob-a（两条反向粗流线叠出"泳道推进感"） -->
+      <view class="plan-flow-a qz-flow qz-flow-thick"></view>
+      <view class="plan-flow-b qz-flow qz-flow-thick qz-flow-rev"></view>
+      <view class="qz-blob qz-blob-a"></view>
+    </view>
+  </view>
+
+  <view class="qz-content">
+    <!-- 页头 -->
+    <view class="qz-head">
+      <view class="qz-head-row qz-an-in">
+        <view class="qz-ico qz-ico-l qz-ico-float">
+          <view class="qz-i qz-i-chart"></view>
+        </view>
+        <view class="qz-head-main">
+          <text class="qz-head-title">任务看板</text>
+          <text class="qz-head-sub">AI 与真人协作的节点进度</text>
+        </view>
+      </view>
+      <view class="qz-head-chips qz-an-in qz-d1">
+        <view class="qz-chip qz-chip-on">已完成 {{progress.done}}/{{progress.total}}</view>
+        <view class="qz-chip">共 {{stages.length}} 个阶段</view>
+        <!-- 红线 10：真实计划没加载成功时页面退到演示数据，必须显式标注 -->
+        <view wx:if="{{demo}}" class="qz-chip plan-chip-demo">演示数据</view>
+      </view>
+      <view class="head-flow qz-flow"></view>
+    </view>
+
+    <!-- 演示数据说明条（真实计划加载成功时随 demo 一起消失，不需要再改这里） -->
+    <view wx:if="{{demo}}" class="qz-container qz-an-in qz-d1">
+      <view class="plan-demo-note">
+        <view class="qz-i qz-i-bell plan-demo-ico"></view>
+        <text class="plan-demo-text">当前为演示数据：这次没取到真实计划（原因见下方提示），下面展示的节点、报名人数与预算都不是真实结果，节点操作也不会生效。</text>
+      </view>
+    </view>
+
+    <!-- 目标与进度 -->
+    <view class="qz-container">
+      <view class="qz-card qz-card-grad qz-card-glow plan-card qz-an-in qz-d2">
+        <view class="qz-topline"></view>
+        <view class="qz-shine qz-shine-slow"></view>
+        <view class="plan-top">
+          <view class="plan-num">
+            <text class="qz-grad-text plan-pct">{{progress.percent}}%</text>
+            <text class="plan-num-label">整体进度</text>
+          </view>
+          <view class="plan-count">
+            <text class="plan-count-num">{{progress.done}}/{{progress.total}}</text>
+            <text class="plan-num-label">节点已完成</text>
+          </view>
+        </view>
+        <text class="plan-goal qz-ellipsis-2">目标：{{goal}}</text>
+        <view class="bar">
+          <view class="bar-water qz-water"></view>
+          <view class="bar-fill" style="width: {{progress.percent}}%"></view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 筛选胶囊 -->
+    <view class="qz-container">
+      <scroll-view class="filters qz-an-in qz-d3" scroll-x enable-flex show-scrollbar="{{false}}">
+        <view
+          wx:for="{{filters}}"
+          wx:key="key"
+          class="qz-chip {{activeFilter === item.key ? 'qz-chip-on' : ''}} filter qz-press"
+          data-key="{{item.key}}"
+          bindtap="onFilterTap"
+        >{{item.label}}</view>
+      </scroll-view>
+    </view>
+
+    <!-- 真实数据加载失败：只打「演示数据」角标不够，还要说清是"加载失败退下来的"，
+         并把重试入口给出去（下一次拉到真实计划后这条随 planError 自动消失） -->
+    <view wx:if="{{planError}}" class="qz-container">
+      <view class="qz-err qz-an-in">
+        <text class="qz-err-text">{{planError}}</text>
+        <view class="qz-err-btn qz-press" bindtap="onRetry">重试</view>
+      </view>
+    </view>
+
+    <!-- 阶段时间轴 -->
+    <view class="qz-container timeline">
+      <view
+        wx:for="{{stages}}"
+        wx:for-item="stage"
+        wx:key="name"
+        class="stage qz-an-in qz-d{{index + 1}}"
+      >
+        <view class="stage-head">
+          <view class="qz-ico qz-ico-s">
+            <view class="qz-i {{stage.iconClass}}"></view>
+          </view>
+          <text class="stage-name qz-ellipsis">{{stage.name}}</text>
+          <view class="qz-chip stage-count">{{stage.nodes.length}} 个节点</view>
+        </view>
+        <view class="stage-line qz-flow"></view>
+
+        <view class="qz-card qz-card-glow stage-body">
+          <view
+            wx:for="{{stage.nodes}}"
+            wx:for-item="node"
+            wx:key="nodeId"
+            class="qz-item qz-item-line qz-lift qz-an-in qz-d{{index + 1 > 8 ? 8 : index + 1}}"
+            data-nodeid="{{node.nodeId}}"
+            bindtap="onNodeAction"
+          >
+            <view class="qz-ico qz-ico-s">
+              <view class="qz-i {{node.iconClass}}"></view>
+            </view>
+            <view class="qz-item-main">
+              <text class="qz-item-title qz-ellipsis">{{node.name}}</text>
+              <text class="qz-item-desc">{{node.actorLabel}} · {{node.detail}}</text>
+              <!-- 真人节点发布成功后后端回写 refTaskId：把它露出来，用户才信"真的发出去了" -->
+              <text wx:if="{{node.refText}}" class="node-ref">{{node.refText}} · 点击看任务</text>
+            </view>
+            <text wx:if="{{node.budget}}" class="node-budget">¥{{node.budget / 100}}</text>
+            <view class="qz-chip node-action tone-{{node.toneClass}}">{{node.actionText}}</view>
+          </view>
+        </view>
+      </view>
+
+      <!-- 加载中：先给骨架。以前 loading 时 stages 为空，会直接命中下面的空态，
+           等于把"还在拉数据"演成"该筛选下暂无节点"（参照 pkg-station/apply 的写法） -->
+      <view wx:if="{{loading}}" class="qz-card qz-card-glow plan-skeleton qz-an-in">
+        <view class="qz-skeleton qz-skeleton-line"></view>
+        <view class="qz-skeleton qz-skeleton-line qz-skeleton-line-short"></view>
+        <view class="qz-skeleton qz-skeleton-line"></view>
+        <view class="qz-skeleton qz-skeleton-line qz-skeleton-line-short"></view>
+      </view>
+
+      <!-- 空态：只在加载结束后判定 -->
+      <view wx:elif="{{!stages.length}}" class="qz-empty qz-an-in">
+        <view class="qz-empty-ico qz-ico qz-ico-xl qz-ico-float">
+          <view class="qz-i qz-i-empty"></view>
+        </view>
+        <text class="qz-empty-title">该筛选下暂无节点</text>
+        <text class="qz-empty-text">换一个筛选条件，或回到「全部」看看完整计划。</text>
+        <view class="qz-empty-flow qz-flow"></view>
+      </view>
+    </view>
+
+    <!-- 底部动作 -->
+    <view class="qz-footer-bar plan-foot">
+      <view class="qz-btn-main foot-main qz-press" bindtap="onPackage">一键交付包</view>
+      <view class="qz-btn-sub foot-sub qz-press" bindtap="onAskMore">继续追问 AI</view>
+      <view class="foot-danger qz-press" bindtap="onTerminate">终止计划</view>
+    </view>
+  </view>
+</view>

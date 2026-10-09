@@ -1,0 +1,100 @@
+@import '../../styles/tokens.scss';
+
+/* 登录页 · 青紫主题
+   造型语言：超大圆角 + 漂浮光斑 + 顶部波浪，是全站"最轻"的一页 */
+
+.login { display: flex; flex-direction: column; min-height: 100vh; }
+.login-inner {
+  flex: 1; display: flex; flex-direction: column;
+  padding: $sp-12 $page-padding 60rpx;
+}
+/* 顶部波浪带：透明度压到 .38（装饰红线 ≤ .4，别盖过下面的文字） */
+.login-wave { position: absolute; left: 0; right: 0; top: 0; opacity: .38; }
+
+/* ---------- 欢迎区签名装饰（元素都在 .qz-deco > .qz-fx 内，跟着视差走） ----------
+   坐标系提醒：.qz-fx 向外扩了 40rpx，所以这里的 top 比页面视觉位置大 40rpx 才对得上。
+   两者只做"光"，不占布局（.qz-halo / .qz-shine 都是 absolute）。 */
+/* 光环：正好套在 logo 外圈，呼吸一下，和 .logo-ring 的脉冲错开节奏 */
+.login-halo {
+  top: 200rpx;
+  width: 380rpx; height: 380rpx;
+  margin: -190rpx 0 0 -190rpx;
+  opacity: .34;
+}
+/* 扫光：把掠过的高度收在欢迎区那一条，不往下面的能力卡上刷
+   （宽度 220rpx 是为了让 qzShine 的位移量程够跨过整块欢迎区，不动 keyframes） */
+.login-sweep { bottom: auto; height: 520rpx; width: 220rpx; }
+
+/* ---------- 品牌 ---------- */
+.brand { position: relative; text-align: center; margin-bottom: $sp-12; padding-top: $sp-8; }
+.logo {
+  position: relative;
+  width: 160rpx; height: 160rpx; border-radius: var(--r-card);
+  background: linear-gradient(135deg, var(--m1) 0%, var(--m2) 100%);
+  display: flex; align-items: center; justify-content: center;
+  margin: 0 auto $sp-6;
+  box-shadow: 0 18rpx 40rpx var(--sh);
+  animation: qzFloatY 5.6s $ease-inout infinite;
+}
+.logo-ico { width: 88rpx; height: 88rpx; }
+.logo-ring {
+  position: absolute; left: -12rpx; top: -12rpx; right: -12rpx; bottom: -12rpx;
+  border-radius: var(--r-card);
+  border: 3rpx solid var(--m1);
+  opacity: .35;
+  animation: qzPulse 3.6s $ease-out infinite;
+}
+.title { display: block; font-size: 52rpx; font-weight: $fw-black; color: $text-1; letter-spacing: 2rpx; }
+.slogan { display: block; font-size: $fs-aux; color: $text-3; margin-top: $sp-2; }
+.brand-flow { width: 220rpx; margin: $sp-6 auto 0; }
+
+/* ---------- 能力卡 ---------- */
+.features { margin-bottom: $sp-12; }
+.feature { display: flex; align-items: center; padding: $card-padding; }
+/* 三张卡各换一处点缀色，避免"三块一样" */
+.tone-0 { border-left: 6rpx solid var(--m1); }
+.tone-1 { border-left: 6rpx solid var(--m3); }
+.tone-2 { border-left: 6rpx solid var(--m2); }
+.feature-body { flex: 1; margin-left: $sp-4; }
+.feature-title { display: block; font-size: $fs-body; font-weight: $fw-semi; color: $text-1; }
+.feature-desc { display: block; font-size: $fs-tag; color: $text-3; }
+
+/* ---------- 操作区 ---------- */
+.footer { margin-top: auto; }
+.login-btn {
+  position: relative; overflow: hidden;
+  display: flex; align-items: center; justify-content: center;
+  height: 100rpx;
+  background: linear-gradient(120deg, var(--m1) 0%, var(--m2) 55%, var(--m1) 100%);
+  background-size: 220% 100%;
+  animation: qzGradientShift 6s $ease-inout infinite;
+  color: $text-inverse;
+  border-radius: $radius-pill; font-size: $fs-h2; font-weight: $fw-bold;
+  box-shadow: 0 16rpx 36rpx var(--sh);
+}
+.login-btn-ico { width: 40rpx; height: 40rpx; margin-right: $sp-2; }
+.login-btn-shine {
+  position: absolute; top: 0; bottom: 0; left: 0; width: 120rpx;
+  background: linear-gradient(100deg, transparent, $glass-mid, transparent);
+  animation: qzShine 3.6s $ease-inout infinite;
+}
+.login-btn-disabled {
+  background: $border-strong; color: $text-3;
+  animation: none; box-shadow: none;
+}
+
+/* 协议勾选：整句是单行（见 login.wxml 的换行警告），所以复选框与文字垂直居中。
+   rpx 随屏宽缩放，20 字 × $fs-tag 远小于可用宽度，任何机型都不会折行。 */
+.agree { display: flex; align-items: center; margin-top: $sp-6; }
+.checkbox {
+  width: 36rpx; height: 36rpx; border-radius: 10rpx;
+  border: 2rpx solid $border-strong; margin-right: $sp-2;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  transition: background $dur-fast $ease-out, border-color $dur-fast $ease-out;
+}
+.checkbox-on { background: var(--m1); border-color: var(--m1); }
+.checkbox-mark { color: $text-inverse; font-size: 22rpx; }
+.agree-text { flex: 1; font-size: $fs-tag; color: $text-3; line-height: 1.6; }
+.agree-link { color: var(--mt); }
+.tip { display: block; margin-top: $sp-4; font-size: $fs-tag; color: $text-3; text-align: center; }

@@ -1,0 +1,180 @@
+@import '../../styles/tokens.scss';
+
+/* 我的 · 樱花粉主题
+   造型语言：大圆角 + 玻璃质感 + 光斑，是全站"最柔软"的一页 */
+
+/* 底栏只在管理员身上出现，所以留白也要按需加：普通用户不该为了一个看不见的
+   固定栏在页面尾部空出一截。`.qz-footer-bar` 不参与 flex 布局，靠页底留白避让。 */
+.mine { padding: $sp-6 $page-padding 60rpx; }
+.mine-has-bar { padding-bottom: 220rpx; }
+
+/* ---------- 底部固定的管理员入口 ---------- */
+.admin-bar { display: flex; align-items: center; }
+.admin-bar-main {
+  flex: 1;
+  min-width: 0;
+  height: 88rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: $radius-pill;
+  background: linear-gradient(120deg, var(--m1) 0%, var(--m3) 100%);
+  box-shadow: 0 12rpx 28rpx var(--sh);
+}
+.admin-bar-txt {
+  margin-left: $sp-2;
+  font-size: $fs-h3;
+  font-weight: $fw-bold;
+  color: $text-inverse;
+}
+.admin-bar-alt {
+  flex-shrink: 0;
+  margin-left: $sp-3;
+  padding: 0 $sp-5;
+  height: 88rpx;
+  display: flex;
+  align-items: center;
+  font-size: $fs-aux;
+  color: var(--mt);
+  background: var(--ms);
+  border-radius: $radius-pill;
+}
+
+/* ---------- 头像行的编辑热区 ---------- */
+.profile-edit {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-left: $sp-2;
+  padding: $sp-2;
+}
+.profile-edit-txt {
+  margin-top: 2rpx;
+  font-size: $fs-tag;
+  color: $text-inverse;
+  opacity: .9;
+}
+.login-wrap { padding: 0; }
+
+/* ---------- 装饰签名：三光斑 + 上升粒子（见 docs/dev/MP-VISUAL-SYSTEM.md 第十一节） ----------
+   .rise-dot 只给形状与位置，动画完全交给共享类 .qz-rise（页面不另写 keyframes）；
+   整场再压到 .38 —— qzRise 关键帧自己的峰值是 .8，不收敛就会破"装饰不透明度 ≤ 0.4"的红线。
+   ⚠️ .qz-fx 四周外扩 40rpx（视差位移时不露边），所以贴边的 left/right 要多加 40rpx，
+      粒子落在页面左右 32rpx 留白里，卡在卡片之间的缝隙上，只露一点，不打扰阅读。 */
+.rise-field {
+  position: absolute; left: 0; right: 0; top: 0; height: 1400rpx;
+  opacity: .38;
+}
+.rise-dot { position: absolute; border-radius: 50%; background: var(--m3); }
+.rise-1 { left: 48rpx; top: 640rpx; width: 12rpx; height: 12rpx; }
+.rise-2 { right: 52rpx; top: 900rpx; width: 9rpx; height: 9rpx; background: var(--m4); animation-delay: -1.2s; }
+.rise-3 { left: 56rpx; top: 1160rpx; width: 10rpx; height: 10rpx; background: var(--m2); animation-delay: -2.4s; }
+
+/* ---------- 用户卡 ---------- */
+.profile {
+  position: relative; overflow: hidden;
+  border-radius: var(--r-card);
+  padding: $sp-8 $card-padding $sp-6;
+  background: linear-gradient(140deg, var(--m1) 0%, var(--m4) 100%);
+  box-shadow: 0 16rpx 40rpx var(--sh);
+  margin-bottom: $sp-4;
+}
+.profile-deco { position: absolute; left: 0; top: 0; right: 0; bottom: 0; overflow: hidden; }
+.p-blob { position: absolute; border-radius: $radius-blob; background: $glass-soft; }
+.p-blob-a { width: 260rpx; height: 260rpx; right: -70rpx; top: -90rpx; animation: qzBlob $loop-blob $ease-inout infinite; }
+.p-blob-b { width: 160rpx; height: 160rpx; left: -50rpx; bottom: -60rpx; animation: qzBlob 13s $ease-inout infinite; }
+.p-dot { position: absolute; border-radius: 50%; background: $glass-mid; }
+.p-dot-a { width: 14rpx; height: 14rpx; right: 90rpx; top: 60rpx; animation: qzBreath 3.4s $ease-inout infinite; }
+
+.profile-top { position: relative; display: flex; align-items: center; margin-bottom: $sp-6; }
+/* 头像底座：position:relative 是 .qz-halo 的定位基准（光环只进这一层，不外溢到内容） */
+.avatar-ring {
+  position: relative;
+  padding: 6rpx; border-radius: $radius-lg;
+  background: $glass-mid;
+  margin-right: $sp-4;
+}
+.avatar { position: relative; width: 112rpx; height: 112rpx; border-radius: $radius-md; display: block; }
+.avatar-ph {
+  background: $glass-soft;
+  display: flex; align-items: center; justify-content: center;
+}
+.avatar-ico { width: 76rpx; height: 76rpx; }
+.profile-info { flex: 1; min-width: 0; }
+.profile-name { display: block; font-size: $fs-h1; font-weight: $fw-black; color: $text-inverse; letter-spacing: .6rpx; }
+.profile-sub { display: block; font-size: $fs-aux; color: $glass-text; }
+
+/* 数据条：玻璃胶囊，四个数字一眼扫完（彩色柔影由 .qz-card-glow 提供） */
+.profile-stats {
+  position: relative;
+  display: flex;
+  background: $glass-faint;
+  border-radius: $radius-lg;
+  padding: $sp-3 0;
+}
+.stat { flex: 1; text-align: center; position: relative; }
+/* 格子的抬升反馈只保留 .qz-lift 的下沉位移：彩色柔影已经由整条 .profile-stats
+   （.qz-card-glow）负责，四格各自再叠一层常驻影会把玻璃面板压脏。 */
+.profile-stats .stat.qz-lift { box-shadow: none; }
+.stat + .stat::before {
+  content: '';
+  position: absolute; left: 0; top: 20%; bottom: 20%; width: 1rpx;
+  background: $glass-mid;
+}
+.stat-num { display: block; font-size: $fs-h2; font-weight: $fw-black; color: $text-inverse; }
+.stat-label { display: block; font-size: $fs-tag; color: $glass-text; }
+
+.badges { position: relative; display: flex; margin-top: $sp-4; }
+.badge {
+  display: flex; align-items: center;
+  padding: 6rpx $sp-3; margin-right: $sp-3; border-radius: $radius-pill;
+  background: $glass-soft; color: $glass-text;
+  font-size: $fs-tag;
+}
+.badge-ico { width: 28rpx; height: 28rpx; margin-right: 4rpx; }
+.badge-on {
+  background: $glass-card;
+  color: var(--mt); font-weight: $fw-semi;
+}
+.profile-flow { position: absolute; left: 0; right: 0; bottom: 0; opacity: .5; }
+
+/* ---------- 身份切换 ---------- */
+.role-switch { padding: $card-padding; }
+.role-head { display: flex; align-items: center; margin-bottom: $sp-3; }
+.role-ico { width: 36rpx; height: 36rpx; margin-right: $sp-2; }
+.role-title { font-size: $fs-aux; color: $text-3; }
+.role-btns { display: flex; }
+.role-btn {
+  padding: $sp-2 $sp-4; margin-right: $sp-3;
+  border-radius: $radius-pill;
+  background: $bg-page; color: $text-2; font-size: $fs-aux;
+  transition: all $dur-base $ease-out;
+}
+.role-active {
+  background: linear-gradient(135deg, var(--m1), var(--m2));
+  color: $text-inverse; font-weight: $fw-semi;
+  box-shadow: 0 8rpx 18rpx var(--sh);
+}
+
+/* ---------- 菜单 ---------- */
+.menu-group { padding: 0 $card-padding; }
+.menu-item { padding: $card-padding 0; }
+.menu-main { flex: 1; min-width: 0; margin-left: $sp-4; }
+.menu-label { display: block; font-size: $fs-body; color: $text-1; font-weight: $fw-medium; }
+.menu-desc { display: block; font-size: $fs-tag; color: $text-3; margin-top: 2rpx; }
+.menu-arrow { font-size: $fs-h2; color: $text-3; }
+
+/* ---------- 退出 ---------- */
+.logout {
+  margin-top: $sp-6; height: $hit-min; line-height: $hit-min; text-align: center;
+  background: $bg-card; border-radius: var(--r-card);
+  color: $danger; font-size: $fs-body; font-weight: $fw-medium;
+  box-shadow: $shadow-soft;
+  border: 1rpx solid $danger-veil;
+}
+
+/* ---------- 骨架 ---------- */
+.loading { padding-top: $sp-6; }
+.skeleton-card { height: 320rpx; border-radius: var(--r-card); margin-bottom: $sp-4; }
+.skeleton-card-sm { height: 180rpx; }

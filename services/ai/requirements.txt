@@ -1,0 +1,30 @@
+# qz-ai：AI 能力服务依赖
+# 骨架阶段（python -m services.ai）不需要安装任何依赖即可启动并通过 /health。
+# 进入实现阶段再安装：pip install -r services/ai/requirements.txt
+
+# ---- Web 框架（替换当前的标准库骨架，设计文档 3.3.1）----
+fastapi==0.115.6
+uvicorn[standard]==0.34.0
+python-multipart==0.0.20
+pydantic==2.10.4
+httpx==0.28.1
+
+# ---- OCR（M1-11）----
+# ⚠️ PyPI 上的 `paddlepaddle` 就是 **CPU 版**；GPU 版叫 `paddlepaddle-gpu`，绝不能装进本项目。
+#    若需从国内镜像加速：python -m pip install paddlepaddle==2.6.2 -i https://pypi.tuna.tsinghua.edu.cn/simple
+paddlepaddle==2.6.2          # Apache-2.0
+paddleocr==2.7.3             # Apache-2.0
+
+# ---- 语音转文字（M4-03）----
+faster-whisper==1.0.3        # MIT
+
+# ---- 抠图（M1-12）：只用白名单模型 u2net，isnet/birefnet 许可受限（文档 2.8.4）
+rembg==2.0.59                # MIT
+# ⚠️ Pillow 必须**显式**声明，不能靠 rembg 传递：
+#    services/ai/matting.py 里是延迟导入（`from PIL import Image`，在函数体内），
+#    rembg 哪天换了图像后端，这里就会在运行时才 ImportError。
+#    许可：MIT-CMU（HEIC 相关组件除外，本项目不使用）
+Pillow==11.1.0
+
+# ---- 人声分离（M4-02）：ADR-12 不用 UVR，直连 Demucs / spleeter
+demucs==0.4.1                # MIT

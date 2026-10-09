@@ -1,0 +1,220 @@
+<!-- 工具执行页（文档 5.3.5）
+     视觉：靛青主题 · 圆角 24 · 步骤感；参数表单用渐变卡 + 顶部流动彩线，
+     装饰层随指针视差（utils/fx.ts），内容区不跟随。 -->
+<view
+  class="qz-page th-tool-run run"
+  bindtouchstart="onFxStart"
+  bindtouchmove="onFxMove"
+  bindtouchend="onFxEnd"
+  bindtouchcancel="onFxEnd"
+>
+  <!-- 装饰层（不拦截点击）：签名 flow-thick —— 一正一反两条粗流线横贯背景，
+       与进度条的流动节奏同向，配合"正在执行"的状态 -->
+  <view class="qz-deco">
+    <view class="qz-fx" style="{{fxStyle}}">
+      <view class="run-flow-a qz-flow qz-flow-thick"></view>
+      <view class="run-flow-b qz-flow qz-flow-thick qz-flow-rev"></view>
+    </view>
+  </view>
+
+  <!-- 运行中：全屏进度层（背景仍是同一套装饰，保持"同一页"的连续感） -->
+  <view wx:if="{{running}}" class="progress-layer">
+    <view class="progress-card qz-card qz-card-grad qz-card-glow qz-an-pop">
+      <view class="qz-topline"></view>
+      <view class="qz-ico qz-ico-xl qz-ico-float progress-ico">
+        <view class="qz-i qz-i-rocket"></view>
+      </view>
+      <text class="progress-title">正在处理</text>
+      <text class="progress-stage">{{stage}}</text>
+      <view class="progress-bar">
+        <view class="progress-water qz-water"></view>
+        <view class="progress-fill" style="width: {{progress}}%"></view>
+        <view class="qz-shine qz-shine-slow"></view>
+      </view>
+      <text class="progress-pct">{{progress}}%</text>
+      <text class="progress-channel">{{realtime ? '实时推送中' : '轮询同步中'}}</text>
+      <text class="progress-tip">可以先去干别的，完成后会通知你</text>
+      <view class="qz-btn-sub qz-press progress-cancel" bindtap="onCancelRun">后台运行</view>
+    </view>
+  </view>
+
+  <view wx:else class="qz-content">
+    <!-- 页头 -->
+    <view class="qz-head">
+      <view class="qz-head-row qz-an-in">
+        <view class="qz-ico qz-ico-l qz-ico-float">
+          <view class="qz-i qz-i-toolbox"></view>
+        </view>
+        <view class="qz-head-main">
+          <!-- 加载态：工具定义还没回来，先给骨架而不是空壳标题 -->
+          <block wx:if="{{toolLoading}}">
+            <view class="qz-skeleton qz-skeleton-line head-skl-title"></view>
+            <view class="qz-skeleton qz-skeleton-line qz-skeleton-line-short"></view>
+          </block>
+          <block wx:else>
+            <text class="qz-head-title">{{tool.displayName || '工具执行'}}</text>
+            <text class="qz-head-sub">{{tool.description || '填好参数，交给 AI 跑完'}}</text>
+          </block>
+        </view>
+      </view>
+      <view wx:if="{{!toolLoading}}" class="qz-head-chips qz-an-in qz-d1">
+        <!-- 步骤跟着真实状态走：填写中 ①、执行中 ②、成功 ③；失败停在 ② -->
+        <view class="qz-chip {{currentStep === 1 ? 'qz-chip-on' : ''}}">① 填写需求</view>
+        <view class="qz-chip {{currentStep === 2 ? 'qz-chip-on' : ''}}">② 自动执行</view>
+        <view class="qz-chip {{currentStep === 3 ? 'qz-chip-on' : ''}}">③ 领取产物</view>
+      </view>
+    </view>
+
+    <!-- 错误条（统一语气） -->
+    <view wx:if="{{error}}" class="qz-container qz-an-in">
+      <view class="qz-err">
+        <text class="qz-err-text">{{error}}</text>
+        <view class="qz-err-btn qz-press" bindtap="onCloseError">知道了</view>
+      </view>
+    </view>
+
+    <!-- 本地预设兜底告示：表单能填 ≠ 表单是后端那份，必须说出来并给重试入口 -->
+    <view wx:if="{{presetNotice}}" class="qz-container qz-an-in">
+      <view class="qz-err">
+        <text class="qz-err-text">{{presetNotice}}</text>
+        <view class="qz-err-btn qz-press" bindtap="onRetryTool">重试</view>
+      </view>
+    </view>
+
+    <!-- 「已转后台执行」回流条：进度层关掉后必须留下找回任务的入口 -->
+    <view wx:if="{{backgrounded}}" class="qz-container qz-an-in">
+      <view class="qz-card qz-card-line bg-run qz-lift">
+        <view class="bg-run-main">
+          <text class="bg-run-title">任务已提交后台执行</text>
+          <text class="bg-run-text">这一页不再刷新进度，随时可以去结果页看它跑到哪了</text>
+        </view>
+        <view class="bg-run-acts">
+          <view class="qz-btn-main bg-run-btn qz-press" bindtap="onGoResult">去结果页查看</view>
+          <view class="bg-run-close qz-press" bindtap="onDismissBackground">知道了</view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 步骤 1：填写需求 -->
+    <view class="qz-sec qz-an-in qz-d2">
+      <view class="qz-sec-bar"></view>
+      <text class="qz-sec-title">填写需求</text>
+      <text class="qz-sec-sub">{{toolLoading ? '正在读取工具定义…' : '必填项已标出'}}</text>
+    </view>
+
+    <view class="qz-container">
+      <!-- 加载态：表单区骨架，不渲染一张"看着能提交"的空表单 -->
+      <view wx:if="{{toolLoading}}" class="qz-card qz-card-grad form-card qz-an-in">
+        <view class="qz-skeleton qz-skeleton-line"></view>
+        <view class="qz-skeleton sk-field"></view>
+        <view class="qz-skeleton qz-skeleton-line qz-skeleton-line-short"></view>
+        <view class="qz-skeleton sk-field"></view>
+        <view class="qz-skeleton qz-skeleton-line"></view>
+      </view>
+
+      <view wx:else class="qz-card qz-card-grad qz-card-glow form-card qz-an-in qz-d2">
+        <view class="qz-topline"></view>
+        <view class="qz-shine qz-shine-slow"></view>
+
+        <view wx:for="{{fields}}" wx:key="key" class="field tone-{{index % 4}}">
+          <view class="field-head">
+            <view class="field-dot"></view>
+            <text class="field-label">{{item.label}}</text>
+            <text wx:if="{{item.required}}" class="required">必填</text>
+          </view>
+
+          <!-- 文本 -->
+          <input
+            wx:if="{{item.type === 'text'}}"
+            class="field-input"
+            placeholder="{{item.placeholder}}"
+            value="{{form[item.key]}}"
+            data-key="{{item.key}}"
+            bindinput="onFieldInput"
+          />
+
+          <!-- 多行文本 -->
+          <textarea
+            wx:elif="{{item.type === 'textarea'}}"
+            class="field-textarea"
+            placeholder="{{item.placeholder}}"
+            value="{{form[item.key]}}"
+            data-key="{{item.key}}"
+            bindinput="onFieldInput"
+            auto-height
+          />
+
+          <!-- 数字 -->
+          <input
+            wx:elif="{{item.type === 'number'}}"
+            class="field-input"
+            type="number"
+            placeholder="{{item.placeholder}}"
+            value="{{form[item.key]}}"
+            data-key="{{item.key}}"
+            bindinput="onFieldInput"
+          />
+
+          <!-- 选择 -->
+          <picker
+            wx:elif="{{item.type === 'select'}}"
+            class="field-picker"
+            range="{{item.options}}"
+            range-key="label"
+            data-key="{{item.key}}"
+            bindchange="onFieldSelect"
+          >
+            <view class="picker-value">
+              <text>{{form[item.key] || '请选择'}}</text>
+              <text class="picker-arrow">▾</text>
+            </view>
+          </picker>
+        </view>
+
+        <!-- 参考资料上传 -->
+        <view class="upload qz-press" bindtap="onChooseFile">
+          <view class="qz-ico qz-ico-s upload-ico">
+            <view class="qz-i qz-i-plus"></view>
+          </view>
+          <text class="upload-text">上传参考资料或待处理文件（可选）</text>
+        </view>
+        <text wx:if="{{fileNamesText}}" class="upload-count">已上传：{{fileNamesText}}</text>
+      </view>
+    </view>
+
+    <!-- 涉版权声明（文档 6.7.2，仅涉版权工具显示） -->
+    <block wx:if="{{tool && tool.requiresCopyrightAck}}">
+      <view class="qz-sec qz-an-in qz-d3">
+        <view class="qz-sec-bar"></view>
+        <text class="qz-sec-title">版权声明</text>
+        <text class="qz-sec-sub">必须确认</text>
+      </view>
+      <view class="qz-container">
+        <view class="qz-card qz-card-tint copyright qz-an-in qz-d3">
+          <text class="copyright-text">
+            本工具仅用于处理您拥有版权或已获得合法授权的图片/视频。请在继续前确认您拥有相应权利。
+          </text>
+          <view class="copyright-check qz-press" bindtap="onCopyrightToggle">
+            <view class="checkbox {{copyrightAck ? 'checkbox-on' : ''}}">
+              <view wx:if="{{copyrightAck}}" class="qz-i qz-i-check checkbox-ico"></view>
+            </view>
+            <text class="copyright-label">我确认对该内容拥有版权或已获得合法授权</text>
+          </view>
+        </view>
+      </view>
+    </block>
+
+    <!-- 费用与提交（工具定义没到位前不给提交入口：此时 fields 是空的，
+         点下去只会提交一张没有任何参数的表单） -->
+    <view wx:if="{{!toolLoading}}" class="qz-footer-bar run-foot">
+      <view class="cost">
+        <!-- 费用文案由 utils/billing.ts 统一决定（免费开放期显示"限时免费开放中"） -->
+        <text class="cost-value">{{costLabel}}</text>
+        <text class="cost-tip">预计耗时视文件大小而定</text>
+      </view>
+      <view class="qz-btn-main submit {{submitting ? 'submit-off' : ''}} qz-press" bindtap="onSubmit">
+        {{submitting ? '提交中…' : '开始处理'}}
+      </view>
+    </view>
+  </view>
+</view>

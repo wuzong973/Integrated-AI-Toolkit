@@ -1,0 +1,176 @@
+<!-- 记单词 · 首页（首页金刚区「记单词」的落点）
+     视觉：苔绿主题（styles/themes.scss 的 .th-vocab）
+     两态共用一页：needsBook=true → 选词书；否则 → 今日计划 + 开始学习 -->
+<view
+  class="qz-page th-vocab vocab"
+  bindtouchstart="onFxStart"
+  bindtouchmove="onFxMove"
+  bindtouchend="onFxEnd"
+  bindtouchcancel="onFxEnd"
+>
+  <view class="qz-deco">
+    <view class="qz-fx" style="{{fxStyle}}">
+      <view class="vocab-blob-a qz-blob"></view>
+      <view class="vocab-blob-b qz-blob"></view>
+      <view class="vocab-curve qz-curve"></view>
+      <view class="qz-dot qz-dot-b"></view>
+    </view>
+  </view>
+
+  <view class="qz-content">
+    <!-- 页头 -->
+    <view class="qz-head">
+      <view class="qz-head-row qz-an-in">
+        <view class="qz-ico qz-ico-l qz-ico-float">
+          <view class="qz-i qz-i-learn"></view>
+        </view>
+        <view class="qz-head-main">
+          <text class="qz-head-title">记单词</text>
+          <text class="qz-head-sub">初中到托福 · 按遗忘曲线安排复习</text>
+        </view>
+      </view>
+      <view class="qz-head-chips qz-an-in qz-d1">
+        <view wx:if="{{bookName}}" class="qz-chip qz-chip-on">{{bookName}}</view>
+        <view class="qz-chip">已学 {{totalLearned}}</view>
+        <view class="qz-chip">掌握 {{mastered}}</view>
+      </view>
+      <view class="head-flow qz-flow"></view>
+    </view>
+
+    <view class="qz-container">
+      <!-- 错误条 -->
+      <view wx:if="{{error}}" class="qz-err qz-an-in">
+        <text class="qz-err-text">{{error}}</text>
+        <view class="qz-err-btn qz-press" bindtap="onRetry">重试</view>
+      </view>
+
+      <!-- 首次加载骨架 -->
+      <view wx:if="{{loading && !loaded}}" class="qz-card qz-card-line vocab-sk">
+        <view class="qz-skeleton qz-skeleton-line"></view>
+        <view class="qz-skeleton qz-skeleton-line qz-skeleton-line-short"></view>
+      </view>
+
+      <block wx:elif="{{loaded}}">
+        <!-- ① 还没选词书：把列表摆出来（后端在同一次响应里返回，不必再请求一遍） -->
+        <block wx:if="{{showBooks}}">
+          <view class="qz-sec">
+            <view class="qz-sec-bar"></view>
+            <text class="qz-sec-title">选一本词书</text>
+            <text class="qz-sec-sub">共 {{books.length}} 本 · 随时可以换</text>
+          </view>
+          <!-- 换词书时列表要现拉一次（today 只在没有词书时才带 books） -->
+          <block wx:if="{{loadingBooks}}">
+            <view class="qz-card qz-card-line vocab-books qz-an-in qz-d2">
+              <view class="qz-item qz-item-line">
+                <view class="qz-skeleton qz-skeleton-line qz-skeleton-line-short"></view>
+              </view>
+              <view class="qz-item qz-item-line">
+                <view class="qz-skeleton qz-skeleton-line qz-skeleton-line-short"></view>
+              </view>
+            </view>
+          </block>
+          <!-- ⚠️ `wx:else` 与 `wx:for` **不能挂在同一个元素上**（WXML 编译期直接报
+               「Bad attr `wx:else` with message: `wx:if` not found」）—— 必须用 block 包一层。 -->
+          <block wx:else>
+            <!-- 23 本平铺太长：按分类分组，每组一张卡 -->
+            <view
+              wx:for="{{bookGroups}}"
+              wx:key="key"
+              class="vocab-group qz-an-in qz-d2"
+            >
+              <view class="vocab-group-head">
+                <text class="vocab-group-title">{{item.title}}</text>
+                <text class="vocab-group-count">{{item.count}} 本</text>
+              </view>
+              <view class="qz-card qz-card-line vocab-books">
+                <view
+                  wx:for="{{item.books}}"
+                  wx:for-item="bk"
+                  wx:key="code"
+                  class="qz-item qz-item-line {{bk.canSelect ? 'qz-lift' : ''}} {{bk.isActive ? 'vocab-books-on' : ''}}"
+                  data-code="{{bk.code}}"
+                  bindtap="onSelect"
+                >
+                  <view class="qz-ico qz-ico-s">
+                    <view class="qz-i qz-i-learn"></view>
+                  </view>
+                  <view class="qz-item-main">
+                    <text class="qz-item-title qz-ellipsis">{{bk.name}}</text>
+                    <text class="qz-item-desc">{{bk.descText}}</text>
+                  </view>
+                  <text class="vocab-books-tag {{bk.isActive ? 'vocab-active' : bk.canSelect ? 'vocab-on' : 'vocab-off'}}">{{bk.tagText}}</text>
+                </view>
+              </view>
+            </view>
+          </block>
+          <!-- 已经有词书时是"换"，得留一条退路，否则点了「换词书」就回不到今日计划 -->
+          <view wx:if="{{bookName}}" class="vocab-cancel qz-btn-sub qz-press" bindtap="onCancelSwitch">取消</view>
+        </block>
+
+        <!-- ② 今日计划 -->
+        <block wx:else>
+          <view class="qz-card vocab-hero qz-an-in qz-d2">
+            <view class="qz-topline"></view>
+            <view class="qz-shine qz-shine-slow"></view>
+            <text class="vocab-hero-book">{{bookName}}</text>
+            <view class="vocab-hero-nums">
+              <view class="vocab-num">
+                <text class="vocab-num-v">{{queueNew}}</text>
+                <text class="vocab-num-k">今日新词</text>
+              </view>
+              <view class="vocab-num">
+                <text class="vocab-num-v">{{queueReview}}</text>
+                <text class="vocab-num-k">今日复习</text>
+              </view>
+              <view class="vocab-num">
+                <text class="vocab-num-v">{{due}}</text>
+                <text class="vocab-num-k">到期总数</text>
+              </view>
+            </view>
+
+            <view class="vocab-bar">
+              <view class="vocab-bar-fill" style="width: {{percent}}%"></view>
+            </view>
+            <text class="vocab-bar-text">{{progressText}}</text>
+
+            <!-- 队列为空且后端给了原因：原样说出来（三种"空"的意义完全不同） -->
+            <text wx:if="{{emptyReason}}" class="vocab-reason">{{emptyReason}}</text>
+
+            <view
+              class="qz-btn-main qz-press vocab-start {{canStart ? '' : 'vocab-start-dim'}}"
+              bindtap="onStart"
+            >{{canStart ? '开始学习' : '查看学习统计'}}</view>
+          </view>
+
+          <!-- 今日已答 -->
+          <view class="qz-card qz-card-line vocab-today qz-an-in qz-d3">
+            <view class="vocab-today-row">
+              <view class="qz-ico qz-ico-s">
+                <view class="qz-i qz-i-check"></view>
+              </view>
+              <view class="qz-item-main">
+                <text class="qz-item-title">今天答对 {{todayCorrect}} / {{todayCount}} 题</text>
+                <text class="qz-item-desc">新学 {{todayNew}} · 复习 {{todayReview}}</text>
+              </view>
+            </view>
+          </view>
+
+          <view class="vocab-links qz-an-in qz-d4">
+            <view class="qz-btn-sub qz-press vocab-link" bindtap="onStats">
+              <view class="qz-ico qz-ico-s vocab-link-ico">
+                <view class="qz-i qz-i-chart"></view>
+              </view>
+              <text>学习统计</text>
+            </view>
+            <view class="qz-btn-sub qz-press vocab-link" bindtap="onSwitchBook">
+              <view class="qz-ico qz-ico-s vocab-link-ico">
+                <view class="qz-i qz-i-copy"></view>
+              </view>
+              <text>换词书</text>
+            </view>
+          </view>
+        </block>
+      </block>
+    </view>
+  </view>
+</view>

@@ -1,0 +1,87 @@
+@import '../../styles/tokens.scss';
+
+/* 消息通知中心 · 樱花粉主题（模块色板见 styles/themes.scss 的 .th-mine）
+   造型语言：柔软大圆角 + 装饰签名「信使动线」（.qz-deco 里一条 flow-soft + 一枚 dot-b）
+   + 描边列表卡（.qz-card-line，未读条目叠 .qz-card-bar 左侧彩色指示条）+ .qz-lift 抬升反馈。
+   与上一页「我的」（柔影大卡）/ 技能画像（粒子上升）在卡型与装饰类型上都错开。
+   取色只用 var(--m*) 与 tokens，不出现色值字面量、不自造 @keyframes。 */
+
+/* 装饰签名：信使动线 —— 行进虚线横穿页头与列表之间的那道空隙，
+   只放在 .qz-deco 里（装饰不内容化），透明度用现成的 .qz-flow-soft（.28）。 */
+.nt-messenger {
+  position: absolute; left: -40rpx; right: -40rpx; top: 336rpx;
+}
+
+/* 页头底部的流水光效带（页内亮点，与装饰层的动线各司其职） */
+.nt-water { margin-top: $sp-4; height: 40rpx; }
+
+/* 内容区底部留白，避免最后一行贴住安全区 */
+.nt-body { padding-bottom: $sp-12; }
+
+/* ---------- 工具条：未读条数 + 一键已读 ---------- */
+.nt-tools {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-top: $sp-4;
+}
+.nt-count { font-size: $fs-aux; color: $text-3; }
+/* 按钮叠在 .qz-chip 的胶囊造型上，只把点击区补到 $hit-min（无障碍硬要求） */
+.nt-readall {
+  height: $hit-min; padding: 0 $sp-6;
+  background: linear-gradient(135deg, var(--m1), var(--m2));
+  color: $text-inverse; font-weight: $fw-semi;
+  box-shadow: 0 6rpx 16rpx var(--sh);
+}
+.nt-readall-off { opacity: .6; }
+
+/* ---------- 列表行 ----------
+   卡型：`.qz-card-line`（描边，密集列表）；未读行再叠 `.qz-card-bar`（左侧彩色指示条）。
+   反馈：整行可点（标已读 + 按锚点跳转），故挂 `.qz-lift`；骨架行不可点，不挂。 */
+.nt-row { display: flex; align-items: center; min-height: $hit-min; }
+.nt-ico { margin-right: $sp-3; }
+.nt-main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+
+/* 未读：标题加粗并换成主题深文本；读过的退回中性灰（一眼能分出没看过的） */
+.nt-title { font-size: $fs-body; font-weight: $fw-medium; color: $text-2; }
+.nt-unread .nt-title { font-weight: $fw-bold; color: var(--mt); }
+.nt-text { margin-top: 4rpx; font-size: $fs-tag; color: $text-3; line-height: 1.6; }
+.nt-meta { display: flex; align-items: center; margin-top: $sp-2; }
+.nt-tag {
+  padding: 2rpx $sp-2; border-radius: $radius-pill;
+  font-size: $fs-tag; background: var(--ms); color: var(--mt);
+}
+.nt-time { margin-left: $sp-2; font-size: $fs-tag; color: $text-3; }
+
+/* 未读圆点：一枚在右侧，呼吸只用现成的 .qz-loop-breath */
+.nt-dot {
+  flex-shrink: 0; width: 16rpx; height: 16rpx; margin-left: $sp-2;
+  border-radius: 50%; background: var(--m1);
+  box-shadow: 0 0 12rpx var(--sh);
+}
+
+/* ---------- 分页尾巴 ---------- */
+.nt-more {
+  display: flex; align-items: center; justify-content: center;
+  min-height: $hit-min; margin-top: $sp-2;
+  border-radius: var(--r-card);
+  background: var(--ms); color: var(--mt);
+  font-size: $fs-aux; font-weight: $fw-semi;
+}
+.nt-end {
+  display: block; padding: $sp-4 0;
+  text-align: center; font-size: $fs-tag; color: $text-3;
+}
+
+/* ---------- 首屏骨架（形状与真实行一致） ---------- */
+.nt-sk-ico {
+  flex-shrink: 0; width: $ico-sm; height: $ico-sm;
+  margin-right: $sp-3; border-radius: $radius-md;
+}
+.nt-sk-body { flex: 1; min-width: 0; }
+.nt-sk-line { height: 24rpx; margin-bottom: $sp-3; }
+.nt-sk-short { width: 46%; margin-bottom: 0; }
+
+/* 错误分支的重试按钮：沿用全局 .qz-err-btn 配色，只把点击区补到 $hit-min */
+.qz-err-btn {
+  display: flex; align-items: center;
+  min-height: $hit-min; padding: 0 $sp-6;
+}

@@ -1,0 +1,113 @@
+<!-- 技能画像：数据源是 GET /provider/profile（M3-02 已落地），本页只读
+     视觉：青柠主题 · 大圆角 + 上翻波浪，突出"往上长"的成长感 -->
+<view
+  class="qz-page th-skill skill"
+  bindtouchstart="onFxStart"
+  bindtouchmove="onFxMove"
+  bindtouchend="onFxEnd"
+  bindtouchcancel="onFxEnd"
+>
+  <!-- 装饰层（不拦截点击，内容可读性不受影响）
+       签名：rise + dot-b（技能粒子）—— 光点自下而上冒，与"往上长"的技能画像语义同一 -->
+  <view class="qz-deco">
+    <view class="qz-fx" style="{{fxStyle}}">
+      <view class="skill-rise qz-rise"></view>
+      <view class="skill-rise skill-rise-b qz-rise"></view>
+      <view class="skill-rise skill-rise-c qz-rise"></view>
+      <view class="qz-dot qz-dot-b"></view>
+    </view>
+  </view>
+
+  <view class="qz-content">
+    <!-- 页头 -->
+    <view class="qz-head">
+      <view class="qz-head-row qz-an-in">
+        <view class="qz-ico qz-ico-l qz-ico-float">
+          <view class="qz-i qz-i-skill"></view>
+        </view>
+        <view class="qz-head-main">
+          <text class="qz-head-title">技能画像</text>
+          <text class="qz-head-sub">系统按这份画像决定把哪些需求推给你</text>
+        </view>
+      </view>
+      <!-- 上翻波浪：与"成长"的语义呼应 -->
+      <view class="skill-wave qz-wave qz-wave-up"></view>
+    </view>
+
+    <view class="qz-container skill-body">
+      <!-- ① 加载中 -->
+      <view wx:if="{{stage === 'loading'}}" class="qz-skeleton qz-an-in">
+        <view class="qz-skeleton-line"></view>
+        <view class="qz-skeleton-line"></view>
+        <view class="qz-skeleton-line qz-skeleton-line-short"></view>
+      </view>
+
+      <!-- ② 加载失败：说清原因 + 一个真能重拉的按钮 -->
+      <view wx:elif="{{stage === 'error'}}" class="qz-err qz-an-in">
+        <text class="qz-err-text">{{error}}</text>
+        <view class="qz-err-btn qz-press" bindtap="onRetry">重试</view>
+      </view>
+
+      <!-- ③ 从未提交过入驻认证 -->
+      <view wx:elif="{{stage === 'none'}}" class="qz-empty qz-an-in qz-d1">
+        <view class="qz-empty-ico qz-ico qz-ico-xl qz-ico-float">
+          <view class="qz-i qz-i-skill"></view>
+        </view>
+        <text class="qz-empty-title">还没有技能画像</text>
+        <text class="qz-empty-text">技能标签与认证材料都在入驻认证里提交。完成认证后，这一页才会有内容，驿站也才知道该把哪些需求推给你。</text>
+        <view class="qz-empty-flow qz-flow"></view>
+        <view class="qz-btn-main qz-press" bindtap="onAction">去入驻认证</view>
+      </view>
+
+      <!-- ④ 真实画像 -->
+      <block wx:else>
+        <!-- 主卡型：主题浅底卡（视觉规范第十一节 skill 行），顶部一条流动线拉层次 -->
+        <view class="qz-card qz-card-tint profile-card qz-an-in qz-d1">
+          <view class="qz-topline"></view>
+          <view class="profile-row">
+            <view class="qz-ico qz-ico-m qz-ico-bob"><view class="qz-i qz-i-skill"></view></view>
+            <view class="profile-main">
+              <text class="profile-title">我的技能画像</text>
+              <view class="badge badge-{{badge.tone}}">{{badge.label}}</view>
+            </view>
+          </view>
+
+          <!-- 三项都是 profile 接口真给的数 -->
+          <view class="stat-row">
+            <view class="stat">
+              <text class="stat-num">{{creditScore}}</text>
+              <text class="stat-label">信用分</text>
+            </view>
+            <view class="stat">
+              <text class="stat-num">{{completedOrders}}</text>
+              <text class="stat-label">完成单</text>
+            </view>
+            <view class="stat">
+              <text class="stat-num">{{materialCount}}</text>
+              <text class="stat-label">认证材料</text>
+            </view>
+          </view>
+        </view>
+
+        <view class="qz-sec qz-an-in qz-d2">
+          <view class="qz-sec-bar"></view>
+          <text class="qz-sec-title">技能标签</text>
+          <text class="qz-sec-sub">{{skills.length}} 个</text>
+        </view>
+        <view class="qz-card qz-card-line skills-card qz-an-in qz-d2">
+          <view wx:if="{{skills.length}}" class="skill-chips">
+            <view wx:for="{{skills}}" wx:key="*this" class="qz-chip">{{item}}</view>
+          </view>
+          <text wx:else class="skills-none">这次认证没填技能标签，重新提交时可以补上。</text>
+        </view>
+
+        <view class="qz-btn-main act-btn qz-press qz-an-in qz-d3" bindtap="onAction">
+          {{actionText}}
+        </view>
+        <text class="act-hint qz-an-in qz-d4">
+          技能标签随认证材料一起提交、一起审核，本页不提供单独编辑。
+        </text>
+      </block>
+    </view>
+  </view>
+</view>

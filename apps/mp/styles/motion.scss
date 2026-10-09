@@ -1,0 +1,186 @@
+/**
+ * 动效库（统一节奏，页面只组合使用，不自己写 @keyframes）
+ *
+ * 三类：
+ *   ① 入场（一次性）：.qz-an-*  —— 页面/卡片进入时的淡入、上浮、缩放
+ *   ② 循环（常驻）：  .qz-loop-* —— 装饰层呼吸、漂浮、流动，让页面"活着"
+ *   ③ 反馈（交互）：  .qz-press / .qz-lift / .qz-ripple —— 即时、自然
+ *
+ * 节奏令牌见 tokens.scss：$dur-* / $ease-* / $loop-*。
+ * 本文件只在 app.scss 里引入一次。
+ */
+
+/* ============ ① 入场动画 ============ */
+@keyframes qzRiseIn {
+  from { opacity: 0; transform: translate3d(0, 36rpx, 0) scale(.985); }
+  to   { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
+}
+@keyframes qzFadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes qzPopIn {
+  0%   { opacity: 0; transform: scale(.72); }
+  62%  { opacity: 1; transform: scale(1.06); }
+  100% { opacity: 1; transform: scale(1); }
+}
+/* 逐条"弹性向上滑入"：上浮 20rpx → 过冲 5rpx → 落定。
+   过冲写在关键帧里而不是靠曲线，是因为 $ease-spring 的过冲量没法按位移量缩放；
+   只动 transform / opacity（红线：动 width/top 会触发重排）。 */
+@keyframes qzSpringUp {
+  0%   { opacity: 0; transform: translate3d(0, 20rpx, 0) scale(.97); }
+  58%  { opacity: 1; transform: translate3d(0, -5rpx, 0) scale(1.014); }
+  100% { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
+}
+@keyframes qzSlideInLeft {
+  from { opacity: 0; transform: translate3d(-48rpx, 0, 0); }
+  to   { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+@keyframes qzSlideInRight {
+  from { opacity: 0; transform: translate3d(48rpx, 0, 0); }
+  to   { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+@keyframes qzDropIn {
+  0%   { opacity: 0; transform: translate3d(0, -24rpx, 0); }
+  70%  { opacity: 1; transform: translate3d(0, 4rpx, 0); }
+  100% { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+/* 页面整体进场（根节点用，营造"切换过渡"）
+   注意：这里**只动 opacity，不动 transform**。因为带 transform 的元素会成为
+   position:fixed 子元素的包含块，而页面根节点里往往挂着悬浮球、底部操作栏；
+   一旦根节点带 transform，这些固定元素就会错位。位移效果交给内层 .qz-an-* 做。 */
+@keyframes qzPageIn {
+  from { opacity: 0; }
+  40%  { opacity: .85; }
+  to   { opacity: 1; }
+}
+
+.qz-an-in    { animation: qzRiseIn $dur-slow $ease-out both; }
+.qz-an-fade  { animation: qzFadeIn $dur-base $ease-out both; }
+.qz-an-pop   { animation: qzPopIn $dur-base $ease-spring both; }
+/* 逐条弹性入场：类名由 utils/fx.ts 的 staggerClass(index, 'qz-an-spring') 生成，
+   WXML 里用 {{item.anim}} 渲染（WXML 不能调函数）；配 .qz-d1..d8 做逐项延迟 */
+.qz-an-spring { animation: qzSpringUp $dur-base $ease-out both; }
+.qz-an-left  { animation: qzSlideInLeft $dur-slow $ease-out both; }
+.qz-an-right { animation: qzSlideInRight $dur-slow $ease-out both; }
+.qz-an-drop  { animation: qzDropIn $dur-base $ease-out both; }
+/* 逐项错位（列表/网格用，配合 .qz-d1 ~ .qz-d8 的延迟） */
+.qz-d1 { animation-delay: .05s; }
+.qz-d2 { animation-delay: .10s; }
+.qz-d3 { animation-delay: .15s; }
+.qz-d4 { animation-delay: .20s; }
+.qz-d5 { animation-delay: .26s; }
+.qz-d6 { animation-delay: .32s; }
+.qz-d7 { animation-delay: .38s; }
+.qz-d8 { animation-delay: .44s; }
+
+/* ============ ② 循环动画（装饰层） ============ */
+@keyframes qzFloatY {
+  0%, 100% { transform: translate3d(0, 0, 0); }
+  50%      { transform: translate3d(0, -14rpx, 0); }
+}
+@keyframes qzFloatY2 {
+  0%, 100% { transform: translate3d(0, 0, 0); }
+  50%      { transform: translate3d(0, 10rpx, 0); }
+}
+@keyframes qzDriftX {
+  0%   { transform: translate3d(-3%, 0, 0); }
+  100% { transform: translate3d(3%, 0, 0); }
+}
+@keyframes qzBlob {
+  0%, 100% { border-radius: 42% 58% 54% 46% / 48% 44% 56% 52%; transform: rotate(0deg) scale(1); }
+  34%      { border-radius: 58% 42% 40% 60% / 60% 54% 46% 40%; transform: rotate(6deg) scale(1.04); }
+  67%      { border-radius: 46% 54% 62% 38% / 42% 58% 42% 58%; transform: rotate(-5deg) scale(.98); }
+}
+@keyframes qzBreath {
+  0%, 100% { opacity: .55; transform: scale(1); }
+  50%      { opacity: .95; transform: scale(1.08); }
+}
+@keyframes qzSpin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+/* 流线：虚线带横向行进（背景位移，性能好） */
+@keyframes qzMarchX {
+  from { background-position-x: 0; }
+  to   { background-position-x: 40rpx; }
+}
+@keyframes qzMarchXNeg {
+  from { background-position-x: 0; }
+  to   { background-position-x: -40rpx; }
+}
+/* 水波：条纹缓慢流动 */
+@keyframes qzWaterFlow {
+  from { background-position: 0 0; }
+  to   { background-position: 120rpx 0; }
+}
+/* 扫光：一道柔光从左掠到右 */
+@keyframes qzShine {
+  0%   { transform: translate3d(-120%, 0, 0); }
+  100% { transform: translate3d(220%, 0, 0); }
+}
+/* 波浪带：整条带子横向平移（首尾同形，无缝循环） */
+@keyframes qzWaveSlide {
+  from { transform: translate3d(0, 0, 0); }
+  to   { transform: translate3d(-50%, 0, 0); }
+}
+/* 光晕脉冲 */
+@keyframes qzPulse {
+  0%   { transform: scale(.85); opacity: .5; }
+  70%  { transform: scale(1.5); opacity: 0; }
+  100% { transform: scale(1.5); opacity: 0; }
+}
+/* 渐变呼吸（标题渐变字/按钮） */
+@keyframes qzGradientShift {
+  0%, 100% { background-position: 0% 50%; }
+  50%      { background-position: 100% 50%; }
+}
+@keyframes qzBob {
+  0%, 100% { transform: translate3d(0, 0, 0) rotate(-2deg); }
+  50%      { transform: translate3d(0, -8rpx, 0) rotate(2deg); }
+}
+
+.qz-loop-float   { animation: qzFloatY $loop-float $ease-inout infinite; }
+.qz-loop-float-2 { animation: qzFloatY2 6.4s $ease-inout infinite; }
+.qz-loop-drift   { animation: qzDriftX $loop-drift $ease-inout infinite alternate; }
+.qz-loop-blob    { animation: qzBlob $loop-blob $ease-inout infinite; }
+.qz-loop-breath  { animation: qzBreath 4.6s $ease-inout infinite; }
+.qz-loop-spin    { animation: qzSpin 22s linear infinite; }
+.qz-loop-bob     { animation: qzBob 4.2s $ease-inout infinite; }
+
+/* ============ ③ 交互反馈 ============ */
+/* 按压：轻微缩小 + 亮度变化，12ms 内响应 */
+/* 按压：0.96 物理压缩 + 深度内阴影，**下压与回正用两条不同的曲线**才有实体感。
+   CSS 的 transition 取"目标态"那条规则 —— 所以 `:active` 里写的是**下压段**（80ms 减速，
+   反馈必须立刻到），外层这条是**松手段**（200ms + $ease-spring，自带超调回弹）。
+   `inset` 内阴影与卡片原本的柔影同属 `box-shadow`，按下期间替换它 —— 与 `.qz-lift`
+   换档阴影是同一族既有行为，不是回归。 */
+.qz-press {
+  transition: transform $dur-fast $ease-spring, box-shadow $dur-fast $ease-out, opacity $dur-fast linear;
+}
+.qz-press:active {
+  transform: scale(.96);
+  opacity: .94;
+  box-shadow: $shadow-press-inset;
+  transition: transform $dur-press-in $ease-out, box-shadow $dur-press-in linear, opacity $dur-press-in linear;
+}
+/* 抬升：默认带柔影，按下时收影下沉 */
+.qz-lift {
+  box-shadow: $shadow-soft;
+  transition: transform $dur-fast $ease-out, box-shadow $dur-fast $ease-out;
+}
+.qz-lift:active {
+  transform: translate3d(0, 2rpx, 0) scale(.99);
+  box-shadow: $shadow-card;
+}
+/* 波纹：按下时从中心扩散一圈（放在相对定位容器内） */
+.qz-ripple { position: relative; overflow: hidden; }
+.qz-ripple::after {
+  content: '';
+  position: absolute; left: 50%; top: 50%;
+  width: 24rpx; height: 24rpx; margin: -12rpx 0 0 -12rpx;
+  border-radius: 50%;
+  background: var(--m1, #{$brand-500});
+  opacity: 0; pointer-events: none;
+}
+.qz-ripple:active::after { animation: qzPulse .6s $ease-out; }

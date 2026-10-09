@@ -1,0 +1,50 @@
+@import '../../styles/tokens.scss';
+
+/* 认证中心 · 靛蓝主题（模块色板见 styles/themes.scss 的 .th-verify）
+   造型语言：中圆角 + 状态卡；装饰交给 .qz-deco，页面只留排版 */
+
+.verify { padding-bottom: 60rpx; }
+
+/* ---------- 装饰签名：flow + blob-a（认证进度流） ----------
+   流线用现成 .qz-flow + .qz-flow-soft（透明度 .28，压在 0.4 红线内），
+   页面只补定位：让虚线穿过页头与状态卡之间的空档，不压文字 */
+.deco-flow {
+  position: absolute; left: -20rpx; right: 120rpx; top: 340rpx;
+}
+
+/* 错误条里的重试按钮要满足最小点击区 */
+.qz-err-btn {
+  display: flex; align-items: center;
+  min-height: $hit-min; padding: 0 $sp-6;
+}
+
+/* ---------- 状态卡 ---------- */
+.status-card { display: flex; flex-direction: column; margin-bottom: $sp-4; }
+.status-row { display: flex; align-items: center; }
+.status-main { flex: 1; margin-left: $sp-3; display: flex; flex-direction: column; }
+.status-label { font-size: $fs-h3; font-weight: $fw-semi; color: var(--m1); }
+.status-desc { margin-top: $sp-1; font-size: $fs-tag; color: var(--mt); line-height: 1.6; }
+.status-skills { display: flex; flex-wrap: wrap; margin-top: $sp-3; }
+
+/*
+  四种状态的色调差异**只用左侧色条**表达，不整块换底色：
+  卡片背景是渐变（.qz-card-grad），换底色会跟渐变打架；
+  而色条既能一眼区分状态，又不破坏模块的视觉语言。
+*/
+.status-idle { border-left: 8rpx solid var(--ms); }
+.status-wait { border-left: 8rpx solid var(--m3); }
+.status-ok { border-left: 8rpx solid var(--m4); }
+.status-bad { border-left: 8rpx solid var(--m3); }
+.status-wait .status-label { color: var(--m3); }
+.status-ok .status-label { color: var(--m4); }
+.status-bad .status-label { color: var(--m3); }
+
+/* ---------- 驳回原因（必须显眼） ---------- */
+.reject-card { display: flex; flex-direction: column; margin-bottom: $sp-4; }
+.reject-title { font-size: $fs-body; font-weight: $fw-semi; color: var(--m1); }
+.reject-why { margin-top: $sp-2; font-size: $fs-tag; color: var(--mt); line-height: 1.6; }
+
+/* ---------- 动作与说明 ---------- */
+.act-btn { margin-top: $sp-2; }
+.tips { display: flex; flex-direction: column; margin-top: $sp-5; }
+.tips-line { margin-bottom: $sp-2; font-size: $fs-tag; color: var(--mt); opacity: .8; line-height: 1.6; }

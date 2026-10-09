@@ -1,0 +1,223 @@
+/**
+ * 浮层：模态框 / 确认框 / 抽屉 / 全局提示。
+ *
+ * 三条无障碍纪律（漏了会让人"操作后不知道发生了什么"）：
+ *  ① 遮罩点击关闭仅对模态框生效，**确认框必须显式点按钮** ——
+ *     误触遮罩把"确认删除"关掉，用户会以为已经删了；
+ *  ② 打开时焦点进入浮层、关闭后归还触发元素（由组件层负责）；
+ *  ③ 危险操作的确认按钮文案必须写明动作（"确认删除"），不用"确定"。
+ */
+
+.qz-mask {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-modal);
+  display: grid;
+  place-items: center;
+  padding: var(--sp-5);
+  background: var(--bg-mask);
+  animation: qz-fade-in 0.12s ease;
+}
+
+@keyframes qz-fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+.qz-modal {
+  width: 100%;
+  max-width: 560px;
+  max-height: calc(100vh - 96px);
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-card);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-float);
+  animation: qz-pop-in 0.14s ease;
+}
+
+.qz-modal--wide {
+  max-width: 760px;
+}
+
+@keyframes qz-pop-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px) scale(0.99);
+  }
+}
+
+.qz-modal__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-3);
+  padding: var(--sp-4) var(--sp-5);
+  border-bottom: 1px solid var(--border-soft);
+}
+
+.qz-modal__title {
+  font-size: var(--fs-h3);
+  font-weight: var(--fw-semi);
+}
+
+.qz-modal__close {
+  border: none;
+  background: transparent;
+  color: var(--text-3);
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: var(--r-sm);
+}
+
+.qz-modal__close:hover {
+  background: var(--bg-hover);
+  color: var(--text-1);
+}
+
+.qz-modal__body {
+  padding: var(--sp-5);
+  overflow-y: auto;
+}
+
+.qz-modal__footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--sp-3);
+  padding: var(--sp-4) var(--sp-5);
+  border-top: 1px solid var(--border-soft);
+}
+
+/* 确认框：比模态框更窄，强调"读一段话再决定" */
+.qz-confirm {
+  width: 100%;
+  max-width: 400px;
+  padding: var(--sp-5);
+  background: var(--bg-card);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-float);
+  animation: qz-pop-in 0.14s ease;
+}
+
+.qz-confirm__title {
+  font-size: var(--fs-h3);
+  font-weight: var(--fw-semi);
+  margin-bottom: var(--sp-2);
+}
+
+.qz-confirm__text {
+  font-size: var(--fs-aux);
+  color: var(--text-2);
+  line-height: 1.7;
+  word-break: break-word;
+}
+
+.qz-confirm__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--sp-3);
+  margin-top: var(--sp-5);
+}
+
+/* ==================== 全局提示 ==================== */
+.qz-toasts {
+  position: fixed;
+  top: var(--sp-5);
+  right: var(--sp-5);
+  z-index: var(--z-toast);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  max-width: 380px;
+}
+
+.qz-toast {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--sp-2);
+  padding: var(--sp-3) var(--sp-4);
+  border-radius: var(--r-md);
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-left-width: 3px;
+  box-shadow: var(--shadow-float);
+  font-size: var(--fs-aux);
+  animation: qz-toast-in 0.16s ease;
+}
+
+@keyframes qz-toast-in {
+  from {
+    opacity: 0;
+    transform: translateX(12px);
+  }
+}
+
+.qz-toast--success {
+  border-left-color: var(--success-500);
+}
+
+.qz-toast--error {
+  border-left-color: var(--danger-500);
+}
+
+.qz-toast--info {
+  border-left-color: var(--tech-500);
+}
+
+.qz-toast__body {
+  flex: 1;
+  min-width: 0;
+}
+
+.qz-toast__title {
+  font-weight: var(--fw-medium);
+}
+
+.qz-toast__desc {
+  color: var(--text-2);
+  font-size: var(--fs-tag);
+  margin-top: 2px;
+  word-break: break-word;
+}
+
+.qz-toast__trace {
+  margin-top: 4px;
+  font-size: 11px;
+  color: var(--text-3);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+/* ==================== 抽屉（窄屏侧栏 / 详情） ==================== */
+.qz-drawer-mask {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-drawer);
+  background: var(--bg-mask);
+  animation: qz-fade-in 0.12s ease;
+}
+
+.qz-drawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: var(--z-drawer);
+  width: 100%;
+  max-width: 480px;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-card);
+  box-shadow: var(--shadow-float);
+  animation: qz-slide-in 0.18s ease;
+}
+
+@keyframes qz-slide-in {
+  from {
+    transform: translateX(16px);
+    opacity: 0.6;
+  }
+}

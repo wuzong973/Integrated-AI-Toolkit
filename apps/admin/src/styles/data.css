@@ -1,0 +1,352 @@
+/**
+ * 数据展示：表格 / 分页 / 工具条 / 统计卡 / 页签 / 时间线。
+ */
+
+/* ==================== 表格 ==================== */
+.qz-table-wrap {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.qz-table {
+  font-size: var(--fs-aux);
+}
+
+.qz-table th {
+  padding: var(--sp-3) var(--sp-4);
+  background: var(--bg-sunken);
+  border-bottom: 1px solid var(--border);
+  color: var(--text-2);
+  font-weight: var(--fw-medium);
+  text-align: left;
+  white-space: nowrap;
+}
+
+.qz-table td {
+  padding: var(--sp-3) var(--sp-4);
+  border-bottom: 1px solid var(--border-soft);
+  vertical-align: middle;
+}
+
+.qz-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.qz-table tbody tr:hover td {
+  background: var(--bg-hover);
+}
+
+/* 点击整行进详情：给出可点的手势提示，但只有首列是真正的链接 */
+.qz-table tbody tr.is-clickable {
+  cursor: pointer;
+}
+
+.qz-table .qz-cell--num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.qz-table .qz-cell--actions {
+  text-align: right;
+  white-space: nowrap;
+}
+
+.qz-table .qz-cell--main {
+  font-weight: var(--fw-medium);
+  color: var(--text-1);
+}
+
+/* 移动端：首列允许换行，长 ID 不要撑破 */
+.qz-table .qz-cell--id {
+  max-width: 220px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 行内操作按钮组 */
+.qz-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-1);
+  justify-content: flex-end;
+}
+
+.qz-actions .qz-btn--ghost {
+  padding: 2px 6px;
+}
+
+/* ==================== 工具条 / 筛选 ==================== */
+.qz-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-3);
+  flex-wrap: wrap;
+  padding: var(--sp-4) var(--sp-5);
+  border-bottom: 1px solid var(--border-soft);
+}
+
+.qz-toolbar__filters {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  flex-wrap: wrap;
+}
+
+.qz-toolbar__filters .qz-input,
+.qz-toolbar__filters .qz-select {
+  width: auto;
+  min-width: 132px;
+}
+
+.qz-search {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.qz-search .qz-input {
+  padding-left: 30px;
+  min-width: 220px;
+}
+
+.qz-search__icon {
+  position: absolute;
+  left: 10px;
+  color: var(--text-3);
+  font-size: var(--fs-aux);
+  pointer-events: none;
+}
+
+/* ==================== 分页 ==================== */
+.qz-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-3);
+  flex-wrap: wrap;
+  padding: var(--sp-3) var(--sp-5);
+  border-top: 1px solid var(--border-soft);
+  font-size: var(--fs-aux);
+  color: var(--text-2);
+}
+
+.qz-pagination__pages {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-1);
+}
+
+.qz-page-btn {
+  min-width: 30px;
+  height: 30px;
+  padding: 0 var(--sp-2);
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  background: var(--bg-card);
+  color: var(--text-1);
+  font-size: var(--fs-aux);
+  cursor: pointer;
+}
+
+.qz-page-btn:hover:not(:disabled) {
+  border-color: var(--brand-500);
+  color: var(--brand-600);
+}
+
+.qz-page-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.qz-page-btn.is-active {
+  background: var(--brand-500);
+  border-color: var(--brand-500);
+  color: var(--text-inverse);
+}
+
+.qz-page-ellipsis {
+  padding: 0 4px;
+  color: var(--text-3);
+}
+
+/* ==================== 统计卡（看板） ==================== */
+.qz-stat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: var(--sp-4);
+}
+
+.qz-stat {
+  padding: var(--sp-4) var(--sp-5);
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-card);
+}
+
+.qz-stat__label {
+  font-size: var(--fs-tag);
+  color: var(--text-3);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.qz-stat__value {
+  margin-top: 6px;
+  font-size: var(--fs-display);
+  font-weight: var(--fw-semi);
+  line-height: 1.15;
+  font-variant-numeric: tabular-nums;
+}
+
+.qz-stat__foot {
+  margin-top: 2px;
+  font-size: var(--fs-tag);
+  color: var(--text-3);
+}
+
+/* 看板分组标题 */
+.qz-section-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-3);
+  margin-bottom: var(--sp-3);
+  font-size: var(--fs-h3);
+  font-weight: var(--fw-semi);
+}
+
+/* ==================== 页签 ==================== */
+.qz-tabs {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-1);
+  border-bottom: 1px solid var(--border);
+  overflow-x: auto;
+}
+
+.qz-tab {
+  padding: var(--sp-2) var(--sp-4);
+  border: none;
+  border-bottom: 2px solid transparent;
+  background: transparent;
+  color: var(--text-2);
+  font-size: var(--fs-body);
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.qz-tab:hover {
+  color: var(--text-1);
+}
+
+.qz-tab.is-active {
+  border-bottom-color: var(--brand-500);
+  color: var(--brand-600);
+  font-weight: var(--fw-medium);
+}
+
+.qz-tab__count {
+  margin-left: 6px;
+  color: var(--text-3);
+  font-size: var(--fs-tag);
+}
+
+/* ==================== 时间线（订单/Job 详情） ==================== */
+.qz-timeline {
+  position: relative;
+  padding-left: var(--sp-5);
+}
+
+.qz-timeline::before {
+  content: '';
+  position: absolute;
+  left: 5px;
+  top: 6px;
+  bottom: 6px;
+  width: 1px;
+  background: var(--border);
+}
+
+.qz-timeline__item {
+  position: relative;
+  padding-bottom: var(--sp-4);
+}
+
+.qz-timeline__item:last-child {
+  padding-bottom: 0;
+}
+
+.qz-timeline__dot {
+  position: absolute;
+  left: calc(var(--sp-5) * -1);
+  top: 5px;
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background: var(--bg-card);
+  border: 2px solid var(--border);
+}
+
+.qz-timeline__item.is-done .qz-timeline__dot {
+  border-color: var(--brand-500);
+  background: var(--brand-500);
+}
+
+.qz-timeline__item.is-danger .qz-timeline__dot {
+  border-color: var(--danger-500);
+  background: var(--danger-500);
+}
+
+.qz-timeline__title {
+  font-size: var(--fs-aux);
+  font-weight: var(--fw-medium);
+}
+
+.qz-timeline__time {
+  font-size: var(--fs-tag);
+  color: var(--text-3);
+}
+
+/* ==================== 权限矩阵 ==================== */
+.qz-matrix th:first-child,
+.qz-matrix td:first-child {
+  text-align: left;
+}
+
+.qz-matrix th:not(:first-child),
+.qz-matrix td:not(:first-child) {
+  text-align: center;
+  width: 108px;
+}
+
+.qz-matrix__yes {
+  color: var(--success-500);
+  font-weight: var(--fw-semi);
+}
+
+.qz-matrix__no {
+  color: var(--border);
+}
+
+/* ==================== 进度条（Job 进度） ==================== */
+.qz-progress {
+  height: 6px;
+  border-radius: var(--r-pill);
+  background: var(--border-soft);
+  overflow: hidden;
+}
+
+.qz-progress__bar {
+  height: 100%;
+  border-radius: var(--r-pill);
+  background: var(--brand-500);
+  transition: width 0.3s ease;
+}
+
+.qz-progress__bar.is-failed {
+  background: var(--danger-500);
+}

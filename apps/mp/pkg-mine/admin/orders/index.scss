@@ -1,0 +1,64 @@
+@import '../frame.scss';
+
+/* 管理后台 · 订单
+   装饰签名「dot-c + water」（§十一 登记）：水波读作"钱在托管与放款之间流动"。 */
+
+/* ⚠️ `.qz-water` 库里既没有 position 也没有 height（见 MP-VISUAL-SYSTEM §十一 的
+   三态表），进了 `.qz-fx` 会按普通流排到裁切区之上、且高度为 0 ——
+   两个都得在页内补齐。`.qz-fx` 外扩 40rpx，故整宽用 -40rpx。 */
+.od-water {
+  position: absolute;
+  left: -40rpx;
+  right: -40rpx;
+  bottom: 40rpx;
+  height: 200rpx;
+  opacity: .26;
+}
+.ad-dot {
+  opacity: .28;
+}
+
+/* 页面样式在小程序里是按页隔离的：`ver-hint` 定义在审核页那份 SCSS 里，
+   这里引用不到，所以要自己有一份同义的提示行 */
+.od-hint {
+  display: block;
+  margin-top: $sp-1;
+  font-size: $fs-tag;
+  color: $danger;
+}
+
+/* 右侧竖排：金额在上、状态胶囊在下，两者一起靠右才不会互相挤 */
+.od-side {
+  flex-shrink: 0;
+  margin-left: $sp-3;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+/* 金额靠右：一屏十几行时，左对齐的说明文字会把数字挤成两行 */
+.od-amount {
+  flex-shrink: 0;
+  margin-left: $sp-3;
+  font-size: $fs-h3;
+  font-weight: $fw-bold;
+  color: var(--mt);
+}
+.od-toggle {
+  display: flex;
+  align-items: center;
+  margin-top: $sp-3;
+  padding: $sp-2 $sp-4;
+  font-size: $fs-tag;
+  color: $text-2;
+  background: var(--ms);
+  border-radius: $radius-pill;
+}
+.od-toggle-on {
+  color: $danger;
+  background: $danger-veil;
+}
+.od-box {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+}

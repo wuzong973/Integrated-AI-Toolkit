@@ -1,0 +1,115 @@
+@import '../../styles/tokens.scss';
+
+/* 钱包 · 翡翠主题（模块色板见 styles/themes.scss 的 .th-wallet）
+   造型语言：中圆角 + 玻璃胶囊 + 光斑；余额卡是整页"最有分量"的一块 */
+
+.wallet { padding-bottom: 60rpx; }
+
+/* ---------- 装饰签名：rise + blob-c（金币泡泡上升） ----------
+   动画直接复用 deco.scss 现成的 qzRise 粒子上升，页面只负责排粒子：
+   位置 / 大小 / 错峰延迟，取色只用主题变量（--m1..--m4），不落任何裸色值 */
+.rise-dot {
+  position: absolute; width: 16rpx; height: 16rpx; border-radius: 50%;
+  left: 16%; top: 420rpx;
+  background: radial-gradient(circle at 34% 30%, var(--m3), var(--m1));
+}
+.rise-dot-b {
+  left: 52%; top: 500rpx; width: 10rpx; height: 10rpx;
+  animation-delay: -1.2s;
+}
+.rise-dot-c {
+  left: 78%; top: 380rpx; width: 20rpx; height: 20rpx;
+  background: radial-gradient(circle at 34% 30%, var(--m4), var(--m2));
+  animation-delay: -2.3s;
+}
+
+/* ---------- 余额卡（渐变 + 光斑 + 扫光） ---------- */
+.balance-card {
+  position: relative; overflow: hidden;
+  border-radius: var(--r-card);
+  padding: $sp-8 $card-padding $sp-6;
+  background: linear-gradient(140deg, var(--m1) 0%, var(--m4) 100%);
+  margin-bottom: $sp-4;
+}
+.balance-deco { position: absolute; left: 0; top: 0; right: 0; bottom: 0; overflow: hidden; }
+.b-blob { position: absolute; border-radius: $radius-blob; background: $glass-faint; }
+.b-blob-a {
+  width: 280rpx; height: 280rpx; right: -80rpx; top: -110rpx;
+  animation: qzBlob $loop-blob $ease-inout infinite;
+}
+.b-blob-b {
+  width: 170rpx; height: 170rpx; left: -60rpx; bottom: -70rpx;
+  animation: qzBlob $loop-drift $ease-inout infinite;
+}
+.b-dot {
+  position: absolute; width: 14rpx; height: 14rpx; border-radius: 50%;
+  right: 96rpx; top: 54rpx; background: $glass-text;
+  animation: qzBreath $loop-float $ease-inout infinite;
+}
+
+.balance-label { position: relative; display: block; font-size: $fs-aux; color: $glass-text; }
+.balance-value {
+  position: relative; display: block;
+  font-size: 64rpx; font-weight: $fw-black; color: $text-inverse;
+  letter-spacing: 1rpx; margin: $sp-2 0 $sp-6;
+}
+.balance-row { position: relative; display: flex; margin-bottom: $sp-6; }
+.bal-item { position: relative; flex: 1; }
+.bal-item + .bal-item::before {
+  content: '';
+  position: absolute; left: 0; top: 18%; bottom: 18%; width: 1rpx;
+  background: $glass-mid;
+}
+.bal-num { display: block; font-size: $fs-h3; font-weight: $fw-bold; color: $text-inverse; }
+.bal-label { display: block; font-size: $fs-tag; color: $glass-text; }
+
+/* 提现按钮：渐变底上用白底"挖"出来，对比最强 */
+.withdraw-btn {
+  position: relative;
+  background: $bg-card; color: var(--mt);
+  box-shadow: $shadow-float;
+}
+.withdraw-tip {
+  position: relative; display: block; margin-top: $sp-3;
+  font-size: $fs-tag; color: $glass-text; text-align: center;
+}
+.balance-flow { position: absolute; left: 0; right: 0; bottom: 0; opacity: .5; }
+
+/* ---------- 积分入口（主题浅底卡） ---------- */
+.points-card { display: flex; align-items: center; padding: $sp-4 $card-padding; }
+.points-main { flex: 1; min-width: 0; margin-left: $sp-4; }
+.points-num { display: block; font-size: $fs-h1; font-weight: $fw-black; color: var(--mt); }
+.points-label { display: block; font-size: $fs-tag; color: $text-3; }
+.points-arrow { font-size: $fs-h2; color: var(--mt); }
+
+/* ---------- 资金流水（描边卡 + 通用列表项） ---------- */
+.ledger-card { padding: $sp-3 $card-padding; }
+.ledger-item { padding: $sp-3 0; }
+.ledger-loading { padding: $sp-4 0; }
+.ledger-right { text-align: right; }
+.ledger-amount { display: block; font-size: $fs-body; font-weight: $fw-bold; }
+.ledger-balance { display: block; font-size: $fs-tag; color: $text-3; }
+.income { color: $success; }
+.expense { color: $danger; }
+
+/* ---------- 提现记录（复用 .qz-chip 与 .qz-item，只做间距与终态配色） ---------- */
+/* 取色纪律：底色与"审核中"文字色由 .qz-chip 走主题（var(--ms) / var(--mt)），
+   这里只补两个终态语义色（token），不出现任何硬编码色值 */
+.withdraw-status { flex-shrink: 0; margin-left: $sp-3; }
+.st-ok { color: $success; }
+.st-bad { color: $danger; }
+
+/* 超出 50 条时的收尾说明：与列表用同一条分隔线断开，避免被读成最后一行记录 */
+.withdraw-more {
+  display: block;
+  margin-top: $sp-2; padding: $sp-3 0 $sp-1;
+  border-top: 1rpx solid $border-strong;
+  text-align: center;
+  font-size: $fs-tag; color: $text-3;
+}
+
+/* 错误条里的重试按钮要满足最小点击区 */
+.qz-err-btn {
+  display: flex; align-items: center;
+  min-height: $hit-min; padding: 0 $sp-6;
+}

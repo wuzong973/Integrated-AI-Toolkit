@@ -1,0 +1,274 @@
+<!-- 服务者工作台（文档 5.3.10）
+     视觉：紫罗兰主题 · 小圆角 18 · 渐变指标卡 + 流水光效，突出"专业、能干活" -->
+<view
+  class="qz-page th-workbench workbench"
+  bindtouchstart="onFxStart"
+  bindtouchmove="onFxMove"
+  bindtouchend="onFxEnd"
+  bindtouchcancel="onFxEnd"
+>
+  <!-- 装饰层（不拦截点击，内容可读性不受影响） -->
+  <view class="qz-deco">
+    <view class="qz-fx" style="{{fxStyle}}">
+      <!-- 签名：topline + water（数据仪表盘：顶边一条流动渐变线 + 内容背后一道缓慢流水） -->
+      <view class="wb-topline qz-topline"></view>
+      <view class="wb-water qz-water"></view>
+    </view>
+  </view>
+
+  <view class="qz-content">
+    <!-- 页头 -->
+    <view class="qz-head">
+      <view class="qz-head-row qz-an-in">
+        <view class="qz-ico qz-ico-l qz-ico-float">
+          <view class="qz-i qz-i-workbench"></view>
+        </view>
+        <view class="qz-head-main">
+          <text class="qz-head-title">工作台</text>
+          <text class="qz-head-sub">今天赚了多少、还有多少活，一眼看清</text>
+        </view>
+      </view>
+      <view class="head-actions qz-an-in qz-d1">
+        <view class="head-act qz-press" bindtap="onSwitchRole">
+          <view class="qz-i qz-i-mine head-act-ico"></view>
+          <text class="head-act-text">切换身份</text>
+        </view>
+        <view class="qz-chip">服务者视角</view>
+      </view>
+    </view>
+
+    <!-- 经营指标：渐变卡 + 扫光。三项数字全部由 loadStats 从订单接口算出，
+         拉不到时显示「—」并给错误条 —— 绝不显示 0 / 100% 冒充业绩。 -->
+    <view class="qz-container">
+      <view class="stat-card qz-an-in qz-d2">
+        <view class="qz-shine qz-shine-slow"></view>
+        <view class="stat">
+          <view class="qz-i qz-i-wallet stat-ico"></view>
+          <text class="stat-num">{{stats.todayIncome}}</text>
+          <text class="stat-label">今日收入</text>
+        </view>
+        <view class="stat">
+          <view class="qz-i qz-i-clock stat-ico"></view>
+          <text class="stat-num">{{stats.pendingCount}}</text>
+          <text class="stat-label">待处理</text>
+        </view>
+        <view class="stat">
+          <view class="qz-i qz-i-check stat-ico"></view>
+          <text class="stat-num">{{stats.completionRate}}</text>
+          <text class="stat-label">完单率</text>
+        </view>
+      </view>
+      <view wx:if="{{statsError}}" class="qz-err qz-an-in qz-d3">
+        <text class="qz-err-text">{{statsError}}</text>
+        <view class="qz-err-btn qz-press" bindtap="onRetryStats">重试</view>
+      </view>
+    </view>
+
+    <!-- 接单开关 -->
+    <view class="qz-container">
+      <view class="qz-card qz-card-line qz-an-in qz-d3">
+        <view class="toggle-row">
+          <view class="qz-ico qz-ico-s"><view class="qz-i qz-i-bell"></view></view>
+          <view class="toggle-body">
+            <text class="toggle-title">接单状态</text>
+            <!-- 后端没有推送设置接口，这里只是本机开关，文案必须写清"本地" -->
+            <text class="toggle-desc">{{acceptOrders ? '本机已记为接单中；平台推送设置开发中，暂不影响派单' : '已在本机暂停；平台推送设置开发中，线上仍可能收到推送'}}</text>
+          </view>
+          <view class="switch-hit qz-press" bindtap="onToggleAccept">
+            <view class="switch {{acceptOrders ? 'switch-on' : ''}}">
+              <view class="switch-knob"></view>
+            </view>
+          </view>
+        </view>
+        <view class="toggle-water qz-water"></view>
+      </view>
+    </view>
+
+    <!-- 分段 Tab -->
+    <view class="qz-container">
+      <view class="tabs qz-an-in qz-d4">
+        <view class="tab {{tab === 'hall' ? 'tab-active' : ''}} qz-press" data-tab="hall" bindtap="onTabTap">接单大厅</view>
+        <view class="tab {{tab === 'mine' ? 'tab-active' : ''}} qz-press" data-tab="mine" bindtap="onTabTap">我的任务</view>
+        <view class="tab {{tab === 'income' ? 'tab-active' : ''}} qz-press" data-tab="income" bindtap="onTabTap">收入</view>
+      </view>
+    </view>
+
+    <!-- 接单大厅 -->
+    <block wx:if="{{tab === 'hall'}}">
+      <view class="qz-sec">
+        <view class="qz-sec-bar"></view>
+        <text class="qz-sec-title">推荐任务</text>
+        <text class="qz-sec-sub">按技能匹配度排序</text>
+      </view>
+      <view class="qz-container">
+        <!-- 加载中：先给骨架。以前 loading 时列表为空会直接落到下面的空态，
+             等于把"还在拉数据"演成"暂无推荐任务" -->
+        <view
+          wx:if="{{loading && !recommended.length && !hallError}}"
+          class="qz-card qz-card-line sk qz-an-in"
+        >
+          <view class="qz-skeleton qz-skeleton-line"></view>
+          <view class="qz-skeleton qz-skeleton-line qz-skeleton-line-short"></view>
+          <view class="qz-skeleton qz-skeleton-line"></view>
+        </view>
+
+        <block wx:elif="{{recommended.length}}">
+          <view
+            wx:for="{{recommended}}"
+            wx:key="id"
+            class="qz-card qz-card-glow qz-card-bar task qz-an-in qz-d{{index + 1}} qz-lift"
+          >
+            <view class="task-row">
+              <text class="task-title qz-ellipsis">{{item.title}}</text>
+              <text class="task-budget">¥{{item.budget / 100}}</text>
+            </view>
+            <view class="task-tags">
+              <view wx:for="{{item.skillTags}}" wx:for-item="tag" wx:key="*this" class="qz-chip">{{tag}}</view>
+              <view class="qz-chip qz-chip-ghost">{{item.location}}</view>
+            </view>
+            <!--
+              匹配度：只有服务端**真的算出来**才展示（item.hasMatch）。
+              服务端没给（未登录 / 算不出来）时整行隐藏 —— 不要在这里兜一个数字，
+              那正是以前的做法（按序号递减的假匹配度）。
+            -->
+            <view class="match-row" wx:if="{{item.hasMatch}}">
+              <view class="match-bar">
+                <view class="match-fill" style="width: {{item.matchScore}}%"></view>
+              </view>
+              <text class="match-text">匹配度 {{item.matchScore}}%</text>
+            </view>
+            <view class="match-why" wx:if="{{item.matchWhy}}">
+              <text class="match-why-text">{{item.matchWhy}}</text>
+            </view>
+            <view class="task-actions">
+              <view class="qz-btn-sub act-btn qz-press" data-id="{{item.id}}" bindtap="onTaskTap">查看详情</view>
+              <view class="qz-btn-main act-btn qz-press" data-id="{{item.id}}" bindtap="onAcceptTap">立即报名</view>
+            </view>
+          </view>
+        </block>
+
+        <!-- 加载失败：给错误条 + 重试，不把"没加载出来"演成"暂无推荐" -->
+        <view wx:elif="{{hallError}}" class="qz-err qz-an-in qz-d5">
+          <text class="qz-err-text">{{hallError}}</text>
+          <view class="qz-err-btn qz-press" bindtap="onRetryHall">重试</view>
+        </view>
+
+        <view wx:else class="qz-empty qz-an-in qz-d5">
+          <view class="qz-empty-ico qz-ico qz-ico-xl qz-ico-float">
+            <view class="qz-i qz-i-empty"></view>
+          </view>
+          <text class="qz-empty-title">暂无推荐任务</text>
+          <text class="qz-empty-text">补齐技能画像后，系统才会把合适的需求推给你。</text>
+          <view class="qz-empty-flow qz-flow"></view>
+          <view class="qz-btn-main qz-press" bindtap="onSkill">完善技能画像</view>
+        </view>
+      </view>
+    </block>
+
+    <!-- 我的任务 -->
+    <block wx:elif="{{tab === 'mine'}}">
+      <view class="qz-container">
+        <!-- 加载中：同样是先骨架、后空态 -->
+        <view
+          wx:if="{{loading && !myTasks.length && !mineError}}"
+          class="qz-card qz-card-line sk qz-an-in"
+        >
+          <view class="qz-skeleton qz-skeleton-line"></view>
+          <view class="qz-skeleton qz-skeleton-line qz-skeleton-line-short"></view>
+        </view>
+
+        <block wx:elif="{{myTasks.length}}">
+          <view
+            wx:for="{{myTasks}}"
+            wx:key="id"
+            class="qz-card qz-card-glow qz-card-bar task qz-an-in qz-d{{index + 1}} qz-lift"
+            data-id="{{item.id}}"
+            bindtap="onTaskTap"
+          >
+            <view class="task-row">
+              <text class="task-title qz-ellipsis">{{item.title}}</text>
+              <view class="qz-chip qz-chip-on">{{item.statusText}}</view>
+            </view>
+            <view class="task-deadline">
+              <view class="qz-i qz-i-clock deadline-ico"></view>
+              <text>截止：{{item.deadline}}</text>
+            </view>
+          </view>
+        </block>
+
+        <view wx:elif="{{mineError}}" class="qz-err qz-an-in">
+          <text class="qz-err-text">{{mineError}}</text>
+          <view class="qz-err-btn qz-press" bindtap="onRetryMine">重试</view>
+        </view>
+
+        <view wx:else class="qz-empty qz-an-in">
+          <view class="qz-empty-ico qz-ico qz-ico-xl qz-ico-float">
+            <view class="qz-i qz-i-orders"></view>
+          </view>
+          <text class="qz-empty-title">还没有进行中的订单</text>
+          <text class="qz-empty-text">去接单大厅看看，报名后发布者选定就会出现在这里。</text>
+          <view class="qz-empty-flow qz-flow"></view>
+        </view>
+      </view>
+    </block>
+
+    <!-- 收入 -->
+    <block wx:else>
+      <view class="qz-container">
+        <view class="qz-card qz-card-tint qz-an-in">
+          <view class="card-head">
+            <view class="qz-ico qz-ico-s"><view class="qz-i qz-i-wallet"></view></view>
+            <text class="qz-sec-title card-head-title">收入概览</text>
+          </view>
+          <!-- 两项都取自 loadStats 用真实订单算出的合计（以前这里写死 ¥0.00） -->
+          <view class="income-row">
+            <text class="income-label">本月收入</text>
+            <text class="income-value">{{stats.monthIncome}}</text>
+          </view>
+          <view class="income-row">
+            <text class="income-label">累计收入</text>
+            <text class="income-value">{{stats.totalIncome}}</text>
+          </view>
+          <text class="income-tip">按已完成订单的服务者实收统计（订单金额扣 5% 平台服务费，封顶 20 元）· 提现可在「我的-钱包」申请，提交后进入人工审核</text>
+          <!-- 后端只返回最近 50 笔：被截断时必须说明口径，否则"累计收入"是个偏小的数 -->
+          <text wx:if="{{statsNote}}" class="income-tip">{{statsNote}}</text>
+        </view>
+
+        <!-- 收入明细：只列真实已完成的订单 -->
+        <block wx:if="{{incomeRows.length}}">
+          <view
+            wx:for="{{incomeRows}}"
+            wx:key="id"
+            class="qz-card qz-card-line qz-an-in qz-d{{index + 1}}"
+          >
+            <view class="task-row">
+              <text class="task-title qz-ellipsis">{{item.title}}</text>
+              <text class="task-budget">{{item.amountText}}</text>
+            </view>
+            <view class="task-deadline">
+              <view class="qz-i qz-i-check deadline-ico"></view>
+              <text>完成于 {{item.dateText}}</text>
+            </view>
+          </view>
+        </block>
+
+        <!-- 加载中：不把"还没拉完"演成"还没有收入明细" -->
+        <view wx:elif="{{loading}}" class="qz-card qz-card-line sk qz-an-in">
+          <view class="qz-skeleton qz-skeleton-line"></view>
+          <view class="qz-skeleton qz-skeleton-line qz-skeleton-line-short"></view>
+        </view>
+
+        <!-- 真的还没有已完成订单 -->
+        <view wx:else class="qz-empty qz-an-in qz-d2">
+          <view class="qz-empty-ico qz-ico qz-ico-l qz-ico-float">
+            <view class="qz-i qz-i-chart"></view>
+          </view>
+          <text class="qz-empty-title">还没有收入明细</text>
+          <text class="qz-empty-text">{{statsError ? '订单数据没加载出来，试试上方重试' : '完成第一单后，收入明细会展示在这里'}}</text>
+          <view class="qz-empty-flow qz-flow"></view>
+          <view class="qz-btn-main qz-press" bindtap="onGoHall">去任务大厅</view>
+        </view>
+      </view>
+    </block>
+  </view>
+</view>

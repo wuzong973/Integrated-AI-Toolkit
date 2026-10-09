@@ -1,0 +1,155 @@
+<!-- 聊天记录（AI 页「历史记录」的落点）
+     视觉：幻紫主题（与 AI 页同族）· 只读时间轴；两阶段共用一页：
+     stage=list 会话列表 / stage=detail 逐条回看 -->
+<view
+  class="qz-page th-os hist"
+  bindtouchstart="onFxStart"
+  bindtouchmove="onFxMove"
+  bindtouchend="onFxEnd"
+  bindtouchcancel="onFxEnd"
+>
+  <view class="qz-deco">
+    <view class="qz-fx" style="{{fxStyle}}">
+      <!-- 签名：curve + dot-a（档案曲线：两段错位大弧，像翻开的卷宗） -->
+      <view class="hist-curve-a qz-curve"></view>
+      <view class="hist-curve-b qz-curve"></view>
+      <view class="qz-dot qz-dot-a"></view>
+    </view>
+  </view>
+
+  <view class="qz-content">
+    <!-- 页头 -->
+    <view class="qz-head">
+      <view class="qz-head-row qz-an-in">
+        <view class="qz-ico qz-ico-l qz-ico-float">
+          <view class="qz-i qz-i-clock"></view>
+        </view>
+        <view class="qz-head-main">
+          <text class="qz-head-title">{{stage === 'detail' ? activeTitle : '聊天记录'}}</text>
+          <text class="qz-head-sub">{{stage === 'detail' ? activeTime : '回看和青智 OS 聊过的每一段'}}</text>
+        </view>
+      </view>
+      <view class="qz-head-chips qz-an-in qz-d1">
+        <!-- 页内的"关闭"：回到会话列表；退出整页用导航栏返回 -->
+        <view wx:if="{{stage === 'detail'}}" class="qz-chip qz-press" bindtap="onBackList">‹ 会话列表</view>
+        <view wx:else class="qz-chip qz-chip-on">共 {{sessions.length}} 个对话</view>
+        <view wx:if="{{stage === 'detail' && truncated}}" class="qz-chip hist-chip-warn">仅最近 {{log.length}} 条</view>
+        <view wx:else class="qz-chip">只读回看</view>
+      </view>
+      <view class="head-flow qz-flow"></view>
+    </view>
+
+    <view class="qz-container">
+      <!-- 错误条 -->
+      <view wx:if="{{error}}" class="qz-err qz-an-in">
+        <text class="qz-err-text">{{error}}</text>
+        <view class="qz-err-btn qz-press" bindtap="onRetry">重试</view>
+      </view>
+
+      <!-- 加载骨架（沿用列表/记录的行形状，避免加载完"跳一下"） -->
+      <view wx:if="{{loading}}" class="qz-card qz-card-line hist-list">
+        <view wx:for="{{[1,2,3,4]}}" wx:key="*this" class="sk-row">
+          <view class="sk-main">
+            <view class="qz-skeleton qz-skeleton-line"></view>
+            <view class="qz-skeleton qz-skeleton-line qz-skeleton-line-short"></view>
+          </view>
+        </view>
+      </view>
+
+      <!-- ① 会话列表 -->
+      <block wx:elif="{{stage === 'list'}}">
+        <view wx:if="{{sessions.length}}" class="qz-card qz-card-line hist-list qz-an-in qz-d2">
+          <view
+            wx:for="{{sessions}}"
+            wx:key="id"
+            class="qz-item qz-item-line qz-lift"
+            data-id="{{item.id}}"
+            bindtap="onSessionTap"
+          >
+            <view class="qz-ico qz-ico-s">
+              <view class="qz-i qz-i-agent"></view>
+            </view>
+            <view class="qz-item-main">
+              <text class="qz-item-title qz-ellipsis">{{item.title}}</text>
+              <text class="qz-item-desc">最近活跃 {{item.timeText}}</text>
+            </view>
+            <text class="qz-item-arrow">›</text>
+          </view>
+        </view>
+
+        <!-- 一段对话都没有：只引导、不给假数据 -->
+        <view wx:elif="{{!error}}" class="qz-empty qz-an-in qz-d2">
+          <view class="qz-empty-ico qz-ico qz-ico-xl qz-ico-float">
+            <view class="qz-i qz-i-empty"></view>
+          </view>
+          <text class="qz-empty-title">还没有聊天记录</text>
+          <text class="qz-empty-text">去 AI 页说一句话，这段对话就会留在这里</text>
+          <view class="qz-empty-flow qz-flow"></view>
+          <view class="qz-btn-main qz-press" bindtap="onGoAi">去和青智 OS 聊聊</view>
+        </view>
+      </block>
+
+      <!-- ② 某一段对话的只读记录（时间正序，按天分段） -->
+      <block wx:else>
+        <view wx:if="{{truncated}}" class="hist-tip qz-an-in">
+          <view class="qz-i qz-i-bell hist-tip-ico"></view>
+          <text class="hist-tip-text">{{truncateTip}}</text>
+        </view>
+
+        <view wx:if="{{log.length}}" class="qz-card qz-card-line hist-log qz-an-in qz-d2">
+          <block wx:for="{{log}}" wx:key="id">
+            <view wx:if="{{item.showDay}}" class="hist-day">{{item.dayText}}</view>
+
+            <view class="hist-row hist-{{item.role}}">
+              <view class="hist-meta">
+                <text class="hist-role">{{item.roleLabel}}</text>
+                <text class="hist-time">{{item.timeText}}</text>
+              </view>
+
+              <view class="hist-bubble">
+                <text class="hist-text">{{item.content || '（暂无正文）'}}</text>
+
+                <!-- 结果卡：与 AI 页同一套形态区分（result / guide / files），可点回产物 -->
+                <view wx:if="{{item.cards}}" class="hist-cards">
+                  <view
+                    wx:for="{{item.cards}}"
+                    wx:for-item="card"
+                    wx:key="toolName"
+                    class="hist-card hist-card-{{card.kind}} {{card.actionable ? 'qz-press' : ''}}"
+                    data-idx="{{index}}"
+                    data-rowid="{{item.id}}"
+                    bindtap="onCardTap"
+                  >
+                    <view class="qz-i {{card.icon}} hist-card-ico"></view>
+                    <view class="hist-card-main">
+                      <text class="hist-card-title qz-ellipsis">{{card.title}}</text>
+                      <text class="hist-card-sub qz-ellipsis">{{card.statusText}}{{card.paramText ? ' · ' + card.paramText : ''}}</text>
+                    </view>
+                    <!-- 箭头只在真的能跳时才画：给了箭头却点不动，比不给更让人困惑 -->
+                    <text wx:if="{{card.actionable}}" class="hist-card-arrow">›</text>
+                  </view>
+                </view>
+              </view>
+            </view>
+          </block>
+        </view>
+
+        <!-- 这段对话真的没有内容（后端存了空会话，或内容被清空）：如实说 -->
+        <view wx:elif="{{!error}}" class="qz-empty qz-an-in qz-d2">
+          <view class="qz-empty-ico qz-ico qz-ico-xl qz-ico-float">
+            <view class="qz-i qz-i-empty"></view>
+          </view>
+          <text class="qz-empty-title">这段对话没有内容</text>
+          <text class="qz-empty-text">它只建了个会话，还没有聊过</text>
+          <view class="qz-empty-flow qz-flow"></view>
+          <view class="qz-btn-main qz-press" bindtap="onBackList">回去看别的对话</view>
+        </view>
+
+        <!-- 记录拉到底时不用再往回滚（长记录在手机上滚回顶部很烦） -->
+        <view wx:if="{{log.length}}" class="hist-foot">
+          <view class="qz-btn-sub qz-press" bindtap="onBackList">‹ 返回会话列表</view>
+        </view>
+      </block>
+    </view>
+  </view>
+</view>

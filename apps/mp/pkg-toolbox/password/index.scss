@@ -1,0 +1,106 @@
+@import '../../styles/tokens.scss';
+
+/* 密码生成 · 星蓝主题（th-toolbox）
+   造型：规则卡（滑块 + 字符集开关）+ 结果卡（大字密码 + 双按钮）；无裸色值 */
+.pwd-page {
+  padding-bottom: $sp-8;
+}
+
+.card-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: $sp-4;
+  font-size: $fs-h3;
+  font-weight: $fw-semi;
+  color: var(--mt);
+
+  &-hint {
+    font-size: $fs-tag;
+    font-weight: $fw-medium;
+    color: $text-3;
+  }
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $sp-3;
+}
+
+/* ---------- 长度滑块 ---------- */
+.len-row {
+  display: flex;
+  align-items: center;
+  gap: $sp-3;
+  margin-bottom: $sp-4;
+}
+
+.len-label {
+  flex-shrink: 0;
+  font-size: $fs-body;
+  color: var(--mt);
+}
+
+.len-slider {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+}
+
+.len-value {
+  flex-shrink: 0;
+  min-width: 96rpx;
+  text-align: right;
+  font-size: $fs-body;
+  font-weight: $fw-semi;
+  color: var(--m1);
+}
+
+/* ---------- 结果 ---------- */
+.pwd-box {
+  padding: $sp-4;
+  border-radius: var(--r-card);
+  background: var(--ms);
+
+  &.pwd-empty {
+    text-align: center;
+  }
+}
+
+.pwd-text {
+  display: block;
+  font-size: 36rpx;
+  font-weight: $fw-bold;
+  line-height: 1.6;
+  color: var(--m1);
+  /* 密码常含符号与长串：按字符断行，别横向溢出 */
+  word-break: break-all;
+}
+
+.pwd-hint {
+  font-size: $fs-body;
+  color: $text-3;
+}
+
+.btn-row {
+  display: flex;
+  gap: $sp-3;
+  margin-top: $sp-4;
+}
+
+.btn-regen {
+  flex: 2;
+}
+
+.btn-copy {
+  flex: 1;
+}
+
+.hint {
+  display: block;
+  margin-top: $sp-3;
+  font-size: $fs-tag;
+  line-height: 1.6;
+  color: $text-3;
+}

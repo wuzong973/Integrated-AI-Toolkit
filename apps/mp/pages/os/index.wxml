@@ -1,0 +1,251 @@
+<!-- 青智 OS 会话页（文档 5.3.2）
+     视觉：幻紫主题 · 超大圆角 · 流线贯穿；计划卡是核心 UI，节点状态一眼可辨 -->
+<view
+  class="qz-page th-os chat"
+  bindtouchstart="onFxStart"
+  bindtouchmove="onFxMove"
+  bindtouchend="onFxEnd"
+  bindtouchcancel="onFxEnd"
+>
+  <!-- 装饰签名（视觉规范第十一节 os 行）：双弧曲线 + 反向流线 + 一枚光斑。
+       流线总数含页头 `.nav-flow` 共 2 条，正好卡在上限内；不透明度由页面样式压到 .4 以下 -->
+  <view class="qz-deco">
+    <view class="qz-fx" style="{{fxStyle}}">
+      <view class="qz-blob qz-blob-b"></view>
+      <view class="os-curve qz-curve"></view>
+      <view class="os-flow qz-flow qz-flow-rev"></view>
+    </view>
+  </view>
+
+  <view class="qz-content chat-inner">
+    <!-- 顶部 -->
+    <view class="nav">
+      <view class="nav-left">
+        <view class="qz-i qz-i-agent nav-ico"></view>
+        <text class="nav-title">青智 OS</text>
+        <text wx:if="{{!backendReady}}" class="nav-demo">演示模式</text>
+      </view>
+      <!-- 右上角：历史记录（只读回看）+ 新会话。
+           历史入口是纯图标，靠 aria-label 补语义（图标按钮没有文字可读） -->
+      <view class="nav-right">
+        <view
+          class="nav-hist qz-press"
+          aria-label="历史记录"
+          bindtap="onOpenHistory"
+        >
+          <view class="qz-i qz-i-clock nav-hist-ico"></view>
+        </view>
+        <view class="nav-new qz-press" bindtap="onNewSession">＋ 新会话</view>
+      </view>
+      <view class="nav-flow qz-flow"></view>
+    </view>
+
+    <!-- 消息区 -->
+    <scroll-view
+      class="msgs"
+      scroll-y
+      scroll-into-view="{{scrollIntoView}}"
+      scroll-with-animation
+    >
+      <view class="msgs-inner">
+        <!-- 空会话：引导卡（卡阵容器不是"空态块"，不套 .qz-empty，保持横向双列） -->
+        <view wx:if="{{messages.length <= 1}}" class="guide">
+          <view class="guide-title qz-an-in">
+            <view class="qz-i qz-i-sparkle guide-title-ico"></view>
+            <text class="guide-title-text">试试这样问</text>
+          </view>
+          <view class="guide-grid">
+            <view
+              wx:for="{{guideCards}}"
+              wx:key="key"
+              class="guide-card tone-{{index % 4}} qz-card qz-card-line qz-an-in qz-d{{index + 1}} qz-lift"
+              data-text="{{item.text}}"
+              bindtap="onGuideTap"
+            >
+              <view class="qz-ico qz-ico-s">
+                <view class="qz-i {{item.icon}}"></view>
+              </view>
+              <text class="guide-label">{{item.label}}</text>
+              <text class="guide-text qz-ellipsis-2">{{item.text}}</text>
+            </view>
+          </view>
+        </view>
+
+        <!-- 消息列表 -->
+        <block wx:for="{{messages}}" wx:key="id">
+          <view id="msg_{{item.id}}" class="msg msg-{{item.role}} qz-an-in">
+
+            <!-- AI 头像 -->
+            <view wx:if="{{item.role === 'assistant'}}" class="avatar">
+              <view class="qz-i qz-i-agent avatar-ico"></view>
+            </view>
+
+            <view class="bubble-wrap">
+              <!-- 角色条 -->
+              <view wx:if="{{item.agentName}}" class="agent-line">
+                <text class="agent-name">{{item.agentName}}</text>
+                <text class="agent-tag">AI</text>
+              </view>
+
+              <!-- 文本气泡 -->
+              <view class="bubble">
+                <text class="bubble-text">{{item.content || '（暂无正文）'}}</text>
+              </view>
+
+              <!-- AI 能力结果卡（后端 OsToolCard）
+                   kind=result → 本轮真的产出了，点进结果页看产物/进度
+                   kind=guide  → 本轮没执行（缺文件），点进执行页去上传
+                   kind=files  → 本轮没执行，但名下已有文件，点进「我的文件」
+                   ⚠️ 三者样式必须能区分：把 guide / files 渲染成"已完成"就是假成功。
+                   ⚠️ 图标 / 徽标 / 按钮文字都在 toCardView 里算好了 —— WXML 里不能调函数。 -->
+              <view wx:if="{{item.cards}}" class="cards">
+                <view
+                  wx:for="{{item.cards}}"
+                  wx:for-item="card"
+                  wx:key="toolName"
+                  class="card card-{{card.kind}} {{card.actionable ? 'qz-lift' : ''}}"
+                  data-idx="{{index}}"
+                  data-msgid="{{item.id}}"
+                  bindtap="onCardTap"
+                >
+                  <view class="card-head">
+                    <view class="qz-ico qz-ico-s card-ico">
+                      <view class="qz-i {{card.icon}}"></view>
+                    </view>
+                    <view class="card-head-text">
+                      <text class="card-title">{{card.title}}</text>
+                      <text class="card-status status-{{card.kind}}">{{card.statusText}}</text>
+                    </view>
+                  </view>
+
+                  <text class="card-summary qz-ellipsis-2">{{card.summary}}</text>
+                  <text wx:if="{{card.paramText}}" class="card-params qz-ellipsis-2">{{card.paramText}}</text>
+                  <text wx:if="{{card.note}}" class="card-note">{{card.note}}</text>
+
+                  <view wx:if="{{card.actionable}}" class="card-go">
+                    <text>{{card.actionText}}</text>
+                    <text class="card-go-arrow">›</text>
+                  </view>
+                </view>
+              </view>
+
+              <!-- 动作按钮组（工具路由） -->
+              <view wx:if="{{item.buttons}}" class="btns">
+                <view
+                  wx:for="{{item.buttons}}"
+                  wx:for-item="btn"
+                  wx:key="toolName"
+                  class="btn-action qz-press"
+                  data-tool="{{btn.toolName}}"
+                  bindtap="onActionTap"
+                >
+                  <view class="qz-i qz-i-toolbox btn-action-ico"></view>
+                  <text>{{btn.label}}</text>
+                </view>
+              </view>
+
+              <!-- 计划卡（核心 UI） -->
+              <view wx:if="{{item.plan}}" class="plan">
+                <view class="qz-topline"></view>
+                <view class="plan-head">
+                  <view class="qz-i qz-i-chart plan-ico"></view>
+                  <view class="plan-head-text">
+                    <text class="plan-title">任务计划 · {{item.plan.total}} 项</text>
+                    <text class="plan-sub">共 {{item.plan.total}} 项 · 需真人 {{item.plan.needHumanCount}} 项 · 待执行{{item.plan.degraded ? '（未含依赖）' : ''}}</text>
+                  </view>
+                  <!-- 看板入口只在后端真的把这张计划落成了 Run 时出现（runId 由
+                       POST /os/plan 带 sessionId 才返回；降级/没规划成功时为空，故不显示） -->
+                  <text
+                    wx:if="{{item.plan.runId}}"
+                    class="plan-more qz-press"
+                    data-runid="{{item.plan.runId}}"
+                    bindtap="onViewPlan"
+                  >看板 ›</text>
+                </view>
+
+                <view class="plan-bar">
+                  <view class="plan-bar-fill" style="width: {{item.plan.percent}}%"></view>
+                </view>
+
+                <view class="plan-nodes">
+                  <view wx:for="{{item.plan.nodes}}" wx:for-item="node" wx:key="id" class="plan-node">
+                    <view class="node-state state-{{node.state}}">
+                      <text wx:if="{{node.state === 'done'}}" class="node-state-text">✓</text>
+                      <text wx:elif="{{node.state === 'run'}}" class="node-state-text">●</text>
+                      <text wx:elif="{{node.state === 'human'}}" class="node-state-text">人</text>
+                      <text wx:else class="node-state-text">·</text>
+                    </view>
+                    <view class="node-body">
+                      <text class="node-name">{{node.name}}</text>
+                      <text class="node-detail">{{node.detail}}</text>
+                    </view>
+                    <view
+                      wx:if="{{node.type === 'human' && !item.plan.published}}"
+                      class="node-action qz-press"
+                      data-name="{{node.name}}"
+                      data-budget="{{node.budget}}"
+                      bindtap="onPublishNode"
+                    >发布</view>
+                    <text wx:elif="{{node.type === 'human' && item.plan.published}}" class="node-published">已发布</text>
+                  </view>
+                </view>
+
+                <!-- HITL 确认（文档 6.2.5：人力节点默认不自动发布） -->
+                <view wx:if="{{!item.plan.published}}" class="hitl">
+                  <text class="hitl-text">有 {{item.plan.needHumanCount}} 项需要真人完成，是否现在发布到青智驿站？</text>
+                  <view class="hitl-btns">
+                    <view class="hitl-primary qz-press" data-msgid="{{item.id}}" bindtap="onPublishAll">去驿站发布</view>
+                    <view class="hitl-ghost qz-press" data-msgid="{{item.id}}" bindtap="onLater">稍后</view>
+                  </view>
+                </view>
+                <view wx:else class="hitl-done">
+                  <view class="qz-i qz-i-check hitl-done-ico"></view>
+                  <text>已发布到青智驿站，报名进度可在驿站查看</text>
+                </view>
+              </view>
+            </view>
+
+            <!-- 用户头像 -->
+            <view wx:if="{{item.role === 'user'}}" class="avatar avatar-user">
+              <text class="avatar-text">我</text>
+            </view>
+          </view>
+        </block>
+
+        <!-- 输入中 -->
+        <view wx:if="{{sending}}" class="typing">
+          <view class="avatar"><view class="qz-i qz-i-agent avatar-ico"></view></view>
+          <view class="typing-bubble">
+            <view class="typing-dot"></view>
+            <view class="typing-dot typing-dot-2"></view>
+            <view class="typing-dot typing-dot-3"></view>
+          </view>
+        </view>
+
+        <view class="anchor" id="msg_end"></view>
+      </view>
+    </scroll-view>
+
+    <!-- 底部输入区 -->
+    <view class="input-bar">
+      <view class="quick-bar">
+        <view class="quick-item qz-press" data-kind="file" bindtap="onQuickPick"><view class="qz-i qz-i-doc quick-ico"></view><text>文件</text></view>
+        <view class="quick-item qz-press" data-kind="image" bindtap="onQuickPick"><view class="qz-i qz-i-image quick-ico"></view><text>图片</text></view>
+        <view class="quick-item qz-press" data-kind="camera" bindtap="onQuickPick"><view class="qz-i qz-i-photo quick-ico"></view><text>相机</text></view>
+        <view class="quick-item qz-press" bindtap="onQuickFiles"><view class="qz-i qz-i-files quick-ico"></view><text>我的文件</text></view>
+      </view>
+      <view class="input-row">
+        <input
+          class="input"
+          placeholder="输入你的需求…"
+          value="{{input}}"
+          bindinput="onInput"
+          confirm-type="send"
+          bindconfirm="onSend"
+          disabled="{{sending}}"
+        />
+        <view class="send-btn {{sending || !input ? 'send-btn-disabled' : ''}} qz-press" bindtap="onSend">发送</view>
+      </view>
+    </view>
+  </view>
+</view>

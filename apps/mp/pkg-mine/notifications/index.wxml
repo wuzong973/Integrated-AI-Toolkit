@@ -1,0 +1,106 @@
+<!-- 消息通知中心：数据源 GET /notifications（M3-19 已落地），本页可标已读并按锚点跳转
+     视觉：樱花粉主题 · 装饰签名「信使动线 flow-soft + dot-b」+ 描边列表卡
+     （.qz-card-line，未读条目再叠 .qz-card-bar 左侧彩色指示条）· 可点条目挂 .qz-lift -->
+<view
+  class="qz-page th-mine nt"
+  bindtouchstart="onFxStart"
+  bindtouchmove="onFxMove"
+  bindtouchend="onFxEnd"
+  bindtouchcancel="onFxEnd"
+>
+  <!-- 装饰层（pointer-events:none，不拦截点击）：一条行进虚线 + 一枚呼吸光点 -->
+  <view class="qz-deco">
+    <view class="qz-fx" style="{{fxStyle}}">
+      <view class="nt-messenger qz-flow qz-flow-soft"></view>
+      <view class="qz-dot qz-dot-b"></view>
+    </view>
+  </view>
+
+  <view class="qz-content">
+    <!-- 页头：标题 + 未读条数 + 一键已读 -->
+    <view class="qz-head">
+      <view class="qz-head-row qz-an-in">
+        <view class="qz-ico qz-ico-l qz-ico-float">
+          <view class="qz-i qz-i-bell"></view>
+        </view>
+        <view class="qz-head-main">
+          <text class="qz-head-title">消息通知</text>
+          <text class="qz-head-sub">报名、接单与订单动态都汇总在这里</text>
+        </view>
+      </view>
+
+      <!-- 工具条只在有列表时出现：空态与错误态没有"未读"可清，留个按钮就是死按钮 -->
+      <view wx:if="{{stage === 'list'}}" class="nt-tools qz-an-in qz-d1">
+        <text class="nt-count">{{unreadCount ? unreadCount + ' 条未读' : '暂无未读'}} · 共 {{total}} 条</text>
+        <view
+          wx:if="{{unreadCount}}"
+          class="qz-chip nt-readall {{busyAll ? 'nt-readall-off' : ''}} qz-press"
+          bindtap="onReadAll"
+        >{{busyAll ? '提交中…' : '全部标为已读'}}</view>
+      </view>
+
+      <!-- 流水光效带：页头内的亮点点缀（与装饰层的信使动线不是一回事，
+           技能画像用的是波浪，这里换水波） -->
+      <view class="nt-water qz-water"></view>
+    </view>
+
+    <view class="qz-container nt-body">
+      <!-- ① 首屏骨架：形状与真实列表行一致，避免加载完成时整屏跳动 -->
+      <block wx:if="{{stage === 'loading'}}">
+        <view wx:for="{{[1,2,3]}}" wx:key="*this" class="qz-card qz-card-line nt-row">
+          <view class="qz-skeleton nt-sk-ico"></view>
+          <view class="nt-sk-body">
+            <view class="qz-skeleton nt-sk-line"></view>
+            <view class="qz-skeleton nt-sk-line nt-sk-short"></view>
+          </view>
+        </view>
+      </block>
+
+      <!-- ② 加载失败：说清原因 + 一个真能重拉的按钮 -->
+      <view wx:elif="{{stage === 'error'}}" class="qz-err qz-an-in">
+        <text class="qz-err-text">{{error}}</text>
+        <view class="qz-err-btn qz-press" bindtap="onRetry">重试</view>
+      </view>
+
+      <!-- ③ 空态：真的拉过列表、一条都没有 -->
+      <view wx:elif="{{stage === 'empty'}}" class="qz-empty qz-an-in qz-d1">
+        <view class="qz-empty-ico qz-ico qz-ico-xl qz-ico-float">
+          <view class="qz-i qz-i-bell"></view>
+        </view>
+        <text class="qz-empty-title">还没有消息</text>
+        <text class="qz-empty-text">有人报名你的需求、订单交付或验收有进展时，提醒会立刻出现在这里。现在一条都没有，说明最近没人找你。</text>
+        <view class="qz-empty-flow qz-flow"></view>
+        <view class="qz-btn-main qz-press" bindtap="onGoOrders">去我的订单</view>
+      </view>
+
+      <!-- ④ 列表：未读加粗 + 左侧彩色指示条 + 右侧圆点，点一行标已读并按锚点跳转 -->
+      <block wx:else>
+        <view
+          wx:for="{{rows}}"
+          wx:key="id"
+          class="qz-card qz-card-line nt-row qz-lift {{item.read ? '' : 'qz-card-bar nt-unread'}} qz-an-spring qz-d{{index % 8 + 1}}"
+          data-i="{{index}}"
+          bindtap="onItemTap"
+        >
+          <view class="qz-ico qz-ico-s nt-ico"><view class="qz-i {{item.icon}}"></view></view>
+          <view class="nt-main">
+            <text class="nt-title">{{item.title}}</text>
+            <text class="nt-text qz-ellipsis-2">{{item.content}}</text>
+            <view class="nt-meta">
+              <text class="nt-tag">{{item.typeLabel}}</text>
+              <text class="nt-time">{{item.timeText}}</text>
+            </view>
+          </view>
+          <view wx:if="{{!item.read}}" class="nt-dot qz-loop-breath"></view>
+          <text class="qz-item-arrow">›</text>
+        </view>
+
+        <!-- 分页尾巴：还有下一页给一个真能点的入口，没有就如实收尾 -->
+        <view wx:if="{{hasMore}}" class="nt-more qz-press" bindtap="onLoadMore">
+          {{loadingMore ? '加载中…' : '加载更多'}}
+        </view>
+        <text wx:elif="{{!loadingMore}}" class="nt-end">没有更多消息了 · 共 {{total}} 条</text>
+      </block>
+    </view>
+  </view>
+</view>

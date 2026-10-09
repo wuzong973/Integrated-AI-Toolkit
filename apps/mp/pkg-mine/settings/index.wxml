@@ -1,0 +1,124 @@
+<!-- 设置：账号 / 通知 / 缓存 / 关于 / 注销 —— 能在本机做真的都做了，做不了的如实说明
+     视觉：石墨青主题 · 圆角 16（克制）· 分组描边列表卡（.qz-card-line）
+     装饰签名（第十一节）：.qz-deco 内**只留一枚 blob-b** —— 这页的性格是"做减法"，
+     别的光斑/流线/圆点一概不放；可点的设置组卡挂 .qz-lift，小按钮/开关保持 .qz-press。 -->
+<view
+  class="qz-page th-settings settings"
+  bindtouchstart="onFxStart"
+  bindtouchmove="onFxMove"
+  bindtouchend="onFxEnd"
+  bindtouchcancel="onFxEnd"
+>
+  <!-- 装饰层（不拦截点击，内容可读性不受影响）：刻意只有 blob-b -->
+  <view class="qz-deco">
+    <view class="qz-fx" style="{{fxStyle}}">
+      <view class="qz-blob qz-blob-b"></view>
+    </view>
+  </view>
+
+  <view class="qz-content">
+    <!-- 页头 -->
+    <view class="qz-head">
+      <view class="qz-head-row qz-an-in">
+        <view class="qz-ico qz-ico-l qz-ico-float">
+          <view class="qz-i qz-i-settings"></view>
+        </view>
+        <view class="qz-head-main">
+          <text class="qz-head-title">设置</text>
+          <text class="qz-head-sub">账号、通知、缓存与账号安全</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- ---------- 账号 ---------- -->
+    <view class="qz-sec qz-an-in">
+      <view class="qz-sec-bar"></view>
+      <text class="qz-sec-title">账号</text>
+      <text class="qz-sec-sub">本机登录态</text>
+    </view>
+    <view class="qz-container">
+      <view class="qz-card qz-card-line qz-lift qz-an-in qz-d1">
+        <view class="qz-item" bindtap="onAccountTap">
+          <view class="qz-ico qz-ico-s"><view class="qz-i qz-i-mine"></view></view>
+          <view class="qz-item-main">
+            <text class="qz-item-title">{{loggedIn ? nickname : '未登录'}}</text>
+            <text class="qz-item-desc">{{loggedIn ? phoneText : '登录后才能同步昵称与手机号'}}</text>
+          </view>
+          <text class="qz-item-extra">{{loggedIn ? '去「我的」' : '去登录'}}</text>
+          <text class="qz-item-arrow">›</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- ---------- 通知 ---------- -->
+    <view class="qz-sec qz-an-in qz-d2">
+      <view class="qz-sec-bar"></view>
+      <text class="qz-sec-title">通知</text>
+      <text class="qz-sec-sub">本机偏好</text>
+    </view>
+    <view class="qz-container">
+      <view class="qz-card qz-card-line qz-lift qz-an-in qz-d2">
+        <view class="qz-item" bindtap="onNotifyToggle">
+          <view class="qz-ico qz-ico-s"><view class="qz-i qz-i-bell"></view></view>
+          <view class="qz-item-main">
+            <text class="qz-item-title">本机提醒</text>
+            <text class="qz-item-desc">仅影响本机提醒，平台推送开发中</text>
+          </view>
+          <!-- 开关自绘：原生 switch 的着色只能写死色值，取不到模块主题变量 -->
+          <view class="sw {{notifyOn ? 'sw-on' : ''}}">
+            <view class="sw-dot"></view>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- ---------- 缓存 ---------- -->
+    <view class="qz-sec qz-an-in qz-d3">
+      <view class="qz-sec-bar"></view>
+      <text class="qz-sec-title">缓存</text>
+      <text class="qz-sec-sub">占用 {{cacheKb}} KB</text>
+    </view>
+    <view class="qz-container">
+      <!-- 缓存卡整卡不可点（只有"清理演示数据"这颗按钮有动作），所以不挂 .qz-lift，
+           免得一张抬升卡骗人去点空白处。 -->
+      <view class="qz-card qz-card-line cache-card qz-an-in qz-d3">
+        <view class="qz-item">
+          <view class="qz-ico qz-ico-s"><view class="qz-i qz-i-files"></view></view>
+          <view class="qz-item-main">
+            <text class="qz-item-title">本地存储</text>
+            <text class="qz-item-desc">{{cacheCount}} 项 · 占用 {{cacheKb}} KB</text>
+          </view>
+        </view>
+        <view class="qz-btn-sub clean-btn qz-press" bindtap="onClearDemo">清理演示数据</view>
+        <text class="clean-hint">只清跳转中转等演示数据，不会退出登录、不会删除服务器上的记录。</text>
+      </view>
+    </view>
+
+    <!-- ---------- 关于 ---------- -->
+    <view class="qz-sec qz-an-in qz-d4">
+      <view class="qz-sec-bar"></view>
+      <text class="qz-sec-title">关于</text>
+      <text class="qz-sec-sub">版本与环境</text>
+    </view>
+    <view class="qz-container">
+      <view class="qz-card qz-card-line qz-lift qz-an-in qz-d4">
+        <view class="qz-item qz-item-line" bindtap="onAbout">
+          <view class="qz-ico qz-ico-s"><view class="qz-i qz-i-sparkle"></view></view>
+          <view class="qz-item-main">
+            <text class="qz-item-title">版本 v{{version}}</text>
+            <text class="qz-item-desc">当前为 {{envName}} 环境构建，点击查看项目简介</text>
+          </view>
+          <text class="qz-item-arrow">›</text>
+        </view>
+        <view class="qz-item" bindtap="onDeactivate">
+          <view class="qz-ico qz-ico-s"><view class="qz-i qz-i-lock"></view></view>
+          <view class="qz-item-main">
+            <text class="qz-item-title">账号注销</text>
+            <text class="qz-item-desc">需人工核验身份，后端未开放（M5-03）</text>
+          </view>
+          <text class="qz-item-arrow">›</text>
+        </view>
+      </view>
+    </view>
+  </view>
+</view>

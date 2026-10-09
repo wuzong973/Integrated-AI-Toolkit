@@ -1,0 +1,116 @@
+<!-- 时间戳转换 —— Unix 时间戳 ⇄ 日期时间，秒/毫秒口径可切；纯本地计算
+     视觉：星蓝主题（th-toolbox）· 装饰签名：blob-a + dot-b -->
+<view
+  class="qz-page th-toolbox ts-page"
+  bindtouchstart="onFxStart"
+  bindtouchmove="onFxMove"
+  bindtouchend="onFxEnd"
+  bindtouchcancel="onFxEnd"
+>
+  <view class="qz-deco">
+    <view class="qz-fx" style="{{fxStyle}}">
+      <view class="qz-blob qz-blob-a"></view>
+      <view class="qz-dot qz-dot-b"></view>
+    </view>
+  </view>
+
+  <view class="qz-content">
+    <view class="qz-head">
+      <view class="qz-head-row qz-an-in">
+        <view class="qz-ico qz-ico-l qz-ico-float">
+          <view class="qz-i qz-i-clock"></view>
+        </view>
+        <view class="qz-head-main">
+          <text class="qz-head-title">时间戳转换</text>
+          <text class="qz-head-sub">本地计算、不上传、不占额度</text>
+        </view>
+      </view>
+    </view>
+
+    <view class="qz-container">
+      <!-- 口径切换 -->
+      <view class="qz-card qz-an-in qz-d1">
+        <view class="card-title">
+          <text>时间戳口径</text>
+          <text class="card-title-hint">切换后两个方向都立即重算</text>
+        </view>
+        <view class="chips">
+          <view
+            wx:for="{{unitChips}}"
+            wx:key="key"
+            class="qz-chip qz-press {{unit === item.key ? 'qz-chip-on' : ''}}"
+            data-key="{{item.key}}"
+            bindtap="onUnitTap"
+          >
+            {{item.label}}
+          </view>
+        </view>
+      </view>
+
+      <!-- 时间戳 → 日期时间（输入即出结果） -->
+      <view class="qz-card qz-card-grad qz-an-in qz-d2">
+        <view class="card-title">
+          <text>时间戳 → 日期时间</text>
+          <view class="now-chip qz-press" bindtap="onNow">现在</view>
+        </view>
+        <input
+          class="io-input"
+          type="digit"
+          value="{{tsText}}"
+          placeholder="粘贴时间戳，如 1760000000"
+          placeholder-class="io-ph"
+          bindinput="onTsInput"
+        />
+        <view wx:if="{{tsStatus === 'ok'}}" class="result-box" bindtap="onCopyTs">
+          <text class="result-text">{{tsResult}}</text>
+          <view class="result-meta">
+            <text class="result-sub">按当前口径即 {{tsOther}}</text>
+            <text class="result-copy">点此复制</text>
+          </view>
+        </view>
+        <view wx:elif="{{tsStatus === 'invalid'}}" class="qz-err">
+          <text class="qz-err-text">这串字符读不出时间戳，只填数字就行</text>
+        </view>
+        <view wx:else class="hint">输入即出结果，不用点提交；点「现在」直接填入此刻。</view>
+      </view>
+
+      <!-- 日期时间 → 时间戳 -->
+      <view class="qz-card qz-an-in qz-d3">
+        <view class="card-title">
+          <text>日期时间 → 时间戳</text>
+          <text class="card-title-hint">按手机当前时区</text>
+        </view>
+        <view class="pick-row">
+          <picker
+            mode="date"
+            value="{{dateValue}}"
+            start="1970-01-01"
+            end="2999-12-31"
+            bindchange="onDateChange"
+          >
+            <view class="pick qz-press">
+              <text class="pick-tag">日期</text>
+              <text class="pick-value">{{dateValue}}</text>
+              <text class="pick-arrow">›</text>
+            </view>
+          </picker>
+          <picker mode="time" value="{{timeValue}}" bindchange="onTimeChange">
+            <view class="pick qz-press">
+              <text class="pick-tag">时间</text>
+              <text class="pick-value">{{timeValue}}</text>
+              <text class="pick-arrow">›</text>
+            </view>
+          </picker>
+        </view>
+        <view wx:if="{{addStatus === 'ok'}}" class="result-box" bindtap="onCopyAdd">
+          <text class="result-text">{{addResult}}</text>
+          <text class="result-copy">点此复制</text>
+        </view>
+        <view wx:elif="{{addStatus === 'invalid'}}" class="qz-err">
+          <text class="qz-err-text">这个日期不存在（比如 2 月 30 日），换一个试试</text>
+        </view>
+        <view wx:else class="hint">选好日期与时间，时间戳立刻出来。</view>
+      </view>
+    </view>
+  </view>
+</view>

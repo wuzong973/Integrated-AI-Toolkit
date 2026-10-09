@@ -1,0 +1,238 @@
+<!-- 订单详情（文档 6.6.3）
+     视觉：海青主题 · 圆角 26 · 顶部彩条 + 扇贝水波，突出"资金在流程里流动" -->
+<view
+  class="qz-page th-order order"
+  bindtouchstart="onFxStart"
+  bindtouchmove="onFxMove"
+  bindtouchend="onFxEnd"
+  bindtouchcancel="onFxEnd"
+>
+  <!-- 装饰层（不拦截点击，内容可读性不受影响）
+       装饰签名 wave-up + blob-b（契约波浪），与订单列表页刻意错开 -->
+  <view class="qz-deco">
+    <view class="qz-fx" style="{{fxStyle}}">
+      <view class="od-wave qz-wave qz-wave-up"></view>
+      <view class="qz-blob qz-blob-b"></view>
+    </view>
+  </view>
+
+  <view class="qz-content">
+    <!-- 页头 -->
+    <view class="qz-head">
+      <view class="qz-head-row qz-an-in">
+        <view class="qz-ico qz-ico-l qz-ico-float">
+          <view class="qz-i qz-i-orders"></view>
+        </view>
+        <view class="qz-head-main">
+          <text class="qz-head-title">订单详情</text>
+          <text class="qz-head-sub">担保交易 · 资金先托管，验收后放款</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 错误态 -->
+    <view wx:if="{{error}}" class="qz-container">
+      <view class="qz-err qz-an-in">
+        <text class="qz-err-text">{{error}}</text>
+      </view>
+    </view>
+
+    <block wx:elif="{{order}}">
+      <!-- 状态卡：渐变卡 + 顶部彩条 + 底部水波 -->
+      <view class="qz-container">
+        <view class="qz-card qz-card-grad status qz-an-in qz-d1">
+          <view class="qz-topline"></view>
+          <view class="status-top">
+            <text class="status-text">{{order.statusText}}</text>
+            <view class="qz-chip qz-chip-ghost">{{role === 'buyer' ? '我是买家' : '我是服务者'}}</view>
+          </view>
+          <text class="status-tip">
+            {{order.status === 'pending_payment' ? '请在 30 分钟内完成支付' :
+              order.status === 'paid' ? '资金已托管，等待服务者接单' :
+              order.status === 'in_service' ? '服务者正在为你服务' :
+              order.status === 'pending_acceptance' ? '服务者已交付，请尽快验收' :
+              order.status === 'completed' ? '交易完成，感谢使用' : ''}}
+          </text>
+
+          <!-- 进度条（展示层，宽度算法保持原样） -->
+          <view wx:if="{{stepIndex >= 0}}" class="steps">
+            <view class="step-line" style="width: {{stepIndex * 25}}%"></view>
+            <view wx:for="{{steps}}" wx:key="*this" class="step">
+              <view class="step-dot {{index <= stepIndex ? 'step-dot-on' : ''}}"></view>
+              <text class="step-label {{index <= stepIndex ? 'step-label-on' : ''}}">{{item}}</text>
+            </view>
+          </view>
+
+          <view class="status-wave qz-wave"></view>
+        </view>
+      </view>
+
+      <!-- 费用明细：描边卡 -->
+      <view class="qz-container">
+        <view class="qz-card qz-card-line qz-an-in qz-d2">
+          <view class="card-head">
+            <view class="qz-ico qz-ico-s"><view class="qz-i qz-i-wallet"></view></view>
+            <text class="qz-sec-title card-head-title">费用明细</text>
+          </view>
+          <view class="row">
+            <text class="row-label">订单金额</text>
+            <text class="amount">¥{{order.amountYuan}}</text>
+          </view>
+          <view class="row">
+            <text class="row-label">平台服务费</text>
+            <text class="row-value">¥{{order.platformFee / 100}}</text>
+          </view>
+          <view class="row">
+            <text class="row-label">服务者实收</text>
+            <text class="row-value">¥{{order.providerIncome / 100}}</text>
+          </view>
+          <view class="qz-divider"></view>
+          <view class="row">
+            <text class="row-label">订单号</text>
+            <text class="row-value row-small">{{order.orderNo}}</text>
+          </view>
+        </view>
+      </view>
+
+      <!-- 交易双方：主题浅底卡（整行可点，进会话） -->
+      <view class="qz-container">
+        <view class="qz-card qz-card-tint card-flush qz-an-in qz-d3">
+          <view class="qz-item qz-item-line person qz-lift" bindtap="onChat">
+            <view class="qz-ico qz-ico-s"><view class="qz-i qz-i-mine"></view></view>
+            <view class="qz-item-main">
+              <text class="qz-item-title">发布者</text>
+              <text class="qz-item-desc">{{order.buyer.nickname || '青智同学'}}</text>
+            </view>
+            <text class="qz-item-arrow">›</text>
+          </view>
+          <view class="qz-item person qz-lift" bindtap="onChat">
+            <view class="qz-ico qz-ico-s"><view class="qz-i qz-i-workbench"></view></view>
+            <view class="qz-item-main">
+              <text class="qz-item-title">服务者</text>
+              <text class="qz-item-desc">{{order.provider.nickname || '待指派'}}</text>
+            </view>
+            <text class="qz-item-arrow">›</text>
+          </view>
+        </view>
+      </view>
+
+      <!-- 担保说明：彩色柔影卡 + 左侧彩条 -->
+      <view class="qz-container">
+        <view class="qz-card qz-card-glow qz-card-bar guarantee qz-an-in qz-d4">
+          <view class="card-head">
+            <view class="qz-ico qz-ico-s"><view class="qz-i qz-i-lock"></view></view>
+            <text class="qz-sec-title card-head-title">担保交易</text>
+          </view>
+          <text class="guarantee-text">
+            你的资金先进入平台托管账户。服务者提交交付物、你确认验收后，资金才会放款；
+            若服务未完成，可申请退款或平台仲裁。
+          </text>
+        </view>
+      </view>
+    </block>
+
+    <!-- 加载态 -->
+    <view wx:else class="qz-container">
+      <view class="qz-card qz-card-line">
+        <view class="qz-skeleton qz-skeleton-line"></view>
+        <view class="qz-skeleton qz-skeleton-line qz-skeleton-line-short"></view>
+      </view>
+      <view class="qz-card qz-card-line">
+        <view class="qz-skeleton qz-skeleton-line"></view>
+        <view class="qz-skeleton qz-skeleton-line qz-skeleton-line-short"></view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 操作区（按角色与状态动态渲染，逻辑不变） -->
+  <view wx:if="{{order}}" class="qz-footer-bar order-footer">
+    <block wx:if="{{role === 'buyer'}}">
+      <view wx:if="{{order.status === 'pending_payment'}}" class="qz-btn-main foot-btn qz-press" bindtap="onPay">立即支付</view>
+      <view wx:elif="{{order.status === 'pending_acceptance'}}" class="qz-btn-sub foot-btn qz-press" bindtap="onRequestRevision">要求修改</view>
+      <view wx:elif="{{order.status === 'pending_acceptance'}}" class="qz-btn-main foot-btn qz-press" bindtap="onOpenReview">确认验收</view>
+      <view wx:elif="{{order.status === 'in_service'}}" class="qz-btn-sub foot-btn qz-press" bindtap="onRefund">申请退款</view>
+      <view wx:else class="qz-btn-plain foot-btn foot-disabled">当前无需操作</view>
+    </block>
+    <block wx:else>
+      <view wx:if="{{order.status === 'in_service'}}" class="qz-btn-main foot-btn qz-press" bindtap="onDeliver">提交交付物</view>
+      <view wx:else class="qz-btn-plain foot-btn foot-disabled">当前无需操作</view>
+    </block>
+  </view>
+
+  <!-- 验收 + 评价弹层（M3-16 / 文档 6.6.4）
+       验收与评价**一次提交**：后端把放款、评价、信用记分放在同一个事务里，
+       所以这里不出现"验收成功、评价失败"的半状态。
+       不点星星 = 只放款（后端 rating 可选），点了星才带正文 / 标签 / 匿名。 -->
+  <view wx:if="{{rvOpen && order}}" class="rv-mask" bindtap="onCloseReview">
+    <!-- 卡片本体 catchtap：点卡片里的输入框、标签不该把弹层关掉 -->
+    <view class="qz-card qz-card-glow rv-card qz-an-pop" catchtap="noop">
+      <view class="qz-topline"></view>
+
+      <view class="rv-head">
+        <view class="rv-head-main">
+          <text class="rv-title">确认验收 · 顺手给个评价</text>
+          <text class="rv-sub">放款 ¥{{order.amountYuan}} 给{{order.provider.nickname || '服务者'}}，此操作不可撤销</text>
+        </view>
+        <view class="rv-close qz-press" bindtap="onCloseReview">✕</view>
+      </view>
+
+      <!-- 星级：整行点击区 ≥ $hit-min -->
+      <view class="rv-row">
+        <text class="rv-label">整体评价</text>
+        <text class="rv-rating-text">{{rvRatingText}}</text>
+      </view>
+      <view class="rv-stars">
+        <view
+          wx:for="{{stars}}"
+          wx:key="*this"
+          class="rv-star {{rvRating >= item ? 'rv-star-on' : ''}} qz-press"
+          data-star="{{item}}"
+          bindtap="onPickStar"
+        >★</view>
+      </view>
+
+      <!-- 正文（可空：只打星不写字是主流量） -->
+      <textarea
+        class="rv-textarea"
+        placeholder="说说这次的服务体验（选填，最多 500 字）"
+        placeholder-class="rv-ph"
+        value="{{rvContent}}"
+        maxlength="500"
+        show-confirm-bar="{{false}}"
+        bindinput="onContentInput"
+      ></textarea>
+      <text class="rv-count">{{rvContent.length}}/500 · 内容会先过平台审核</text>
+
+      <!-- 常用标签（最多 3 个） -->
+      <view class="rv-tags">
+        <view
+          wx:for="{{rvTagViews}}"
+          wx:key="name"
+          class="qz-chip rv-tag {{item.on ? 'qz-chip-on' : ''}} qz-press"
+          data-name="{{item.name}}"
+          bindtap="onToggleTag"
+        >{{item.name}}</view>
+      </view>
+
+      <!-- 匿名开关（信用加减照常生效，只隐藏昵称） -->
+      <view class="rv-anon qz-press" bindtap="onToggleAnonymous">
+        <view class="rv-anon-main">
+          <text class="rv-anon-title">匿名评价</text>
+          <text class="rv-anon-sub">对方看不到你的昵称，信用分照常计算</text>
+        </view>
+        <view class="rv-switch {{rvAnonymous ? 'rv-switch-on' : ''}}">
+          <view class="rv-knob"></view>
+        </view>
+      </view>
+
+      <view class="rv-foot">
+        <view class="qz-btn-sub rv-btn qz-press" bindtap="onAcceptOnly">直接放款</view>
+        <view
+          class="qz-btn-main rv-btn {{rvRating || rvSubmitting ? '' : 'rv-btn-off'}} qz-press"
+          bindtap="onAcceptWithReview"
+        >{{rvSubmitting ? '提交中…' : '放款并发评价'}}</view>
+      </view>
+      <text class="rv-tip">没点星星就只放款；评价一旦提交不能修改，建议顺手写两句。</text>
+    </view>
+  </view>
+</view>

@@ -1,0 +1,1369 @@
+// 《青智校园》数据库 Schema（文档第 8 章 / 任务清单 M0-10）
+// 数据库：MySQL 8.0+（InnoDB / utf8mb4）
+// 纪律：
+//   1) 金额一律用 Int（单位：分），禁止 Float/Decimal
+//   2) 状态字段用 String + 枚举常量（由 @qz/core 统一维护）
+//   3) 所有软关联字段建索引（见 @@index）
+//   4) 半结构化数据（计划、参数、结果）用 Json
+//   5) MySQL 不支持标量数组：原 String[] 字段一律落为 Json 数组，
+//      读写请走 @qz/core 的 asStringArray()/asJsonArray()，禁止直接当 string[] 用
+//   6) 主键统一 Char(36) 存 UUID 字符串（MySQL 无原生 uuid 类型）
+// 迁移说明：见 docs/architecture/DB-MIGRATION-POSTGRES-TO-MYSQL.md
+
+generator client {
+  provider      = "prisma-client-js"
+  // 本机开发是 Windows，但部署目标（docker-compose / 云主机）是 Linux。
+  // 不显式声明则只生成 native 引擎，产物进 Linux 容器后会在启动时报
+  // "Query engine binary for current platform ... could not be found"。
+  // 加 debian-openssl-3.0.x 覆盖 Debian 12 / Ubuntu 22.04+（本项目部署基线）。
+  binaryTargets = ["native", "debian-openssl-3.0.x"]
+}
+
+datasource db {
+  provider          = "mysql"
+  url               = env("DATABASE_URL")
+  // 影子库：prisma migrate dev 需要一个可随意清空的库来做迁移预演。
+  // 本机安装与 Docker 的 MYSQL_USER 都只授权到业务库，不会自动提供影子库，
+  // 故显式指定（由 scripts/db/init-db.sql 或 scripts/db/mysql-bootstrap.sql 创建）。
+  // 注意：prisma migrate deploy（生产）会忽略此配置，但 env() 仍要求变量存在。
+  shadowDatabaseUrl = env("SHADOW_DATABASE_URL")
+}
+
+// ============================================================
+// 一、用户与权限
+// ============================================================
+
+model School {
+  id        String   @id @default(uuid()) @db.Char(36)
+  name      String   @db.VarChar(120)
+  code      String   @unique @db.VarChar(40)
+  city      String?  @db.VarChar(60)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  users         User[]
+  announcements Announcement[]
+  activities    Activity[]
+
+  @@map("school")
+}
+
+model User {
+  id        String    @id @default(uuid()) @db.Char(36)
+  openid    String    @unique @db.VarChar(64)
+  unionid   String?   @db.VarChar(64)
+  phone     String?   @unique @db.VarChar(20)
+  nickname  String?   @db.VarChar(40)
+  avatar    String?   @db.VarChar(500)
+  schoolId  String?   @map("school_id") @db.Char(36)
+  college   String?   @db.VarChar(60)
+  grade     String?   @db.VarChar(20)
+  /// 取值见 `packages/core` 的 Gender 枚举（male / female / unspecified）；
+  /// null = 还没填过，unspecified = 用户主动选了"不想说"，两者界面提示不同
+  gender    String?   @db.VarChar(12)
+  realName  String?   @map("real_name") @db.VarChar(40)
+  status    String    @default("active") @db.VarChar(20)
+  lastLogin DateTime? @map("last_login")
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+
+  school           School?            @relation(fields: [schoolId], references: [id], onDelete: SetNull)
+  roles            UserRole[]
+  adminAccount     AdminAccount?
+  profile          UserProfile?
+  verifications    Verification[]
+  files            FileAsset[]
+  jobs             ToolJob[]
+  sessions         OsSession[]
+  tasks            Task[]             @relation("TaskPublisher")
+  applications     TaskApplication[]
+  ordersAsBuyer    Order[]            @relation("OrderBuyer")
+  ordersAsProvider Order[]            @relation("OrderProvider")
+  ledgers          WalletLedger[]
+  pointsLedgers    PointsLedger[]
+  reviewsWritten   Review[]           @relation("ReviewAuthor")
+  reviewsGot       Review[]           @relation("ReviewTarget")
+  creditLogs       CreditLog[]
+  services         Service[]
+  notifications    Notification[]
+  wallet           Wallet?
+  wordBooks        UserWordBook[]
+  wordProgress     UserWordProgress[]
+  wordStudyLogs    WordStudyLog[]
+  practiceProgress PracticeProgress[]
+  practiceAttempts PracticeAttempt[]
+  practiceLogs     PracticeStudyLog[]
+
+  @@index([schoolId])
+  @@index([status, createdAt])
+  @@map("user")
+}
+
+/// 一账号多身份（文档 ADR-06 / 6.1.2）
+model UserRole {
+  id        String   @id @default(uuid()) @db.Char(36)
+  userId    String   @map("user_id") @db.Char(36)
+  role      String   @db.VarChar(20)
+  scope     String   @default("self") @db.VarChar(20)
+  status    String   @default("active") @db.VarChar(20)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, role])
+  @@index([role, status])
+  @@map("user_role")
+}
+
+/// 用户画像：信用分 + 积分 + 技能 + 统计（文档 6.1.3 / 6.6.4）
+model UserProfile {
+  userId          String    @id @map("user_id") @db.Char(36)
+  creditScore     Int       @default(80) @map("credit_score")
+  skills          Json      @default("[]")
+  bio             String?   @db.VarChar(300)
+  tags            Json      @default("[]")
+  points          Int       @default(0)
+  balance         Int       @default(0)
+  frozen          Int       @default(0)
+  totalIncome     Int       @default(0) @map("total_income")
+  completedOrders Int       @default(0) @map("completed_orders")
+  ratingSum       Int       @default(0) @map("rating_sum")
+  ratingCount     Int       @default(0) @map("rating_count")
+  acceptOrders    Boolean   @default(true) @map("accept_orders")
+  lastActiveAt    DateTime? @map("last_active_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([creditScore])
+  @@index([lastActiveAt])
+  @@map("user_profile")
+}
+
+/// 认证申请（学生证 / 技能 / 商户）（文档 5.3.12）
+model Verification {
+  id           String    @id @default(uuid()) @db.Char(36)
+  userId       String    @map("user_id") @db.Char(36)
+  type         String    @db.VarChar(20)
+  materials    Json      @default("[]")
+  skillTags    Json      @default("[]") @map("skill_tags")
+  status       String    @default("pending") @db.VarChar(20)
+  rejectReason String?   @map("reject_reason") @db.VarChar(300)
+  reviewerId   String?   @map("reviewer_id") @db.Char(36)
+  reviewedAt   DateTime? @map("reviewed_at")
+  createdAt    DateTime  @default(now()) @map("created_at")
+
+  /// 申请时的身份信息**快照**。
+  ///
+  /// 为什么不直接读 `user.real_name`：审核要看到的是"**这次提交的**是谁"，
+  /// 而不是"这个账号现在填的是谁"。用户事后改了资料，历史申请记录不能跟着变 ——
+  /// 否则"当初凭什么通过的"就再也说不清了（申诉与追责都靠它）。
+  /// `schoolId` 刻意**不做外键**：学校被删掉时，这条申请记录必须留下。
+  realName  String? @map("real_name") @db.VarChar(40)
+  studentNo String? @map("student_no") @db.VarChar(30)
+  schoolId  String? @map("school_id") @db.Char(36)
+  college   String? @db.VarChar(60)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, type])
+  @@index([status, createdAt])
+  @@map("verification")
+}
+
+// ============================================================
+// 二、文件资产（文档 6.5.6）
+// ============================================================
+
+model FileAsset {
+  id            String    @id @default(uuid()) @db.Char(36)
+  userId        String    @map("user_id") @db.Char(36)
+  name          String    @db.VarChar(200)
+  type          String    @db.VarChar(20)
+  size          Int
+  objectKey     String    @map("object_key") @db.VarChar(400)
+  thumbUrl      String?   @map("thumb_url") @db.VarChar(600)
+  hash          String?   @db.VarChar(128)
+  scene         String    @db.VarChar(30)
+  source        String?   @db.VarChar(40)
+  downloadCount Int       @default(0) @map("download_count")
+  deletedAt     DateTime? @map("deleted_at")
+  expireAt      DateTime? @map("expire_at")
+  createdAt     DateTime  @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt(sort: Desc)])
+  @@index([expireAt])
+  @@index([scene])
+  @@map("file_asset")
+}
+
+// ============================================================
+// 三、工具箱（文档 6.4）
+// ============================================================
+
+model ToolCategory {
+  id      String  @id @db.VarChar(40)
+  name    String  @db.VarChar(40)
+  icon    String? @db.VarChar(120)
+  sort    Int     @default(0)
+  scene   String  @db.VarChar(30)
+  /// 是否出现在工具箱的分类导航中。campus / system 为 Agent 内部能力域，用户不可见。
+  visible Boolean @default(true)
+
+  tools Tool[]
+
+  @@map("tool_category")
+}
+
+model Tool {
+  id                   String   @id @default(uuid()) @db.Char(36)
+  name                 String   @unique @db.VarChar(60)
+  displayName          String   @map("display_name") @db.VarChar(60)
+  categoryId           String   @map("category_id") @db.VarChar(40)
+  description          String   @db.VarChar(300)
+  provider             String?  @db.VarChar(60)
+  inputSchema          Json?    @map("input_schema")
+  outputSchema         Json?    @map("output_schema")
+  sync                 Boolean  @default(false)
+  timeoutSec           Int      @default(300) @map("timeout_sec")
+  price                Int      @default(0)
+  permissions          Json     @default("[]")
+  status               String   @default("planned") @db.VarChar(20)
+  /// 是否出现在用户可见的工具箱目录中。
+  /// campus / system 类工具（create_task、parse_requirement、search_knowledge、
+  /// moderate_content 等）由 Agent 在编排中调用，不进工具箱 UI，故为 false。
+  /// 用显式字段表达"不可见"，而不是靠"不录进数据库"——后者会让 Tool Registry 缺项。
+  visible              Boolean  @default(true)
+  requiresCopyrightAck Boolean  @default(false) @map("requires_copyright_ack")
+  dailyQuota           Int      @default(0) @map("daily_quota")
+  useCount             Int      @default(0) @map("use_count")
+  version              String   @default("1.0.0") @db.VarChar(20)
+  sort                 Int      @default(0)
+  createdAt            DateTime @default(now()) @map("created_at")
+  updatedAt            DateTime @updatedAt @map("updated_at")
+
+  category ToolCategory @relation(fields: [categoryId], references: [id])
+  jobs     ToolJob[]
+
+  @@index([categoryId, status])
+  @@index([status, sort])
+  @@index([visible, categoryId, sort])
+  @@map("tool")
+}
+
+/// 工具执行作业（文档 6.5.1 Job 状态机）
+model ToolJob {
+  id             String    @id @default(uuid()) @db.Char(36)
+  userId         String    @map("user_id") @db.Char(36)
+  toolName       String    @map("tool_name") @db.VarChar(60)
+  params         Json      @default("{}")
+  inputFiles     Json      @default("[]") @map("input_files")
+  outputFiles    Json      @default("[]") @map("output_files")
+  status         String    @default("queued") @db.VarChar(20)
+  progress       Int       @default(0)
+  stage          String?   @db.VarChar(120)
+  cost           Int       @default(0)
+  provider       String?   @db.VarChar(60)
+  error          String?   @db.VarChar(600)
+  /// 产出指标（体积/分辨率/时长/页数/字数…）。**让「成功但劣质」可被看见**：
+  /// 此前压缩率、页数这些全不存在，于是劣质产物与优质产物在数据上长得一模一样，
+  /// 用户只看到「共 N 个产物」。结构见 `apps/api/src/modules/job/job-result.ts`。
+  result         Json      @default("{}")
+  /// 质量分（0-100；仅 AI 类产出有，其余为 null）。由 @qz/core 的评分器产出
+  qualityScore   Int?      @map("quality_score")
+  /// 质量扣分项（人类可读，供结果页与排查用）
+  qualityIssues  Json      @default("[]") @map("quality_issues")
+  /// 实际尝试次数（1 = 一次过；2 = 质检不达标后重写了一次）。用于评估自修复效果
+  attempts       Int       @default(1)
+  runId          String?   @map("run_id") @db.Char(36)
+  nodeId         String?   @map("node_id") @db.VarChar(40)
+  idempotencyKey String?   @map("idempotency_key") @db.VarChar(80)
+  startedAt      DateTime? @map("started_at")
+  finishedAt     DateTime? @map("finished_at")
+  createdAt      DateTime  @default(now()) @map("created_at")
+
+  user User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tool Tool? @relation(fields: [toolName], references: [name])
+
+  /// 幂等键**按用户唯一**（不是全局唯一）：同一用户的同一请求只执行一次，
+  /// 不同用户各自使用相同的键互不干扰。改成全局唯一会让"用户 B 的提交被静默丢弃"。
+  @@unique([userId, idempotencyKey])
+  @@index([userId, status, createdAt(sort: Desc)])
+  @@index([status, startedAt])
+  @@map("tool_job")
+}
+
+// ============================================================
+// 四、青智 OS（文档 6.2）
+// ============================================================
+
+model OsSession {
+  id             String   @id @default(uuid()) @db.Char(36)
+  userId         String   @map("user_id") @db.Char(36)
+  title          String?  @db.VarChar(120)
+  scene          String?  @db.VarChar(40)
+  status         String   @default("active") @db.VarChar(20)
+  contextSummary String?  @map("context_summary") @db.Text
+  agentStack     Json     @default("[]") @map("agent_stack")
+  tokenUsed      Int      @default(0) @map("token_used")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  user     User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  messages OsMessage[]
+  runs     OsPlanRun[]
+
+  @@index([userId, status, updatedAt(sort: Desc)])
+  @@map("os_session")
+}
+
+model OsMessage {
+  id          String   @id @default(uuid()) @db.Char(36)
+  sessionId   String   @map("session_id") @db.Char(36)
+  role        String   @db.VarChar(20)
+  agentName   String?  @map("agent_name") @db.VarChar(40)
+  contentType String   @default("text") @map("content_type") @db.VarChar(20)
+  content     String   @db.Text
+  cards       Json?    @default("[]")
+  toolCalls   Json?    @map("tool_calls")
+  tokens      Int      @default(0)
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  session OsSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@index([sessionId, createdAt])
+  @@map("os_message")
+}
+
+model OsPlanRun {
+  id         String    @id @default(uuid()) @db.Char(36)
+  sessionId  String    @map("session_id") @db.Char(36)
+  goal       String    @db.Text
+  plan       Json      @default("{}")
+  status     String    @default("planning") @db.VarChar(30)
+  progress   Int       @default(0)
+  totalCost  Int       @default(0) @map("total_cost")
+  startedAt  DateTime? @map("started_at")
+  finishedAt DateTime? @map("finished_at")
+  createdAt  DateTime  @default(now()) @map("created_at")
+
+  session OsSession    @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  nodes   OsTaskNode[]
+
+  @@index([sessionId, status])
+  @@map("os_plan_run")
+}
+
+/// 计划中的执行节点（文档 6.2.1 / 6.2.6）
+model OsTaskNode {
+  id          String   @id @default(uuid()) @db.Char(36)
+  runId       String   @map("run_id") @db.Char(36)
+  nodeId      String   @map("node_id") @db.VarChar(40)
+  name        String   @db.VarChar(120)
+  type        String   @db.VarChar(20)
+  agent       String?  @db.VarChar(40)
+  tool        String?  @db.VarChar(60)
+  depends     Json     @default("[]")
+  status      String   @default("pending") @db.VarChar(30)
+  progress    Int      @default(0)
+  attempt     Int      @default(0)
+  result      Json?
+  error       String?  @db.VarChar(600)
+  hitlType    String?  @map("hitl_type") @db.VarChar(20)
+  hitlPayload Json?    @map("hitl_payload")
+  refTaskId   String?  @map("ref_task_id") @db.Char(36)
+  skillTags   Json     @default("[]") @map("skill_tags")
+  budget      Int      @default(0)
+  sort        Int      @default(0)
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  run OsPlanRun @relation(fields: [runId], references: [id], onDelete: Cascade)
+
+  @@unique([runId, nodeId])
+  @@index([runId, status])
+  @@map("os_task_node")
+}
+
+/// Agent 定义（文档 6.3.1）
+model AgentDef {
+  name          String   @id @db.VarChar(40)
+  displayName   String   @map("display_name") @db.VarChar(60)
+  description   String   @db.VarChar(400)
+  systemPrompt  String   @map("system_prompt") @db.Text
+  tools         Json     @default("[]")
+  permissions   Json     @default("[]")
+  inputSchema   Json?    @map("input_schema")
+  outputSchema  Json?    @map("output_schema")
+  modelPolicy   Json?    @map("model_policy")
+  maxSteps      Int      @default(5) @map("max_steps")
+  status        String   @default("active") @db.VarChar(20)
+  fallbackAgent String?  @map("fallback_agent") @db.VarChar(40)
+  version       String   @default("1.0.0") @db.VarChar(20)
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  @@map("agent_def")
+}
+
+/// Agent 调用日志（成本看板，文档 6.10.1）
+model AgentCallLog {
+  id               String   @id @default(uuid()) @db.Char(36)
+  runId            String?  @map("run_id") @db.Char(36)
+  sessionId        String?  @map("session_id") @db.Char(36)
+  agentName        String   @map("agent_name") @db.VarChar(40)
+  model            String?  @db.VarChar(60)
+  promptTokens     Int      @default(0) @map("prompt_tokens")
+  completionTokens Int      @default(0) @map("completion_tokens")
+  totalTokens      Int      @default(0) @map("total_tokens")
+  latencyMs        Int      @default(0) @map("latency_ms")
+  status           String   @default("succeeded") @db.VarChar(20)
+  error            String?  @db.VarChar(600)
+  createdAt        DateTime @default(now()) @map("created_at")
+
+  @@index([agentName, createdAt(sort: Desc)])
+  @@index([createdAt])
+  @@map("agent_call_log")
+}
+
+// ============================================================
+// 五、青智驿站（文档 6.6）
+// ============================================================
+
+/// 服务分类（摄影 / 设计 / 文案 / 编程 …）
+model ServiceCategory {
+  id   String  @id @db.VarChar(40)
+  name String  @db.VarChar(40)
+  icon String? @db.VarChar(120)
+  sort Int     @default(0)
+
+  services Service[]
+  tasks    Task[]
+
+  @@map("service_category")
+}
+
+/// 服务商品（服务者预先上架的标准商品）
+model Service {
+  id           String   @id @default(uuid()) @db.Char(36)
+  providerId   String   @map("provider_id") @db.Char(36)
+  categoryId   String   @map("category_id") @db.VarChar(40)
+  title        String   @db.VarChar(80)
+  description  String   @db.Text
+  cover        String?  @db.VarChar(600)
+  price        Int      @default(0)
+  priceUnit    String   @default("fixed") @map("price_unit") @db.VarChar(20)
+  deliveryDays Int      @default(3) @map("delivery_days")
+  serviceArea  String   @default("school") @map("service_area") @db.VarChar(20)
+  skillTags    Json     @default("[]") @map("skill_tags")
+  status       String   @default("draft") @db.VarChar(20)
+  orderCount   Int      @default(0) @map("order_count")
+  viewCount    Int      @default(0) @map("view_count")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  provider User            @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  category ServiceCategory @relation(fields: [categoryId], references: [id])
+  orders   Order[]
+
+  @@index([status, categoryId])
+  @@index([providerId, status])
+  @@map("service")
+}
+
+/// 需求（任务）（文档 6.6.1）
+model Task {
+  id                 String    @id @default(uuid()) @db.Char(36)
+  taskNo             String    @unique @map("task_no") @db.VarChar(40)
+  publisherId        String    @map("publisher_id") @db.Char(36)
+  categoryId         String    @map("category_id") @db.VarChar(40)
+  title              String    @db.VarChar(80)
+  description        String    @db.Text
+  budget             Int       @default(0)
+  budgetType         String    @default("fixed") @map("budget_type") @db.VarChar(20)
+  deadline           DateTime?
+  location           String?   @db.VarChar(160)
+  skillTags          Json      @default("[]") @map("skill_tags")
+  attachments        Json      @default("[]")
+  /// manual | ai_generated | os_plan（闭环回流的关键）
+  source             String    @default("manual") @db.VarChar(20)
+  refRunId           String?   @map("ref_run_id") @db.Char(36)
+  status             String    @default("draft") @db.VarChar(30)
+  applyCount         Int       @default(0) @map("apply_count")
+  viewCount          Int       @default(0) @map("view_count")
+  selectedProviderId String?   @map("selected_provider_id") @db.Char(36)
+  publishedAt        DateTime? @map("published_at")
+  completedAt        DateTime? @map("completed_at")
+  createdAt          DateTime  @default(now()) @map("created_at")
+  updatedAt          DateTime  @updatedAt @map("updated_at")
+
+  publisher    User              @relation("TaskPublisher", fields: [publisherId], references: [id], onDelete: Cascade)
+  category     ServiceCategory   @relation(fields: [categoryId], references: [id])
+  applications TaskApplication[]
+  orders       Order[]
+
+  @@index([status, categoryId, createdAt(sort: Desc)])
+  @@index([publisherId, status])
+  @@index([refRunId])
+  @@map("task")
+}
+
+/// 报名 / 抢单
+model TaskApplication {
+  id         String   @id @default(uuid()) @db.Char(36)
+  taskId     String   @map("task_id") @db.Char(36)
+  providerId String   @map("provider_id") @db.Char(36)
+  quote      Int      @default(0)
+  message    String?  @db.VarChar(500)
+  matchScore Int      @default(0) @map("match_score")
+  status     String   @default("pending") @db.VarChar(20)
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  task     Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  provider User @relation(fields: [providerId], references: [id], onDelete: Cascade)
+
+  @@unique([taskId, providerId])
+  @@index([providerId, status])
+  @@index([taskId, matchScore(sort: Desc)])
+  @@map("task_application")
+}
+
+// ============================================================
+// 六、订单与交易（文档 6.6.3）
+// ============================================================
+
+model Order {
+  id              String    @id @default(uuid()) @db.Char(36)
+  orderNo         String    @unique @map("order_no") @db.VarChar(40)
+  taskId          String?   @map("task_id") @db.Char(36)
+  serviceId       String?   @map("service_id") @db.Char(36)
+  buyerId         String    @map("buyer_id") @db.Char(36)
+  providerId      String    @map("provider_id") @db.Char(36)
+  amount          Int
+  platformFee     Int       @default(0) @map("platform_fee")
+  providerIncome  Int       @default(0) @map("provider_income")
+  status          String    @default("pending_payment") @db.VarChar(30)
+  revisionCount   Int       @default(0) @map("revision_count")
+  requirement     String?   @db.Text
+  deliveryFiles   Json      @default("[]") @map("delivery_files")
+  deliveryRemark  String?   @map("delivery_remark") @db.VarChar(500)
+  cancelReason    String?   @map("cancel_reason") @db.VarChar(300)
+  refundReason    String?   @map("refund_reason") @db.VarChar(300)
+  payDeadline     DateTime? @map("pay_deadline")
+  deliverDeadline DateTime? @map("deliver_deadline")
+  paidAt          DateTime? @map("paid_at")
+  startedAt       DateTime? @map("started_at")
+  deliveredAt     DateTime? @map("delivered_at")
+  acceptedAt      DateTime? @map("accepted_at")
+  completedAt     DateTime? @map("completed_at")
+  refundedAt      DateTime? @map("refunded_at")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+
+  task     Task?           @relation(fields: [taskId], references: [id], onDelete: SetNull)
+  service  Service?        @relation(fields: [serviceId], references: [id], onDelete: SetNull)
+  buyer    User            @relation("OrderBuyer", fields: [buyerId], references: [id])
+  provider User            @relation("OrderProvider", fields: [providerId], references: [id])
+  timeline OrderTimeline[]
+  payment  Payment?
+  reviews  Review[]
+
+  @@index([buyerId, status])
+  @@index([providerId, status])
+  @@index([status, payDeadline])
+  @@index([status, deliverDeadline])
+  @@map("order")
+}
+
+/// 订单时间线（所有状态变更留痕）
+model OrderTimeline {
+  id         String   @id @default(uuid()) @db.Char(36)
+  orderId    String   @map("order_id") @db.Char(36)
+  event      String   @db.VarChar(60)
+  operatorId String?  @map("operator_id") @db.Char(36)
+  payload    Json?
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([orderId, createdAt])
+  @@map("order_timeline")
+}
+
+/// 支付记录（微信支付单号）
+model Payment {
+  id           String    @id @default(uuid()) @db.Char(36)
+  orderId      String    @unique @map("order_id") @db.Char(36)
+  payNo        String?   @unique @map("pay_no") @db.VarChar(64)
+  channel      String    @default("wechat") @db.VarChar(20)
+  amount       Int
+  status       String    @default("pending") @db.VarChar(20)
+  refundAmount Int       @default(0) @map("refund_amount")
+  refundNo     String?   @map("refund_no") @db.VarChar(64)
+  paidAt       DateTime? @map("paid_at")
+  refundedAt   DateTime? @map("refunded_at")
+  rawCallback  Json?     @map("raw_callback")
+  createdAt    DateTime  @default(now()) @map("created_at")
+
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([status, createdAt])
+  @@map("payment")
+}
+
+/// 钱包余额（冗余快照，便于快速查询）
+model Wallet {
+  userId      String   @id @map("user_id") @db.Char(36)
+  balance     Int      @default(0)
+  frozen      Int      @default(0)
+  totalIncome Int      @default(0) @map("total_income")
+  points      Int      @default(0)
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("wallet")
+}
+
+/// 资金流水（唯一真相来源，只增不改）
+model WalletLedger {
+  id           String   @id @default(uuid()) @db.Char(36)
+  userId       String   @map("user_id") @db.Char(36)
+  type         String   @db.VarChar(20)
+  amount       Int
+  balanceAfter Int      @map("balance_after")
+  refType      String?  @map("ref_type") @db.VarChar(30)
+  refId        String?  @map("ref_id") @db.VarChar(60)
+  remark       String?  @db.VarChar(200)
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt(sort: Desc)])
+  @@index([refType, refId])
+  @@map("wallet_ledger")
+}
+
+/// 积分流水（文档 6.11）
+model PointsLedger {
+  id           String    @id @default(uuid()) @db.Char(36)
+  userId       String    @map("user_id") @db.Char(36)
+  delta        Int
+  reason       String    @db.VarChar(60)
+  refId        String?   @map("ref_id") @db.VarChar(60)
+  balanceAfter Int       @map("balance_after")
+  /// 预扣/正式扣费/退回 的状态标记
+  kind         String    @default("charge") @db.VarChar(20)
+  expireAt     DateTime? @map("expire_at")
+  createdAt    DateTime  @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt(sort: Desc)])
+  @@map("points_ledger")
+}
+
+/// 提现申请
+model Withdrawal {
+  id         String    @id @default(uuid()) @db.Char(36)
+  userId     String    @map("user_id") @db.Char(36)
+  amount     Int
+  fee        Int       @default(0)
+  status     String    @default("pending") @db.VarChar(20)
+  remark     String?   @db.VarChar(200)
+  reviewerId String?   @map("reviewer_id") @db.Char(36)
+  reviewedAt DateTime? @map("reviewed_at")
+  createdAt  DateTime  @default(now()) @map("created_at")
+
+  @@index([userId, status])
+  @@index([status, createdAt])
+  @@map("withdrawal")
+}
+
+// ============================================================
+// 七、评价与信用（文档 6.6.4）
+// ============================================================
+
+model Review {
+  id          String    @id @default(uuid()) @db.Char(36)
+  orderId     String    @map("order_id") @db.Char(36)
+  reviewerId  String    @map("reviewer_id") @db.Char(36)
+  targetId    String    @map("target_id") @db.Char(36)
+  rating      Int
+  tags        Json      @default("[]")
+  content     String?   @db.VarChar(500)
+  images      Json      @default("[]")
+  isAnonymous Boolean   @default(false) @map("is_anonymous")
+  reply       String?   @db.VarChar(500)
+  repliedAt   DateTime? @map("replied_at")
+  /// normal | hidden（举报后隐藏）
+  status      String    @default("normal") @db.VarChar(20)
+  createdAt   DateTime  @default(now()) @map("created_at")
+
+  order    Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  reviewer User  @relation("ReviewAuthor", fields: [reviewerId], references: [id], onDelete: Cascade)
+  target   User  @relation("ReviewTarget", fields: [targetId], references: [id], onDelete: Cascade)
+
+  @@unique([orderId, reviewerId])
+  @@index([targetId, createdAt(sort: Desc)])
+  @@map("review")
+}
+
+/// 信用分流水
+model CreditLog {
+  id           String   @id @default(uuid()) @db.Char(36)
+  userId       String   @map("user_id") @db.Char(36)
+  delta        Int
+  reason       String   @db.VarChar(60)
+  refId        String?  @map("ref_id") @db.VarChar(60)
+  balanceAfter Int      @map("balance_after")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt(sort: Desc)])
+  @@map("credit_log")
+}
+
+// ============================================================
+// 八、消息与通知（文档 6.8）
+// ============================================================
+
+model Conversation {
+  id            String    @id @default(uuid()) @db.Char(36)
+  /// 交易双方，按 id 升序拼接保证唯一
+  participantA  String    @map("participant_a") @db.Char(36)
+  participantB  String    @map("participant_b") @db.Char(36)
+  refType       String?   @map("ref_type") @db.VarChar(30)
+  refId         String?   @map("ref_id") @db.VarChar(60)
+  lastMessage   String?   @map("last_message") @db.VarChar(300)
+  lastMessageAt DateTime? @map("last_message_at")
+  createdAt     DateTime  @default(now()) @map("created_at")
+
+  messages Message[]
+
+  @@unique([participantA, participantB])
+  @@index([participantA, lastMessageAt(sort: Desc)])
+  @@index([participantB, lastMessageAt(sort: Desc)])
+  @@map("conversation")
+}
+
+model Message {
+  id             String   @id @default(uuid()) @db.Char(36)
+  conversationId String   @map("conversation_id") @db.Char(36)
+  senderId       String   @map("sender_id") @db.Char(36)
+  type           String   @default("text") @db.VarChar(20)
+  content        String   @db.Text
+  readStatus     Boolean  @default(false) @map("read_status")
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@index([conversationId, createdAt])
+  @@map("message")
+}
+
+model Notification {
+  id        String    @id @default(uuid()) @db.Char(36)
+  userId    String    @map("user_id") @db.Char(36)
+  type      String    @db.VarChar(40)
+  title     String    @db.VarChar(120)
+  content   String    @db.VarChar(600)
+  ref       Json?
+  channels  Json      @default("[]")
+  readAt    DateTime? @map("read_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, readAt])
+  @@index([userId, createdAt(sort: Desc)])
+  @@map("notification")
+}
+
+/// 订阅消息授权记录（微信一次性订阅，文档 6.8.2）
+model SubscribeGrant {
+  id         String   @id @default(uuid()) @db.Char(36)
+  userId     String   @map("user_id") @db.Char(36)
+  templateId String   @map("template_id") @db.VarChar(80)
+  scene      String   @db.VarChar(40)
+  used       Boolean  @default(false)
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  @@index([userId, templateId, used])
+  @@map("subscribe_grant")
+}
+
+// ============================================================
+// 九、组织端与内容（文档 4.1 G / H）
+// ============================================================
+
+model Activity {
+  id          String    @id @default(uuid()) @db.Char(36)
+  orgId       String    @map("org_id") @db.Char(36)
+  schoolId    String?   @map("school_id") @db.Char(36)
+  title       String    @db.VarChar(120)
+  description String?   @db.Text
+  cover       String?   @db.VarChar(600)
+  location    String?   @db.VarChar(160)
+  startAt     DateTime? @map("start_at")
+  endAt       DateTime? @map("end_at")
+  capacity    Int       @default(0)
+  signupCount Int       @default(0) @map("signup_count")
+  status      String    @default("draft") @db.VarChar(20)
+  createdAt   DateTime  @default(now()) @map("created_at")
+
+  school  School?          @relation(fields: [schoolId], references: [id], onDelete: SetNull)
+  signups ActivitySignup[]
+
+  @@index([schoolId, status])
+  @@map("activity")
+}
+
+model ActivitySignup {
+  id         String   @id @default(uuid()) @db.Char(36)
+  activityId String   @map("activity_id") @db.Char(36)
+  userId     String   @map("user_id") @db.Char(36)
+  checkedIn  Boolean  @default(false) @map("checked_in")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  activity Activity @relation(fields: [activityId], references: [id], onDelete: Cascade)
+
+  @@unique([activityId, userId])
+  @@map("activity_signup")
+}
+
+model Announcement {
+  id        String    @id @default(uuid()) @db.Char(36)
+  schoolId  String?   @map("school_id") @db.Char(36)
+  title     String    @db.VarChar(120)
+  content   String    @db.Text
+  startAt   DateTime? @map("start_at")
+  endAt     DateTime? @map("end_at")
+  status    String    @default("published") @db.VarChar(20)
+  createdAt DateTime  @default(now()) @map("created_at")
+
+  school School? @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+
+  @@index([schoolId, status, startAt])
+  @@map("announcement")
+}
+
+/// 校园知识库（RAG，文档 6.9.3）
+model KnowledgeDoc {
+  id        String   @id @default(uuid()) @db.Char(36)
+  title     String   @db.VarChar(200)
+  source    String?  @db.VarChar(300)
+  category  String   @db.VarChar(40)
+  content   String   @db.Text
+  /// 切片后的向量（JSON 数组；规模上来后迁移到 pgvector 列）
+  embedding Json?
+  status    String   @default("active") @db.VarChar(20)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([category, status])
+  @@map("knowledge_doc")
+}
+
+// ============================================================
+// 十、系统与审计（文档 8.2）
+// ============================================================
+
+model AuditLog {
+  id         String   @id @default(uuid()) @db.Char(36)
+  actorId    String?  @map("actor_id") @db.Char(36)
+  action     String   @db.VarChar(60)
+  targetType String?  @map("target_type") @db.VarChar(40)
+  targetId   String?  @map("target_id") @db.VarChar(60)
+  before     Json?
+  after      Json?
+  ip         String?  @db.VarChar(60)
+  traceId    String?  @map("trace_id") @db.VarChar(60)
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  @@index([actorId, createdAt(sort: Desc)])
+  @@index([targetType, targetId])
+  @@map("audit_log")
+}
+
+/// 系统配置（开关、价格、模板、敏感词、Prompt 版本）
+model Config {
+  key       String   @id @db.VarChar(80)
+  value     Json
+  scope     String   @default("global") @db.VarChar(30)
+  updatedBy String?  @map("updated_by") @db.Char(36)
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("config")
+}
+
+/// 事务发件箱（业务与事件同事务写，worker 异步投递，文档 7.2）
+model EventOutbox {
+  id         String    @id @default(uuid()) @db.Char(36)
+  eventName  String    @map("event_name") @db.VarChar(80)
+  payload    Json
+  status     String    @default("pending") @db.VarChar(20)
+  retryCount Int       @default(0) @map("retry_count")
+  error      String?   @db.VarChar(600)
+  createdAt  DateTime  @default(now()) @map("created_at")
+  sentAt     DateTime? @map("sent_at")
+
+  @@index([status, createdAt])
+  @@map("event_outbox")
+}
+
+/// 幂等键（所有写接口，文档 9.4）
+model IdempotencyRecord {
+  key       String   @id @db.VarChar(80)
+  userId    String?  @map("user_id") @db.Char(36)
+  endpoint  String   @db.VarChar(160)
+  response  Json?
+  status    String   @default("processing") @db.VarChar(20)
+  createdAt DateTime @default(now()) @map("created_at")
+  expireAt  DateTime @map("expire_at")
+
+  @@index([expireAt])
+  @@map("idempotency_record")
+}
+
+// ============================================================
+// 三、管理后台（任务清单 M0-23）
+// ============================================================
+
+/// 管理员登录凭证
+///
+/// ## 为什么不把 password_hash 直接加在 `User` 上
+///
+/// 1. `User` 是**微信身份**（`openid` 唯一），C 端每一条查询路径都会读它；
+///    把后台凭证混进去，等于给 C 端所有用户查询都背上一个密码字段。
+/// 2. 后台账号有 C 端不需要的属性：角色（`AdminRole`）、状态、最后登录时间、
+///    创建人。继续往 `User` 上堆，它只会越来越宽。
+/// 3. 但仍然**绑定到 User**（`user_id` 唯一）—— `audit_log.actor_id`、订单与作业的
+///    责任人都指向 `User`，后台操作必须能追溯到同一个人，不能是"另一个世界的账号"。
+///
+/// ## 密码存储
+///
+/// `scrypt` 哈希，格式 `scrypt$N$r$p$salt$hash`，实现在
+/// `apps/api/src/modules/admin/password.service.ts`（`node:crypto`，不引第三方依赖）。
+/// 参数随哈希一起存：以后调高 N 时，旧哈希仍能被正确校验（按存储的参数算），
+/// 而不是"改一次参数全体管理员登不上"。
+model AdminAccount {
+  id           String    @id @default(uuid()) @db.Char(36)
+  userId       String    @unique @map("user_id") @db.Char(36)
+  username     String    @unique @db.VarChar(40)
+  /// scrypt 哈希（含参数与盐），绝不出现在任何接口响应里
+  passwordHash String    @map("password_hash") @db.VarChar(255)
+  displayName  String    @map("display_name") @db.VarChar(40)
+  /// AdminRole 取值（packages/core/src/admin/permissions.ts）
+  adminRole    String    @map("admin_role") @db.VarChar(20)
+  /// active / disabled。禁用而非删除：审计日志要留得住"这个人做过什么"
+  status       String    @default("active") @db.VarChar(20)
+  lastLoginAt  DateTime? @map("last_login_at")
+  createdBy    String?   @map("created_by") @db.Char(36)
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([status, adminRole])
+  @@map("admin_account")
+}
+
+// ============================================================
+// 十一、记单词 / 四六级词汇训练
+// ============================================================
+//
+// ## 为什么 EF（easeFactor）存整数而不是 Float
+//
+// schema 头部纪律第 1 条是"金额一律 Int，禁止 Float"——EF 不是金额，但它同理：
+// SM-2 的 EF 是个小数（1.3 起步，每次复习按公式微调），浮点在"同一序列重复计算"时
+// 会累积误差，而复习调度是**长期、可重复、要能对账**的（同一天算两次不该得到不同日期）。
+// 所以这里用**百分之一**为单位存 Int：`250` = 2.50。算法侧（`packages/core/src/srs`）全程整数运算。
+//
+// ## `source` 字段为什么必须存在
+//
+// 词条是用离线脚本调 LLM 批量生成的（`scripts/db/gen-words.mjs`）。
+// LLM 产出的音标/释义**可能不准**，把它当权威词典是错的。
+// 因此每条都标 `source`，界面与文案不得声称这是权威词库；
+// 将来接入正式词表（如带授权的开源词库）时，靠这个字段区分与替换。
+
+/// 词书（CET4 / CET6 / 考研…）
+model WordBook {
+  id        String   @id @default(uuid()) @db.Char(36)
+  /// 稳定标识（cet4 / cet6 / kaoyan）—— 前后端与脚本都按它对齐，不按 name
+  code      String   @unique @db.VarChar(20)
+  name      String   @db.VarChar(60)
+  desc      String?  @db.VarChar(200)
+  /// 界面分组：foundation 基础 / school 教材 / exam 考试 / abroad 出国 / career 职业
+  /// 用字符串而不是 enum：新增一组（如"职业"）不该逼着做一次数据迁移
+  category  String   @default("exam") @db.VarChar(20)
+  /// 同族排序（四级 < 六级 < 考研）
+  level     Int      @default(0)
+  /// 词条数（由脚本回写，避免每次 COUNT）
+  wordCount Int      @default(0) @map("word_count")
+  /// active | planned（planned = 词表还没灌完，界面要说清楚而不是给个空词书）
+  status    String   @default("active") @db.VarChar(20)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  words    WordBookWord[]
+  progress UserWordProgress[]
+  members  UserWordBook[]
+
+  @@index([status, level])
+  @@index([category, level])
+  @@map("word_book")
+}
+
+/// 词条本体
+model Word {
+  id         String   @id @default(uuid()) @db.Char(36)
+  /// 词形（小写归一后唯一；大小写与变形交给展示层）
+  spelling   String   @unique @db.VarChar(60)
+  /// 音标（美式优先，含斜杠）
+  phonetic   String?  @db.VarChar(60)
+  /// 英式音标（上游单列给；没有就留空，界面只在有值时才显示切换）
+  ukPhonetic String?  @map("uk_phonetic") @db.VarChar(60)
+  /// 释义：[{ pos: 'n.', meaning: '弃置，放弃' }]，读写走 asJsonArray()
+  senses     Json     @default("[]")
+  /// 例句：[{ en: '...', zh: '...' }]
+  examples   Json     @default("[]")
+  /// 词组搭配：[{ phrase: 'readily accessible', zh: '易接近的' }]
+  /// 这是"不背单词"式内容组织的支柱之一，也是例句填空题的素材来源
+  phrases    Json     @default("[]")
+  /// 助记（词根 / 联想），LLM 生成，可为空
+  mnemonic   String?  @db.VarChar(300)
+  /// 难度 1-5（1 最简单）—— 用于今日新学的取词顺序与四选一干扰项
+  difficulty Int      @default(3)
+  /// llm | curated —— 见文件头说明，不得把 llm 产出当权威
+  source     String   @default("llm") @db.VarChar(20)
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  books    WordBookWord[]
+  progress UserWordProgress[]
+
+  @@index([difficulty])
+  @@index([source])
+  @@map("word")
+}
+
+/// 词书 ↔ 词条（一个词可同属四级与六级）
+model WordBookWord {
+  id     String @id @default(uuid()) @db.Char(36)
+  bookId String @map("book_id") @db.Char(36)
+  wordId String @map("word_id") @db.Char(36)
+  /// 在本词书内的学习顺序（按难度 + 字母稳定排序，脚本回写）
+  seq    Int    @default(0)
+
+  book WordBook @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  word Word     @relation(fields: [wordId], references: [id], onDelete: Cascade)
+
+  @@unique([bookId, wordId])
+  @@index([bookId, seq])
+  @@map("word_book_word")
+}
+
+/// 用户选中的词书 + 每日目标
+///
+/// 一个用户可以同时选多本（四六级一起背），但**同一时刻只有一本 isActive**——
+/// 今日计划一次只围绕一本，否则"今日新学 10 个"会被拆到多本、每本都学不完。
+model UserWordBook {
+  id          String   @id @default(uuid()) @db.Char(36)
+  userId      String   @map("user_id") @db.Char(36)
+  bookId      String   @map("book_id") @db.Char(36)
+  dailyNew    Int      @default(10) @map("daily_new")
+  dailyReview Int      @default(30) @map("daily_review")
+  isActive    Boolean  @default(false) @map("is_active")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  user User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  book WordBook @relation(fields: [bookId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, bookId])
+  @@index([userId, isActive])
+  @@map("user_word_book")
+}
+
+/// SM-2 复习进度（一个用户 × 一个词条 = 一行）
+model UserWordProgress {
+  id           String    @id @default(uuid()) @db.Char(36)
+  userId       String    @map("user_id") @db.Char(36)
+  wordId       String    @map("word_id") @db.Char(36)
+  /// 首次学它时所属词书（用于统计"四级学了多少"）；词书可空是因为词条可能先于选书被复习
+  bookId       String?   @map("book_id") @db.Char(36)
+  /// EF × 100（见文件头说明）
+  easeFactor   Int       @default(250) @map("ease_factor")
+  /// 当前间隔（天）；0 表示还没成功复述过
+  intervalDays Int       @default(0) @map("interval_days")
+  /// 连续答对次数（SM-2 的 n）。⚠️ 答错会归零，**不能直接拿它当题型轮换的种子**
+  repetitions  Int       @default(0)
+  /// 今日已锁定的题型（meaning|spelling|listening|cloze）。
+  ///
+  /// **为什么需要它**：题型若只由 `(词 id, 复习轮次)` 纯函数决定，那"同一个词在同一次
+  /// 学习里被重复提交"就会**当场换题**（拼写→听音→填空→选义），因为每次提交都会推进
+  /// 复习轮次。表现是"我拼错了再拼一遍，拼对了却判我错"——服务端已经按新题型在判卷了。
+  ///
+  /// 所以题型改为**每天第一次出题时定下来、当天不再变**：`typeLockDay` 记是哪一天锁的，
+  /// 跨天（或下次复习）时重新抽取，于是既有"认识的词越考越难"的轮换手感，
+  /// 又保证同一次学习里重试始终是同一道题。
+  ///
+  /// 为 null 表示今天还没出过题（下次出题时写入）。
+  typeLock     String?   @map("type_lock") @db.VarChar(12)
+  /// 题型锁定日期（只到日粒度）。与 `typeLock` 必须同时有值或同时为空
+  typeLockDay  DateTime? @map("type_lock_day") @db.Date
+  /// 下次到期时间（按日期粒度比较；存时刻是为了排序稳定）
+  dueDate      DateTime  @map("due_date")
+  correctCount Int       @default(0) @map("correct_count")
+  wrongCount   Int       @default(0) @map("wrong_count")
+  /// new | learning | review | mastered（由 SM-2 结果推导，见 @qz/core 的 srs）
+  state        String    @default("new") @db.VarChar(20)
+  /// 最近一次评分（0-5），便于复盘
+  lastGrade    Int?      @map("last_grade")
+  lastReviewAt DateTime? @map("last_review_at")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+
+  user User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  word Word      @relation(fields: [wordId], references: [id], onDelete: Cascade)
+  book WordBook? @relation(fields: [bookId], references: [id], onDelete: SetNull)
+
+  @@unique([userId, wordId])
+  @@index([userId, dueDate])
+  @@index([userId, state])
+  @@map("user_word_progress")
+}
+
+/// 每日学习记录（打卡日历的唯一数据源）
+///
+/// ⚠️ 打卡**不另建一张表**：日历上的每一天就是这里的一行。
+/// 另建一张"打卡表"必然出现"有学习记录但没打卡行"或反之，那种不一致没人会发现。
+model WordStudyLog {
+  id           String   @id @default(uuid()) @db.Char(36)
+  userId       String   @map("user_id") @db.Char(36)
+  /// 学习日（只到日粒度，由服务端按固定时区折算后写入）
+  day          DateTime @db.Date
+  newCount     Int      @default(0) @map("new_count")
+  reviewCount  Int      @default(0) @map("review_count")
+  correctCount Int      @default(0) @map("correct_count")
+  wrongCount   Int      @default(0) @map("wrong_count")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, day])
+  @@index([userId, day(sort: Desc)])
+  @@map("word_study_log")
+}
+
+// ============================================================
+// 句子练习 / 口语跟读 / 作文练习（M4-16 练习中心）
+// ============================================================
+//
+// ## 为什么这三个模块共用 `practice_*` 前缀而不是塞进 `word_*`
+//
+// 词汇练的是"一个词"，句子练的是"一句话"，作文练的是"一整篇"。三者的
+// **最小学习单位不同**，硬塞进 `word` 会让那张表的 `spelling` / `senses`
+// 这些字段对句子毫无意义（且语义漂移后没人看得出）。
+//
+// ## 但三者的**进度模型是同一个**
+//
+// `PracticeProgress` 一行 = 一个用户 × 一个句子（或一道作文题），
+// 直接复用 SM-2（`@qz/core` 的 `srs`）—— 与词汇同一套间隔算法。
+// ⭐ **同一套复习算法 MUST NOT 抄两遍**：两个实现迟早会在边界上分叉
+// （间隔封顶值、EF 下限、grade 映射），而"两套复习节奏不一致"用户察觉不到原因。
+//
+// ## 口语的 60% 门槛落在哪
+//
+// 不落在 `PracticeProgress`，而是**由 `PracticeAttempt` 的最近一次得分推导**。
+// 理由：门槛是"这一句能不能过"的**瞬时判定**，而 `PracticeProgress` 记的是
+// "长期掌握程度"。混在一起会导致"过了关但 SM-2 认为没掌握"这种自相矛盾的状态
+// （见 `vocab-answer.service.ts` 里 `vague` 的那条处理，同一个坑）。
+
+/// 句子练习素材（四六级 / 日常口语）。
+///
+/// 一个句子同时服务两个模块：**句子练习**（连词成句 / 中译英）
+/// 与**口语跟读**（同一句话，换个练法）。所以这里不按模块拆表 ——
+/// 拆了会出现"同一句话在句子里有、在口语里没有"的库存不一致。
+model PracticeSentence {
+  id        String   @id @default(uuid()) @db.Char(36)
+  /// 英文原句（**按小写去重**由灌库脚本保证；大小写原样保留用于展示）
+  en        String   @db.VarChar(300)
+  /// 中文翻译（题面用它出"中译英"）
+  zh        String   @db.VarChar(300)
+  /// 语块拆分：[{ text: 'in order to', zh: '为了' }]
+  /// 连词成句的"砖块"——**由脚本按规则切分并落库**，不在请求时算，
+  /// 否则每次出题切法可能不同，"同一句话两次练到的语块不一样"。
+  chunks    Json     @default("[]")
+  /// 1 基础 / 2 进阶 / 3 挑战（启发式，见 fetch-sentences.mjs）
+  level     Int      @default(1)
+  /// 句子长度（词数）—— 界面显示"共 9 个词"，比"进阶"更直观
+  wordCount Int      @default(0) @map("word_count")
+  /// tatoeba | curated —— **授权追溯用**，不得为空
+  source    String   @default("tatoeba") @db.VarChar(20)
+  /// 原句在数据源里的 id（Tatoeba sentence id），用于署名与溯源
+  sourceRef String?  @map("source_ref") @db.VarChar(40)
+  /// 口语练习是否可用：需要"适合朗读"的句子（过短或含生僻专名的剔除）
+  speakable Boolean  @default(true)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  // ⚠️ **故意不声明 `progress PracticeProgress[]` / `attempts PracticeAttempt[]`**。
+  // Prisma 见到反向数组字段会自动推断关系，凭空生成 `practiceSentenceId` 列与
+  // 外键；但 `practice_progress.ref_id` 指向两张不同的表（多态关联），
+  // SQL 外键表达不了 —— 生成的列会**永远为 NULL、约束永远不生效**，
+  // 而读 schema 的人会以为有关联（比没有更糟）。详见本文件末尾与 migration.sql。
+  @@index([level, wordCount])
+  @@index([speakable, level])
+  @@map("practice_sentence")
+}
+
+/// 作文题目（四六级写作，提纲式）
+model PracticeTopic {
+  id        String   @id @default(uuid()) @db.Char(36)
+  /// 稳定标识（`cet4-202312-1`）—— 脚本按它做幂等 upsert
+  code      String   @unique @db.VarChar(60)
+  /// exam 四六级真题 / mock 模拟题
+  kind      String   @default("mock") @db.VarChar(20)
+  /// cet4 | cet6 | general
+  level     String   @default("cet4") @db.VarChar(10)
+  /// 题目要求（英文陈述句，如 "On the importance of time management"）
+  title     String   @db.VarChar(200)
+  /// 提纲：[{ en: 'State the importance of ...', zh: '说明……的重要性' }]
+  outline   Json     @default("[]")
+  /// 中文提示语（给用户看的题意说明）
+  zhBrief   String   @map("zh_brief") @db.VarChar(400)
+  /// 参考范文（LLM 生成，**必须标注为 AI 生成**，不得冒充官方范文）
+  sample    String?  @db.Text
+  /// 建议词数下限（四六级通常 120~180）
+  minWords  Int      @default(120) @map("min_words")
+  source    String   @default("curated") @db.VarChar(20)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  // ⚠️ 同上：**故意不声明反向关系**（多态关联，见 PracticeSentence 的说明）
+  @@index([kind, level])
+  @@map("practice_topic")
+}
+
+/// 练习进度（一个用户 × 一题 = 一行）—— **复用 SM-2，与词汇同一套算法**
+///
+/// `kind` 区分是句子还是作文：两种题的 `refId` 指向不同的表，
+/// 用一张表装比建两张字段完全相同的表更省事，且**复习队列能一次查出来**
+/// （建两张表就要 join 两次再在内存里合并，排序口径容易写歪）。
+model PracticeProgress {
+  id           String    @id @default(uuid()) @db.Char(36)
+  userId       String    @map("user_id") @db.Char(36)
+  /// sentence | topic
+  kind         String    @db.VarChar(10)
+  /// 句子 id 或作文题 id（**不是外键** —— 两种 kind 指向不同表；
+  /// 代价是没有级联删除，所以给 refId 建了索引，删素材时要手工清）
+  refId        String    @map("ref_id") @db.Char(36)
+  /// EF × 100（与 `UserWordProgress.easeFactor` 同口径）
+  easeFactor   Int       @default(250) @map("ease_factor")
+  intervalDays Int       @default(0) @map("interval_days")
+  repetitions  Int       @default(0)
+  /// ⭐ 当天已锁定的练习模式（`practiceMode` 的取值），语义与词汇的
+  /// `typeLock` **完全一致**：同一次练习里重试必须还是同一种题面。
+  /// 详见 `vocab-quiz.ts` 文件头"同一轮里必须锁住"。
+  modeLock     String?   @map("mode_lock") @db.VarChar(16)
+  modeLockDay  DateTime? @map("mode_lock_day") @db.Date
+  dueDate      DateTime  @map("due_date")
+  /// 通过次数 / 尝试次数（作文按"提交"计）
+  passCount    Int       @default(0) @map("pass_count")
+  attemptCount Int       @default(0) @map("attempt_count")
+  /// 口语的最近一次准确率（0~100）。**用最近一次而不是最高分** ——
+  /// 记最高分会让"以前读对过一次、现在读不对"永远显示为已掌握。
+  lastScore    Int?      @map("last_score")
+  /// new | learning | review | mastered
+  state        String    @default("new") @db.VarChar(20)
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // ⚠️ `refId` 是**多态关联**（kind=sentence 指句子，kind=topic 指作文题），
+  // 故意不建外键 —— 但不能因此放任它没有索引：复习队列按 (userId, dueDate) 查、
+  // 单题历史按 (userId, kind, refId) 查，两个都得走索引。
+  @@unique([userId, kind, refId])
+  @@index([userId, dueDate])
+  @@index([userId, kind, state])
+  @@map("practice_progress")
+}
+
+/// 单次练习记录（每次提交一行）—— 统计与"口语门槛"的数据源
+model PracticeAttempt {
+  id        String   @id @default(uuid()) @db.Char(36)
+  userId    String   @map("user_id") @db.Char(36)
+  kind      String   @db.VarChar(10)
+  refId     String   @map("ref_id") @db.Char(36)
+  /// 本次用的练习模式（chunks|recall|listen|speak|write）
+  mode      String   @db.VarChar(16)
+  /// 是否通过（口语 = score ≥ 门槛；作文 = 成功批改出分）
+  passed    Boolean  @default(false)
+  /// 得分 0~100。句子题"全对=100、有错按比例"；作文按批改折算；口语=准确率
+  score     Int?
+  /// 用户实际提交的内容（口语是 ASR 转写文本，作文是全文）
+  /// ⚠️ 作文可能上千字，用 Text；口语转写一般很短
+  submitted String?  @db.Text
+  /// 用时（毫秒）—— 用于"这次练得比上次快"的反馈
+  elapsedMs Int?     @map("elapsed_ms")
+  /// 判定明细：[{ word: 'time', ok: false }]（口语逐词对齐结果）/ 作文各维度分
+  detail    Json     @default("[]")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // ⚠️ 同 PracticeProgress：`refId` 是多态关联，**故意不建外键**
+  @@index([userId, kind, refId])
+  @@index([userId, createdAt(sort: Desc)])
+  @@map("practice_attempt")
+}
+
+/// 练习打卡（与 `word_study_log` 同构，但**分开记**）
+///
+/// ⚠️ 为什么不复用 `word_study_log`：那张表带 `bookId`，而练习中心没有词书概念。
+/// 硬塞要把它改成可空 + 语义变成"词书或练习"，统计口径会同时引入两种含义。
+/// 分开记的代价是统计页要查两张表 —— 但**口径清楚**比少查一次重要。
+model PracticeStudyLog {
+  id            String   @id @default(uuid()) @db.Char(36)
+  userId        String   @map("user_id") @db.Char(36)
+  day           DateTime @db.Date
+  /// 按模块分别计数（词汇不在这里，见 `word_study_log`）
+  sentenceCount Int      @default(0) @map("sentence_count")
+  speakCount    Int      @default(0) @map("speak_count")
+  writeCount    Int      @default(0) @map("write_count")
+  passCount     Int      @default(0) @map("pass_count")
+  failCount     Int      @default(0) @map("fail_count")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, day])
+  @@map("practice_study_log")
+}
+
+// ============================================================
+// ⚠️⚠️ 已知漂移：`search_index` 表**故意没有**在这里声明模型
+// ============================================================
+//
+// `search_index` 是 `20260919120000_add_search_index` 用**手写 SQL** 建的（M4-07 搜索升级）。
+// 它需要 `FULLTEXT KEY ... WITH PARSER ngram` —— 中文没有空格，MySQL 默认分词器会把整段话
+// 当成一个"词"，检索"摄影"永远匹配不到"校园摄影服务"，**而且不报错、只是永远返回空**。
+//
+// 而 Prisma **表达不了 ngram 解析器**：
+//   · 不声明 `@@fulltext` → 它把这张表当成"数据库里多出来的"，`migrate dev` 生成 `DROP TABLE`；
+//   · 用 `previewFeatures = ["fullTextIndex"]` 声明 → 它认得出索引存在，但一旦需要重建索引，
+//     生成的 SQL **不会带 `WITH PARSER ngram`**，中文检索会静默退化成"永远搜不到"。
+// 两种都会造成**静默**失效，所以选择"不声明 + 明确记录"。
+//
+// ## 动手前必读
+//
+// 执行 `npm run db:migrate`（`prisma migrate dev`）后，**务必检查生成的 migration.sql**：
+// 若包含 `DROP TABLE \`search_index\`` 或 `DROP INDEX \`ft_search_title_body\``，
+// **手工删掉那两行**再应用。参考 `20260919100618_add_verification_identity/migration.sql`
+// 里的同样处理。
+//
+// 想根治的话：把 `search_index` 的读写从 Prisma 挪到裸 SQL（它本来就是 `SearchProvider`
+// 单向写入的，业务表不感知），再把它从 Prisma 的管辖范围里摘出去。

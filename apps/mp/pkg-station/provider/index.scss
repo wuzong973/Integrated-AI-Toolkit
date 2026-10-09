@@ -1,0 +1,33 @@
+@import '../../styles/tokens.scss';
+
+/* 服务者主页（M3-05）· 葡萄紫主题（模块色板见 styles/themes.scss 的 .th-provider）
+   造型语言：圆角 28 + 双光斑 + 呼吸光点；列表卡用主题浅底卡 + 抬升反馈，与市场页的描边卡区分。
+   取色只用 var(--m*) 与 tokens，不出现任何 #RRGGBB（红线 2）。 */
+
+.provider-body { padding-bottom: $sp-12; }
+
+/* ---------- 认证信息卡 ---------- */
+.sum-row { display: flex; align-items: center; }
+.sum-body { flex: 1; min-width: 0; margin-left: $sp-3; }
+.sum-name { display: block; font-size: $fs-h2; font-weight: $fw-bold; color: $text-1; }
+.sum-meta { display: block; margin-top: 2rpx; font-size: $fs-tag; color: $text-2; }
+.sum-rating { display: block; margin-top: 2rpx; font-size: $fs-tag; color: $warning; }
+.sum-flow { margin-top: $sp-3; }
+
+/* ---------- 在架服务列表 ---------- */
+.prow { padding: $card-padding; }
+.prow-row { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: $sp-2; }
+.prow-title { flex: 1; min-width: 0; font-size: $fs-body; font-weight: $fw-semi; color: $text-1; margin-right: $sp-3; }
+.prow-price { flex-shrink: 0; font-size: $fs-h3; font-weight: $fw-bold; color: $accent-500; }
+.prow-desc { display: block; font-size: $fs-aux; color: $text-2; line-height: 1.6; margin-bottom: $sp-3; }
+.prow-foot { display: flex; align-items: center; justify-content: space-between; }
+.prow-meta { flex: 1; min-width: 0; font-size: $fs-tag; color: $text-3; }
+.prow-tags { display: flex; flex-wrap: wrap; margin-top: $sp-2; }
+.prow-tag {
+  padding: 2rpx 14rpx; margin: 0 $sp-2 $sp-2 0;
+  border-radius: $radius-pill; font-size: $fs-tag;
+  background: var(--ms); color: var(--mt);
+}
+
+/* 空态次按钮：与主按钮之间留出呼吸 */
+.provider-empty-sub { margin-top: $sp-3; }

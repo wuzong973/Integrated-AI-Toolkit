@@ -1,0 +1,125 @@
+/**
+ * 装饰层系统（动态流线 / 流水光效 / 动态曲线 / 光斑）
+ *
+ * 三条纪律（见 docs/dev/MP-VISUAL-SYSTEM.md）：
+ *   ① 装饰层一律 absolute + pointer-events:none，绝不参与布局、绝不拦截点击；
+ *   ② 装饰层颜色只取主题变量 var(--m1..--m4)，随模块换色；
+ *   ③ 内容必须包在 .qz-content 里（z-index 高于装饰层），保证可读性不受影响。
+ *
+ * 视差：把装饰层放进 .qz-fx，页面把手指/鼠标位移写进它的内联 transform，
+ * 即可获得"随指针移动"的动态响应；内容区不跟随，避免影响阅读。
+ */
+
+/* ---------- 容器 ---------- */
+.qz-deco {
+  position: absolute; left: 0; top: 0; right: 0; bottom: 0;
+  overflow: hidden; pointer-events: none; z-index: 0;
+}
+/* 视差层：向外扩 40rpx，位移时不会露出边缘 */
+.qz-fx {
+  position: absolute; left: -40rpx; top: -40rpx; right: -40rpx; bottom: -40rpx;
+  transition: transform .5s $ease-out;
+}
+.qz-content { position: relative; z-index: 1; }
+
+/* ---------- 动态流线（行进虚线） ---------- */
+.qz-flow {
+  height: 4rpx; border-radius: 4rpx;
+  background-image: repeating-linear-gradient(90deg, var(--m1) 0 12rpx, transparent 12rpx 26rpx);
+  background-size: 26rpx 4rpx;
+  animation: qzMarchX 1.2s linear infinite;
+  opacity: .45;
+}
+.qz-flow-rev { animation-name: qzMarchXNeg; }
+.qz-flow-soft { opacity: .28; }
+.qz-flow-thick { height: 6rpx; border-radius: 6rpx; opacity: .55; }
+
+/* ---------- 流水光效（横向流动的条纹/水波） ---------- */
+.qz-water {
+  background-image: repeating-linear-gradient(
+    100deg,
+    var(--m1) 0 6rpx, transparent 6rpx 26rpx, var(--m2) 26rpx 30rpx, transparent 30rpx 52rpx
+  );
+  background-size: 120rpx 100%;
+  animation: qzWaterFlow 7s linear infinite;
+  opacity: .16;
+}
+/* 波浪边：扇贝形曲线，可上下两个方向 */
+.qz-wave {
+  height: 32rpx;
+  background-image: radial-gradient(circle at 50% 100%, var(--m2) 0 44%, transparent 46%);
+  background-size: 56rpx 32rpx;
+  background-repeat: repeat-x;
+  animation: qzWaterFlow 8s linear infinite;
+  opacity: .35;
+}
+.qz-wave-up {
+  background-image: radial-gradient(circle at 50% 0%, var(--m2) 0 44%, transparent 46%);
+}
+/* 大弧线：两段错位圆弧叠出"曲线"感 */
+.qz-curve {
+  height: 120rpx;
+  background-image:
+    radial-gradient(circle at 20% 120%, transparent 0 58%, var(--m1) 59% 60%, transparent 61%),
+    radial-gradient(circle at 78% 130%, transparent 0 62%, var(--m2) 63% 64%, transparent 65%);
+  opacity: .5;
+}
+
+/* ---------- 光斑 / 有机形 ---------- */
+.qz-blob {
+  position: absolute;
+  border-radius: $radius-blob;
+  background: radial-gradient(circle at 34% 30%, var(--m2) 0%, var(--m1) 72%);
+  opacity: .16;
+  animation: qzBlob $loop-blob $ease-inout infinite;
+}
+.qz-blob-a { width: 300rpx; height: 300rpx; right: -80rpx; top: -100rpx; }
+.qz-blob-b { width: 200rpx; height: 200rpx; left: -80rpx; top: 90rpx; opacity: .12; animation-delay: -3.4s; }
+.qz-blob-c { width: 150rpx; height: 150rpx; right: 60rpx; bottom: -60rpx; opacity: .13; animation-delay: -6s; }
+
+/* 光晕点：小而亮，制造"星光" */
+.qz-dot {
+  position: absolute; border-radius: 50%;
+  background: var(--m3);
+  opacity: .45;
+  animation: qzBreath 3.8s $ease-inout infinite;
+}
+.qz-dot-a { width: 14rpx; height: 14rpx; right: 96rpx; top: 40rpx; }
+.qz-dot-b { width: 10rpx; height: 10rpx; right: 44rpx; top: 116rpx; animation-delay: -1.2s; }
+.qz-dot-c { width: 16rpx; height: 16rpx; left: 60rpx; bottom: 36rpx; animation-delay: -2.4s; background: var(--m4); }
+
+/* ---------- 扫光（卡片上掠过的一道柔光） ---------- */
+.qz-shine {
+  position: absolute; top: 0; bottom: 0; left: 0; width: 140rpx;
+  background: linear-gradient(100deg, transparent 0%, rgba(255, 255, 255, .55) 50%, transparent 100%);
+  animation: qzShine 5.2s $ease-inout infinite;
+  pointer-events: none;
+}
+.qz-shine-slow { animation-duration: 8s; }
+
+/* ---------- 渐变描边卡（顶部一条彩色渐变线） ---------- */
+.qz-topline {
+  position: absolute; left: 0; right: 0; top: 0; height: 6rpx;
+  background: linear-gradient(90deg, var(--m1), var(--m2), var(--m3), var(--m1));
+  background-size: 300% 100%;
+  animation: qzGradientShift 6s $ease-inout infinite;
+}
+
+/* ---------- 图标光环（随主题呼吸） ---------- */
+.qz-halo {
+  position: absolute; left: 50%; top: 50%;
+  width: 132%; height: 132%; margin: -66% 0 0 -66%;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--m1) 0%, transparent 70%);
+  opacity: .16;
+  animation: qzBreath 5s $ease-inout infinite;
+  pointer-events: none;
+}
+
+/* ---------- 粒子上升（交付/成功场景） ---------- */
+@keyframes qzRise {
+  0%   { transform: translate3d(0, 20rpx, 0) scale(.6); opacity: 0; }
+  30%  { opacity: .8; }
+  100% { transform: translate3d(0, -90rpx, 0) scale(1); opacity: 0; }
+}
+.qz-rise { animation: qzRise 3.4s linear infinite; }

@@ -1,0 +1,139 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+# 同一分支的新推送取消旧任务，避免排队
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quality:
+    name: 代码质量（lint / typecheck / test / build）
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 安装 Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: 安装依赖
+        run: npm ci
+
+      - name: Lint（含单文件 <=300 行、禁 any）
+        run: npm run lint
+
+      - name: 构建 @qz/core（后续类型检查依赖其产物）
+        run: npm run build -w @qz/core
+
+      # 已包含 core / sdk / api / 小程序 四端
+      - name: 类型检查
+        run: npm run typecheck
+
+      # AI 产出质量：标准 / 提示词 / 质检 / 图表类型四处对账（M1-07/08/09）
+      # 超时预算：服务端预算 < 客户端超时，否则用户看到失败、服务端仍在跑（A2）
+      # 采样参数不得散落：调用方表达意图（sampling 档位）而非字面量（Q9）
+      - name: 采样参数守卫
+        run: node scripts/dev/check-sampling.mjs
+
+      - name: 超时预算守卫
+        run: node scripts/dev/check-timeout-budget.mjs
+
+      - name: AI 产出质量守卫
+        run: node scripts/dev/check-ai-output-quality.mjs
+      - name: 单元测试（状态机 / 计费 / 配置 / 校验管道）
+        run: npm test
+
+      - name: 构建
+        run: npm run build
+
+  services:
+    name: Python 侧车服务冒烟（/health）
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 安装 Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: 语法检查
+        run: python -m compileall -q services scripts/docs scripts/license
+
+      # 骨架阶段零第三方依赖，装了依赖反而掩盖问题
+      - name: ai 服务 /health
+        run: |
+          python -m services.ai &
+          AI_PID=$!
+          trap 'kill $AI_PID' EXIT
+          for i in $(seq 1 20); do
+            curl -fsS http://127.0.0.1:8000/health && exit 0
+            sleep 0.5
+          done
+          echo "❌ services/ai /health 未就绪" && exit 1
+
+      - name: media 服务 /health
+        run: |
+          python -m services.media &
+          MEDIA_PID=$!
+          trap 'kill $MEDIA_PID' EXIT
+          for i in $(seq 1 20); do
+            curl -fsS http://127.0.0.1:8001/health && exit 0
+            sleep 0.5
+          done
+          echo "❌ services/media /health 未就绪" && exit 1
+
+  compliance:
+    name: 开源合规检查
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 安装 Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: 台账完整性（每条依赖必须登记）
+        run: |
+          if [ ! -f docs/compliance/OPEN_SOURCE_LICENSES.md ]; then
+            echo "❌ 缺少 docs/compliance/OPEN_SOURCE_LICENSES.md（文档 2.12 强制要求）"
+            exit 1
+          fi
+          echo "✅ 开源台账存在"
+
+      - name: FFmpeg 许可断言（GPL 构建则失败）
+        run: bash scripts/license/check-ffmpeg-license.sh
+
+      - name: 依赖 License 核查（配置 token 时核查全量）
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: node scripts/dev/run-python.mjs scripts/license/license_audit.py --sleep 1 || true
+
+  smoke:
+    name: 冒烟测试（API 可启动 + /health 返回 200）
+    runs-on: ubuntu-latest
+    needs: quality
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - run: npm ci
+      - name: 准备环境文件
+        run: npm run setup:env
+      - name: 构建
+        run: |
+          npm run build -w @qz/core
+          npm run build -w @qz/api
+      - name: 启动 API 并冒烟
+        run: npm run smoke -- --spawn

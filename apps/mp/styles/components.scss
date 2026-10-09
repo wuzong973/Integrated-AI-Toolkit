@@ -1,0 +1,217 @@
+/**
+ * 共享视觉组件（可爱多彩体系的可复用件）
+ *
+ * 只放"跨页面复用"的东西；页面私有样式写在页面自己的 scss 里。
+ * 所有取色一律走 var(--m*) 主题变量或 tokens.scss，禁止硬编码色值（红线 2）。
+ */
+
+/* ============ 糖果图标底座 ============ */
+.qz-ico {
+  position: relative;
+  display: inline-flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+/* 呼吸光环：让图标"活"起来，颜色随主题 */
+.qz-ico::before {
+  content: '';
+  position: absolute; left: 50%; top: 50%;
+  width: 128%; height: 128%; margin: -64% 0 0 -64%;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--m1) 0%, transparent 70%);
+  opacity: .14;
+  animation: qzBreath 5s $ease-inout infinite;
+}
+.qz-ico > .qz-i { position: relative; width: 100%; height: 100%; }
+.qz-ico-s { width: $ico-sm; height: $ico-sm; }
+.qz-ico-m { width: $ico-md; height: $ico-md; }
+.qz-ico-l { width: $ico-lg; height: $ico-lg; }
+.qz-ico-xl { width: $ico-xl; height: $ico-xl; }
+.qz-ico-plain::before { display: none; }
+.qz-ico-float { animation: qzFloatY $loop-float $ease-inout infinite; }
+.qz-ico-bob { animation: qzBob 4.2s $ease-inout infinite; }
+.qz-ico-slow { animation-duration: 7.4s; }
+
+/* 底座柔影：图标背后一层彩色投影 */
+.qz-ico-glow { filter: drop-shadow(0 8rpx 16rpx var(--sh)); }
+
+/* ============ 卡片体系（四种性格，用于区分模块层次） ============ */
+/* ① 基础柔影卡（默认） */
+.qz-card {
+  position: relative;
+  background: $bg-card;
+  border-radius: var(--r-card, #{$radius-md});
+  padding: $card-padding;
+  box-shadow: $shadow-soft;
+  margin-bottom: $sp-4;
+  overflow: hidden;
+}
+/* ② 描边卡：浅边 + 顶部高光，适合密集列表 */
+.qz-card-line {
+  background: $bg-card;
+  border: 1rpx solid $border-strong;
+  border-radius: var(--r-card, #{$radius-md});
+  box-shadow: none;
+}
+/* ③ 主题浅底卡：整块用模块柔色，用于强调区块 */
+.qz-card-tint { background: var(--ms); box-shadow: none; }
+/* ④ 渐变卡：白→柔底，营造体积感 */
+.qz-card-grad {
+  background: linear-gradient(148deg, $bg-card 52%, var(--ms) 100%);
+  border: 1rpx solid $line-soft;
+}
+/* ⑤ 彩色柔影卡：投影带模块色倾向 */
+.qz-card-glow { box-shadow: 0 8rpx 26rpx var(--sh), 0 2rpx 6rpx rgba(16, 24, 40, .03); }
+/* 左侧彩色指示条（列表项分组） */
+.qz-card-bar::after {
+  content: '';
+  position: absolute; left: 0; top: 18%; bottom: 18%; width: 8rpx;
+  border-radius: 0 8rpx 8rpx 0;
+  background: linear-gradient(180deg, var(--m1), var(--m2));
+}
+
+/* ============ 区块标题 ============ */
+.qz-sec {
+  display: flex; align-items: center;
+  padding: $sp-6 $page-padding $sp-3;
+}
+.qz-sec-bar {
+  width: 8rpx; height: 30rpx; border-radius: 4rpx; margin-right: $sp-3;
+  background: linear-gradient(180deg, var(--m1), var(--m2));
+  animation: qzFloatY 4.4s $ease-inout infinite;
+}
+.qz-sec-title { font-size: $fs-h2; font-weight: $fw-bold; color: $text-1; letter-spacing: .4rpx; }
+.qz-sec-sub { margin-left: $sp-3; font-size: $fs-tag; color: $text-3; }
+.qz-sec-more {
+  margin-left: auto; font-size: $fs-aux; color: var(--mt);
+  display: flex; align-items: center;
+  transition: transform $dur-fast $ease-out;
+}
+.qz-sec-more:active { transform: translateX(4rpx); }
+
+/* ============ 标签 / 胶囊 ============ */
+.qz-chip {
+  display: inline-flex; align-items: center;
+  height: 46rpx; padding: 0 20rpx;
+  border-radius: $radius-pill;
+  font-size: $fs-tag; font-weight: $fw-medium;
+  background: var(--ms); color: var(--mt);
+  transition: transform $dur-fast $ease-spring, background $dur-fast linear;
+}
+.qz-chip:active { transform: scale(.94); }
+.qz-chip-on {
+  background: linear-gradient(135deg, var(--m1), var(--m2));
+  color: $text-inverse; font-weight: $fw-semi;
+  box-shadow: 0 6rpx 16rpx var(--sh);
+}
+.qz-chip-ghost { background: rgba(255, 255, 255, .7); color: var(--mt); border: 1rpx solid var(--ms); }
+.qz-chip-num { margin-left: 6rpx; opacity: .7; font-size: 18rpx; }
+
+/* ============ 主按钮（渐变 + 彩色柔影 + 按压回弹） ============ */
+.qz-btn-main {
+  height: $hit-min; line-height: $hit-min; text-align: center;
+  border-radius: $radius-pill;
+  background: linear-gradient(135deg, var(--m1), var(--m2));
+  color: $text-inverse; font-size: $fs-body; font-weight: $fw-semi;
+  box-shadow: 0 10rpx 24rpx var(--sh);
+  transition: transform $dur-instant $ease-out, box-shadow $dur-fast $ease-out;
+}
+.qz-btn-main:active { transform: scale(.97) translateY(2rpx); box-shadow: 0 4rpx 12rpx var(--sh); }
+.qz-btn-sub {
+  height: $hit-min; line-height: $hit-min; text-align: center;
+  border-radius: $radius-pill;
+  background: var(--ms); color: var(--mt);
+  font-size: $fs-body; font-weight: $fw-medium;
+}
+.qz-btn-sub:active { opacity: .85; }
+.qz-btn-plain {
+  height: $hit-min; line-height: $hit-min; text-align: center;
+  border-radius: $radius-pill;
+  background: $bg-card; color: $text-2;
+  border: 1rpx solid $border-strong;
+  font-size: $fs-body;
+}
+.qz-btn-block { width: 100%; }
+
+/* ============ 空态（所有占位页共用，保证 26 个页面气质一致） ============ */
+.qz-empty {
+  position: relative;
+  padding: 80rpx $card-padding 72rpx;
+  text-align: center;
+  overflow: hidden;
+  border-radius: var(--r-card, #{$radius-lg});
+  background: linear-gradient(160deg, $bg-card 45%, var(--ms) 100%);
+  border: 1rpx solid $line-soft;
+  box-shadow: $shadow-soft;
+}
+.qz-empty-ico {
+  position: relative;
+  display: flex; align-items: center; justify-content: center;
+  margin: 0 auto $sp-6;
+  animation: qzFloatY 5.6s $ease-inout infinite;
+}
+.qz-empty-title {
+  display: block; font-size: $fs-h2; font-weight: $fw-bold; color: $text-1;
+  margin-bottom: $sp-2;
+}
+.qz-empty-text {
+  display: block; font-size: $fs-aux; color: $text-3;
+  line-height: 1.75; margin-bottom: $sp-6;
+}
+.qz-empty-flow { margin: 0 auto $sp-6; width: 200rpx; }
+
+/* ============ 骨架屏（加载中） ============ */
+@keyframes qzSkeleton {
+  from { background-position: 120% 50%; }
+  to   { background-position: -20% 50%; }
+}
+.qz-skeleton {
+  border-radius: $radius-sm;
+  background-image: linear-gradient(90deg, $border 22%, $line-soft 40%, $border 58%);
+  background-size: 300% 100%;
+  animation: qzSkeleton 1.5s linear infinite;
+}
+.qz-skeleton-line { height: 24rpx; margin-bottom: $sp-3; }
+.qz-skeleton-line-short { width: 46%; }
+
+/* ============ 通用列表项（我的 / 设置 / 订单等） ============ */
+.qz-item {
+  display: flex; align-items: center;
+  padding: $card-padding;
+  position: relative;
+  transition: background $dur-fast linear;
+}
+.qz-item:active { background: var(--ms); }
+.qz-item-main { flex: 1; min-width: 0; margin-left: $sp-4; }
+.qz-item-title { display: block; font-size: $fs-body; color: $text-1; font-weight: $fw-medium; }
+.qz-item-desc { display: block; font-size: $fs-tag; color: $text-3; margin-top: 2rpx; }
+.qz-item-extra { font-size: $fs-aux; color: $text-3; margin-left: $sp-3; }
+.qz-item-arrow {
+  margin-left: $sp-2; color: $text-3; font-size: $fs-h2;
+  transition: transform $dur-fast $ease-out;
+}
+.qz-item:active .qz-item-arrow { transform: translateX(4rpx); }
+.qz-item-line { border-bottom: 1rpx solid $border; }
+.qz-item-line:last-child { border-bottom: none; }
+
+/* ============ 页头（大标题 + 图标 + 装饰） ============ */
+.qz-head {
+  position: relative;
+  padding: $sp-6 $page-padding $sp-8;
+  overflow: hidden;
+}
+.qz-head-row { display: flex; align-items: center; }
+.qz-head-main { flex: 1; min-width: 0; margin-left: $sp-4; }
+.qz-head-title { display: block; font-size: $fs-h1; font-weight: $fw-black; color: $text-1; letter-spacing: .6rpx; }
+.qz-head-sub { display: block; font-size: $fs-aux; color: $text-3; margin-top: 4rpx; }
+.qz-head-chips { display: flex; flex-wrap: wrap; margin-top: $sp-4; }
+.qz-head-chips > .qz-chip { margin: 0 $sp-2 $sp-2 0; }
+
+/* ============ 渐变文字（标题强调） ============ */
+.qz-grad-text {
+  background: linear-gradient(100deg, var(--m1), var(--m2), var(--m3), var(--m1));
+  background-size: 300% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: qzGradientShift 7s $ease-inout infinite;
+}

@@ -1,0 +1,139 @@
+<!-- 管理后台 · 用户（数据源 GET /admin/users，只读）
+     ⚠️ 本页不提供封号 / 改角色 / 改余额：那些动作留在网页版后台（apps/admin），
+     手机上误触的代价太高。这里只解决"看一眼都有谁、状态对不对"。
+     装饰签名「仅 dot-c」；反馈用 press（行可点但没有详情页，所以不挂 lift 骗用户） -->
+<view
+  class="qz-page th-mine ad ad-users"
+  bindtouchstart="onFxStart"
+  bindtouchmove="onFxMove"
+  bindtouchend="onFxEnd"
+  bindtouchcancel="onFxEnd"
+>
+  <view class="qz-deco">
+    <view class="qz-fx" style="{{fxStyle}}">
+      <view class="ad-dot qz-dot qz-dot-c"></view>
+    </view>
+  </view>
+
+  <view class="qz-content">
+    <block wx:if="{{gate !== 'ok'}}">
+      <view wx:if="{{gate === 'checking'}}" class="qz-container ad-body">
+        <view class="ad-skm qz-card qz-card-bar">
+          <view class="qz-skeleton ad-sk-label"></view>
+          <view class="qz-skeleton ad-sk-num"></view>
+        </view>
+      </view>
+      <view wx:elif="{{gate === 'denied'}}" class="qz-container ad-body">
+        <view class="qz-empty qz-an-in">
+          <view class="qz-empty-ico qz-ico qz-ico-xl qz-ico-float"><view class="qz-i qz-i-lock"></view></view>
+          <text class="qz-empty-title">没有权限</text>
+          <text class="qz-empty-text">当前账号不是平台管理员，用户名单不会在这里展示。</text>
+          <view class="qz-empty-flow qz-flow"></view>
+          <view class="qz-btn-main qz-press" bindtap="onBack">返回</view>
+        </view>
+      </view>
+      <view wx:elif="{{gate === 'error'}}" class="qz-container ad-body">
+        <view class="qz-err qz-an-in">
+          <text class="qz-err-text">{{gateError}}</text>
+          <view class="qz-err-btn qz-press" bindtap="onRetryGate">重新验证</view>
+        </view>
+      </view>
+    </block>
+
+    <block wx:else>
+      <view class="ad-band qz-an-in">
+        <view class="ad-band-row">
+          <view class="qz-ico qz-ico-m qz-ico-plain ad-band-ico"><view class="qz-i qz-i-chart"></view></view>
+          <view class="ad-band-main">
+            <text class="ad-band-title">管理后台</text>
+            <text class="ad-band-sub">{{adminName}} · 管理员</text>
+          </view>
+          <view class="ad-band-back qz-press" bindtap="onBack">返回</view>
+        </view>
+        <view class="ad-band-chips">
+          <view wx:for="{{roleChips}}" wx:key="*this" class="ad-chip">{{item}}</view>
+        </view>
+      </view>
+
+      <view class="ad-tabs qz-an-in qz-d1">
+        <view
+          wx:for="{{tabs}}"
+          wx:key="key"
+          class="ad-tab {{item.on ? 'ad-tab-on' : ''}} qz-press"
+          data-url="{{item.url}}"
+          bindtap="onTabTap"
+        >{{item.label}}</view>
+      </view>
+
+      <view class="ad-sync qz-an-in qz-d2">
+        <text class="ad-sync-time">{{updatedAt ? '更新于 ' + updatedAt : '首次拉取中…'}}</text>
+        <view class="ad-sync-btn qz-press" bindtap="onRefresh">{{busy ? '刷新中…' : '手动刷新'}}</view>
+      </view>
+
+      <view class="ad-search qz-an-in qz-d3">
+        <view class="qz-ico qz-ico-s ad-search-ico"><view class="qz-i qz-i-search"></view></view>
+        <input
+          class="ad-search-input"
+          type="text"
+          maxlength="60"
+          placeholder="昵称 / 手机号"
+          value="{{keyword}}"
+          confirm-type="search"
+          bindinput="onKeywordInput"
+          bindconfirm="onSearch"
+        />
+        <view class="ad-search-go qz-press" bindtap="onSearch">搜索</view>
+      </view>
+
+      <view class="ad-filters qz-an-in qz-d3">
+        <view
+          wx:for="{{filters}}"
+          wx:key="value"
+          class="ad-filter {{item.on ? 'ad-filter-on' : ''}} qz-press {{item.anim}}"
+          data-value="{{item.value}}"
+          bindtap="onFilterTap"
+        >{{item.label}}</view>
+      </view>
+
+      <view wx:if="{{view === 'loading'}}" class="qz-container ad-body">
+        <view wx:for="{{[1,2,3]}}" wx:key="*this" class="ad-skm qz-card qz-card-bar">
+          <view class="qz-skeleton ad-sk-label"></view>
+          <view class="qz-skeleton ad-sk-num"></view>
+        </view>
+      </view>
+
+      <view wx:elif="{{view === 'error'}}" class="qz-container ad-body">
+        <view class="qz-err qz-an-in">
+          <text class="qz-err-text">{{error}}</text>
+          <view class="qz-err-btn qz-press" bindtap="onRetry">重试</view>
+        </view>
+      </view>
+
+      <view wx:elif="{{view === 'empty'}}" class="qz-container ad-body">
+        <view class="qz-empty qz-an-in">
+          <view class="qz-empty-ico qz-ico qz-ico-xl qz-ico-float"><view class="qz-i qz-i-empty"></view></view>
+          <text class="qz-empty-title">没有符合条件的用户</text>
+          <text class="qz-empty-text">换个关键词，或把状态筛选切回「全部」再看一下。</text>
+          <view class="qz-empty-flow qz-flow"></view>
+        </view>
+      </view>
+
+      <view wx:else class="qz-container ad-body">
+        <view wx:for="{{rows}}" wx:key="id" class="ad-row qz-card qz-card-bar {{item.anim}}">
+          <view class="ad-row-main">
+            <text class="ad-row-title">{{item.name}}</text>
+            <text class="ad-row-desc">{{item.phone}} · 信用分 {{item.credit}}</text>
+            <text class="ad-row-extra">注册于 {{item.created}}</text>
+          </view>
+          <view class="ad-tags">
+            <view wx:for="{{item.roles}}" wx:for-item="r" wx:key="*this" class="ad-chip ad-chip-plain">{{r}}</view>
+            <view class="ad-chip {{item.statusCls}}">{{item.statusText}}</view>
+          </view>
+        </view>
+
+        <view wx:if="{{paging.more}}" class="ad-more qz-press" bindtap="onLoadMore">{{tail}}</view>
+        <text wx:else class="ad-end">{{tail}}</text>
+      </view>
+    </block>
+  </view>
+</view>

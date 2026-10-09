@@ -1,0 +1,260 @@
+<!-- 练习中心 · 练习页（句子 / 口语 / 作文共用）
+     视觉：靛青主题（styles/themes.scss 的 .th-practice）
+     ⚠️ 渲染哪一套题面由 `kind`（= 服务端 mode 翻译而来）决定，不按模块猜 -->
+<view
+  class="qz-page th-practice sess"
+  bindtouchstart="onFxStart"
+  bindtouchmove="onFxMove"
+  bindtouchend="onFxEnd"
+  bindtouchcancel="onFxEnd"
+>
+  <view class="qz-deco">
+    <view class="qz-fx" style="{{fxStyle}}">
+      <view class="practice-blob-a qz-blob"></view>
+      <view class="practice-blob-b qz-blob"></view>
+      <view class="practice-curve qz-curve"></view>
+    </view>
+  </view>
+
+  <view class="qz-content">
+    <!-- 进度条 + 题号 -->
+    <view wx:if="{{total > 0 && !finished}}" class="sess-top qz-an-in">
+      <text class="sess-top-idx">{{idx + 1}} / {{total}}</text>
+      <view class="sess-top-bar">
+        <view class="sess-top-fill" style="width: {{(idx + 1) * 100 / total}}%"></view>
+      </view>
+      <!-- ⚠️ 显示 `modeText`（中文）而不是 `mode`（服务端枚举 `chunks`/`recall`）——
+           写错的表现是进度条右侧露出一个英文单词，没有任何报错 -->
+      <text class="sess-top-mode">{{modeText}}</text>
+    </view>
+
+    <view class="qz-container">
+      <view wx:if="{{error}}" class="qz-err qz-an-in">
+        <text class="qz-err-text">{{error}}</text>
+        <view class="qz-err-btn qz-press" bindtap="onRetry">重试</view>
+      </view>
+
+      <view wx:if="{{loading}}" class="qz-card qz-card-line sess-sk">
+        <view class="qz-skeleton qz-skeleton-line"></view>
+        <view class="qz-skeleton qz-skeleton-line qz-skeleton-line-short"></view>
+      </view>
+
+      <!-- ==================== 收尾 ==================== -->
+      <block wx:elif="{{finished && total > 0}}">
+        <view class="qz-card sess-done qz-an-in">
+          <view class="qz-topline"></view>
+          <view class="qz-ico qz-ico-l qz-ico-float sess-done-ico">
+            <view class="qz-i qz-i-check"></view>
+          </view>
+          <text class="sess-done-title">这一轮练完了</text>
+          <text class="sess-done-sub">过关 {{passCount}} / {{total}} 题</text>
+          <view class="qz-btn-main qz-press sess-done-btn" bindtap="onGoStats">看统计</view>
+          <view class="qz-btn-sub qz-press sess-done-back" bindtap="onBack">返回</view>
+        </view>
+      </block>
+
+      <!-- 空态：后端给了原因就转述（"练完了" / "题库没建好" 完全不同） -->
+      <block wx:elif="{{finished && total === 0}}">
+        <view class="qz-card qz-card-line sess-empty qz-an-in">
+          <view class="qz-ico qz-ico-l">
+            <view class="qz-i qz-i-empty"></view>
+          </view>
+          <text class="sess-empty-text">{{emptyText}}</text>
+          <view class="qz-btn-sub qz-press sess-empty-back" bindtap="onBack">返回</view>
+        </view>
+      </block>
+
+      <!-- ==================== 题面 ==================== -->
+      <block wx:else>
+        <!-- 切题面（连词成句 / 中译英 / 听写） -->
+        <view wx:if="{{modeTabs.length > 1}}" class="sess-tabs qz-an-in">
+          <view
+            wx:for="{{modeTabs}}"
+            wx:key="mode"
+            class="sess-tab qz-press {{item.on ? 'sess-tab-on' : ''}}"
+            data-mode="{{item.mode}}"
+            bindtap="onSwitchMode"
+          >{{item.title}}</view>
+        </view>
+
+        <!-- ---------- 作文题面 ---------- -->
+        <block wx:if="{{kind === 'write'}}">
+          <view class="qz-card sess-card qz-an-in">
+            <view class="sess-hint">{{hint}}</view>
+            <text class="sess-topic-title">{{topicTitle}}</text>
+            <text class="sess-brief">{{topicBrief}}</text>
+
+            <view class="sess-outline">
+              <view wx:for="{{outline}}" wx:key="no" class="sess-outline-row">
+                <text class="sess-outline-no">{{item.no}}</text>
+                <text class="sess-outline-text">{{item.text}}</text>
+              </view>
+            </view>
+
+            <view class="sess-minwords">建议不少于 {{minWords}} 词 · 当前 {{essayWords}} 词</view>
+
+            <textarea
+              class="sess-essay qz-press"
+              value="{{essayText}}"
+              placeholder="在这里写你的作文…"
+              maxlength="{{textMax}}"
+              disabled="{{answered}}"
+              bindinput="onEssayInput"
+            ></textarea>
+
+            <view
+              wx:if="{{!answered}}"
+              class="qz-btn-main qz-press sess-submit"
+              bindtap="onSubmitEssay"
+            >提交批改</view>
+          </view>
+        </block>
+
+        <!-- ---------- 句子 / 口语题面 ---------- -->
+        <block wx:else>
+          <view class="qz-card sess-card qz-an-in">
+            <view class="sess-hint">{{hint}}</view>
+
+            <!-- 中文题干（三种模式都要显示，它是题目本身） -->
+            <text class="sess-zh">{{zh}}</text>
+
+            <!-- 口语：目标句（**必须**显示，看不到句子就没法读） -->
+            <view wx:if="{{showEn && en}}" class="sess-en">
+              <text class="sess-en-text">{{en}}</text>
+              <view class="qz-ico qz-ico-s sess-en-ico qz-press" bindtap="onSpeak">
+                <view class="qz-i qz-i-audio"></view>
+              </view>
+            </view>
+
+            <!-- 听写：只有一个喇叭（音频就是题面） -->
+            <view wx:if="{{kind === 'listen'}}" class="sess-listen qz-press" bindtap="onSpeak">
+              <view class="qz-ico qz-ico-l sess-listen-ico">
+                <view class="qz-i qz-i-audio"></view>
+              </view>
+              <text class="sess-listen-text">点一下听这句</text>
+            </view>
+
+            <!-- 连词成句：已拼部分 + 可选砖块 -->
+            <block wx:if="{{showChunks}}">
+              <view class="sess-assembled">
+                <text wx:if="{{assembled}}" class="sess-assembled-text">{{assembled}}</text>
+                <text wx:else class="sess-assembled-ph">点下面的词块，按顺序排成一句话</text>
+              </view>
+              <view class="sess-chunks">
+                <view
+                  wx:for="{{chunks}}"
+                  wx:key="idx"
+                  class="sess-chunk qz-press {{pickedIdx.indexOf(item.idx) >= 0 ? 'sess-chunk-off' : ''}}"
+                  data-idx="{{item.idx}}"
+                  bindtap="onPickChunk"
+                >{{item.en}}</view>
+              </view>
+              <view wx:if="{{!answered && assembled}}" class="sess-clear qz-press" bindtap="onClearChunks">清空重排</view>
+            </block>
+
+            <!-- 中译英 / 听写：输入框 -->
+            <input
+              wx:if="{{kind === 'recall' || kind === 'listen'}}"
+              class="sess-input"
+              value="{{inputValue}}"
+              placeholder="写出英文句子…"
+              maxlength="{{textMax}}"
+              disabled="{{answered}}"
+              bindinput="onType"
+            />
+
+            <!-- 口语：按住录音 -->
+            <block wx:if="{{showRecorder}}">
+              <view
+                class="sess-rec {{recording ? 'sess-rec-on' : ''}} {{answered ? 'sess-rec-dim' : ''}} qz-press"
+                bindtouchstart="onRecordStart"
+                bindtouchend="onRecordEnd"
+                bindtouchcancel="cancelRecord"
+              >
+                <view class="qz-ico qz-ico-l">
+                  <view class="qz-i qz-i-audio"></view>
+                </view>
+                <text class="sess-rec-text">{{answered ? '本题已作答' : recordHint}}</text>
+              </view>
+              <text class="sess-rec-tip">按住读完整句再松手 · 准确率 60% 过关</text>
+            </block>
+
+            <!-- 提交（连词成句 / 中译英 / 听写） -->
+            <view
+              wx:if="{{!answered && !showRecorder}}"
+              class="qz-btn-main qz-press sess-submit"
+              bindtap="onSubmitText"
+            >{{answering ? '判分中…' : '提交'}}</view>
+
+            <!-- 中译英想不出来：可以看答案（看了就相当于对答案，不计过关） -->
+            <view
+              wx:if="{{showReveal && !answered && !showEn}}"
+              class="sess-reveal qz-press"
+              bindtap="onReveal"
+            >想不起来？点这里看答案</view>
+          </view>
+
+          <!-- ---------- 作答结果 ---------- -->
+          <block wx:if="{{answered}}">
+            <view class="qz-card sess-result qz-an-in {{pass ? 'sess-result-ok' : 'sess-result-no'}}">
+              <text class="sess-result-title">{{feedback}}</text>
+
+              <!-- 逐词对比（用户要知道是哪个词错了） -->
+              <view wx:if="{{words.length > 0}}" class="sess-words">
+                <text
+                  wx:for="{{words}}"
+                  wx:key="word"
+                  class="sess-word {{item.cls}}"
+                >{{item.word}}</text>
+              </view>
+
+              <!-- 太短：内容不丢，只是不算完成一次练习 -->
+              <view wx:if="{{tooShort}}" class="sess-toshort">
+                <text class="sess-toshort-text">{{tooShortReason}}</text>
+              </view>
+
+              <view wx:if="{{target}}" class="sess-target">
+                <text class="sess-target-k">参考答案</text>
+                <text class="sess-target-v">{{target}}</text>
+              </view>
+
+              <text class="sess-next">{{nextTip}}</text>
+            </view>
+
+            <!-- ---------- 作文批改 ---------- -->
+            <view wx:if="{{showReview}}" class="qz-card qz-card-line sess-review qz-an-in">
+              <view class="sess-review-head">
+                <text class="sess-review-title">批改意见</text>
+                <text wx:if="{{reviewTotal > 0}}" class="sess-review-total">{{reviewTotal}} 分</text>
+              </view>
+
+              <!-- 降级：批改不可用时**说清**，而不是静默给 0 分 -->
+              <view wx:if="{{reviewDegraded}}" class="sess-degraded">
+                <text class="sess-degraded-text">{{reviewDegraded}}</text>
+              </view>
+
+              <view wx:for="{{dimensions}}" wx:key="key" class="sess-dim">
+                <view class="sess-dim-head">
+                  <text class="sess-dim-title">{{item.title}}</text>
+                  <text class="sess-dim-score">{{item.score}}</text>
+                </view>
+                <text class="sess-dim-reason">{{item.reason}}</text>
+              </view>
+            </view>
+
+            <!-- 范文：AI 生成，必须标注 -->
+            <view wx:if="{{sample}}" class="qz-card qz-card-line sess-sample qz-an-in">
+              <text class="sess-sample-k">参考范文（AI 生成，仅供对照）</text>
+              <text class="sess-sample-text">{{sample}}</text>
+              <text wx:if="{{sampleZh}}" class="sess-sample-zh">{{sampleZh}}</text>
+            </view>
+
+            <view class="qz-btn-main qz-press sess-next-btn" bindtap="onNext">
+              {{idx + 1 < total ? '下一题' : '完成'}}
+            </view>
+          </block>
+        </block>
+      </block>
+    </view>
+  </view>
+</view>

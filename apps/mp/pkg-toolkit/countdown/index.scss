@@ -1,0 +1,193 @@
+@import '../../styles/tokens.scss';
+
+/* 考试倒计时 —— 只用 Design Token 取色，禁止硬编码色值 */
+.countdown {
+  padding-bottom: 40rpx;
+
+  .head {
+    padding: 24rpx 8rpx 16rpx;
+
+    .title {
+      display: block;
+      font-size: 44rpx;
+      font-weight: 600;
+      color: var(--mt);
+    }
+
+    .sub {
+      display: block;
+      margin-top: 8rpx;
+      font-size: 24rpx;
+      color: $text-3;
+    }
+  }
+
+  .card-title {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: 16rpx;
+    font-size: 30rpx;
+    font-weight: 600;
+    color: var(--mt);
+
+    &-hint {
+      font-size: 22rpx;
+      font-weight: 400;
+      color: $text-3;
+    }
+  }
+
+  .hint {
+    display: block;
+    margin-top: 12rpx;
+    font-size: 22rpx;
+    line-height: 1.5;
+    color: $text-3;
+  }
+
+  /* ---------- 新增表单 ---------- */
+  .name-input {
+    padding: 16rpx 12rpx;
+    font-size: 30rpx;
+    color: var(--mt);
+    border-bottom: 1rpx solid var(--ms);
+  }
+
+  .presets {
+    display: flex;
+    flex-wrap: wrap;
+    margin-top: 12rpx;
+  }
+
+  .preset {
+    margin: 6rpx 12rpx 6rpx 0;
+    padding: 6rpx 18rpx;
+    font-size: 24rpx;
+    border-radius: 999rpx;
+    color: var(--m1);
+    border: 1rpx solid var(--m1);
+  }
+
+  .date-row {
+    display: flex;
+    align-items: center;
+    margin-top: 16rpx;
+    padding: 16rpx 12rpx;
+    border-radius: var(--r-card);
+    background: var(--ms);
+    font-size: 28rpx;
+  }
+
+  .date-label {
+    color: $text-3;
+  }
+
+  .date-value {
+    flex: 1;
+    text-align: right;
+    font-weight: 600;
+    color: var(--mt);
+  }
+
+  .date-arrow {
+    margin-left: 8rpx;
+    color: $text-3;
+  }
+
+  .btn {
+    margin-top: 16rpx;
+    padding: 18rpx 0;
+    text-align: center;
+    font-size: 28rpx;
+    border-radius: var(--r-card);
+
+    &-solid {
+      color: $text-inverse;
+      background: var(--m1);
+    }
+  }
+
+  /* ---------- 倒计时条目 ---------- */
+  .item {
+    .item-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .item-name {
+      font-size: 32rpx;
+      font-weight: 600;
+      color: var(--mt);
+    }
+
+    .del {
+      width: 56rpx;
+      text-align: right;
+      font-size: 36rpx;
+      color: $text-3;
+    }
+
+    .item-days {
+      display: flex;
+      align-items: baseline;
+      margin: 8rpx 0 4rpx;
+    }
+
+    .days-text {
+      font-size: 52rpx;
+      font-weight: 700;
+      color: var(--m1);
+
+      /* 今天：最该被一眼看到的状态 */
+      &.state-today {
+        color: var(--m3);
+      }
+
+      /* 已过期：降级成次要信息，不抢未过期考试的注意力 */
+      &.state-past {
+        font-size: 34rpx;
+        font-weight: 400;
+        color: $text-3;
+      }
+    }
+
+    .weeks-text {
+      margin-left: 16rpx;
+      font-size: 24rpx;
+      color: $text-3;
+    }
+
+    /* 加到系统日历：次要操作，用描边按钮 —— 不与"开始倒计时"的实心主按钮抢注意力 */
+    .cal {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-top: 16rpx;
+      padding: 12rpx 0;
+      font-size: 24rpx;
+      color: var(--m1);
+      border: 1rpx solid var(--m1);
+      border-radius: var(--r-card);
+
+      /* ⚠️ `.qz-i` 基类不带尺寸（见 styles/icons.scss）——
+          这里没有 `.qz-ico` 容器，必须自己给，否则图标 0×0 隐形。 */
+      .qz-i {
+        width: $ico-sm;
+        height: $ico-sm;
+        margin-right: 8rpx;
+      }
+    }
+  }
+
+  .empty {
+    text-align: center;
+
+    .empty-title {
+      display: block;
+      font-size: 28rpx;
+      color: var(--mt);
+    }
+  }
+}

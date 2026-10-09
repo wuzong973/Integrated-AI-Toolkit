@@ -1,0 +1,83 @@
+@import '../../styles/tokens.scss';
+
+/* 记单词 · 学习统计（模块色板见 styles/themes.scss 的 .th-vocab）
+   造型语言：四个指标 2×2 平铺 + 7 列打卡格子（颜色深浅表示当天答了多少） */
+
+.stats { padding-bottom: 120rpx; }
+
+/* 装饰签名：光斑压在指标卡背后，大弧落在日历上方（都进 .qz-fx，跟着指针动） */
+.stats-blob {
+  width: 320rpx; height: 320rpx;
+  left: -110rpx; top: -70rpx;
+}
+.stats-curve { position: absolute; left: -40rpx; right: -40rpx; top: 46%; opacity: .24; }
+
+.head-flow { margin-top: $sp-4; }
+
+.stats-sk { padding: $card-padding; }
+
+/* ---------- 四个指标（2×2） ---------- */
+.stats-grid {
+  display: flex; flex-wrap: wrap;
+  padding: $sp-6 $sp-2 $sp-3;
+}
+.stats-tile {
+  width: 50%;
+  padding: $sp-2 0 $sp-5;
+  text-align: center;
+}
+.stats-tile-ico { margin-bottom: $sp-2; }
+.stats-tile-v {
+  display: block;
+  font-size: $fs-h1; font-weight: $fw-black; color: var(--m1);
+  line-height: 1.2;
+}
+.stats-tile-k { display: block; margin-top: 2rpx; font-size: $fs-tag; color: $text-3; }
+
+/* ---------- 打卡日历 ---------- */
+.stats-cal { padding: $card-padding; }
+.stats-grid-cells { display: flex; flex-wrap: wrap; }
+/* 7 列：每格 14.28%，靠"卡片同色的粗边"当缝隙（比 margin 更好对齐） */
+.stats-cell {
+  display: flex; align-items: center; justify-content: center;
+  width: 14.28%; height: 76rpx;
+  border: 6rpx solid $bg-card;
+  border-radius: $radius-md;
+  background: $bg-page;
+  transition: transform $dur-fast $ease-spring;
+}
+.stats-cell-num { font-size: $fs-tag; color: $text-3; }
+
+/* 深浅四档：空档 / 1-9 题 / 10-29 题 / 30+ 题 */
+.stats-cell-0 { background: $bg-page; }
+.stats-cell-1 { background: var(--ms); }
+.stats-cell-1 .stats-cell-num { color: var(--mt); }
+.stats-cell-2 { background: var(--m2); }
+.stats-cell-2 .stats-cell-num { color: $text-1; }
+.stats-cell-3 { background: var(--m1); }
+.stats-cell-3 .stats-cell-num { color: $text-inverse; }
+/* 今天：套一圈主题色，在"最右边一格"里一眼找得到 */
+.stats-cell-today { box-shadow: 0 0 0 3rpx var(--m1); }
+
+.stats-legend {
+  display: flex; align-items: center; justify-content: flex-end;
+  margin-top: $sp-4;
+}
+.stats-legend-text { font-size: $fs-tag; color: $text-3; }
+.stats-legend-swatch {
+  width: 24rpx; height: 24rpx;
+  margin: 0 6rpx;
+  border-radius: $radius-xs;
+  border: 1rpx solid $border-strong;
+}
+/* 说明行：默认提示怎么用，点过格子之后显示那一天的明细 */
+.stats-detail {
+  display: block;
+  margin-top: $sp-3;
+  padding-top: $sp-3;
+  border-top: 1rpx solid $border;
+  font-size: $fs-tag; color: $text-2; line-height: 1.6;
+}
+
+.stats-go { margin-top: $sp-5; }
+.stats-back { margin-top: $sp-3; }

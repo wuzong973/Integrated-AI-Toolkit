@@ -1,0 +1,165 @@
+@import '../../styles/tokens.scss';
+
+/* 绩点计算 —— 只用 Design Token 取色，禁止硬编码色值 */
+.gpa {
+  padding-bottom: 40rpx;
+
+  .head {
+    padding: 24rpx 8rpx 16rpx;
+
+    .title {
+      display: block;
+      font-size: 44rpx;
+      font-weight: 600;
+      color: var(--mt);
+    }
+
+    .sub {
+      display: block;
+      margin-top: 8rpx;
+      font-size: 24rpx;
+      color: $text-3;
+    }
+  }
+
+  /* 卡片用库内 .qz-card（白底 + --r-card 圆角 + 柔影），页面不再自造
+     ⚠️ 曾误把 var(--sh) 当卡片背景色 —— 它是**投影色**（带 alpha），
+        语义不对，且在浅色页面上会变成一块半透明色斑。 */
+
+  .row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    .row-label {
+      font-size: 30rpx;
+      color: var(--mt);
+    }
+
+    .row-value {
+      flex: 1;
+      text-align: right;
+      font-size: 28rpx;
+      color: $text-3;
+    }
+
+    .row-arrow {
+      margin-left: 8rpx;
+      color: $text-3;
+    }
+  }
+
+  .hint {
+    display: block;
+    margin-top: 12rpx;
+    font-size: 22rpx;
+    line-height: 1.5;
+    color: $text-3;
+  }
+
+  /* ---------- 课程行 ---------- */
+  .course-head,
+  .course-row {
+    display: flex;
+    align-items: center;
+  }
+
+  .course-head {
+    padding-bottom: 12rpx;
+    border-bottom: 1rpx solid var(--ms);
+    font-size: 22rpx;
+    color: $text-3;
+  }
+
+  .course-row {
+    padding: 12rpx 0;
+  }
+
+  .col {
+    font-size: 28rpx;
+
+    &-name {
+      flex: 1;
+    }
+
+    &-num {
+      width: 140rpx;
+      text-align: center;
+    }
+
+    &-del {
+      width: 56rpx;
+      text-align: right;
+    }
+  }
+
+  .input {
+    padding: 12rpx 8rpx;
+    color: var(--mt);
+  }
+
+  .del {
+    font-size: 36rpx;
+    color: $text-3;
+  }
+
+  .actions {
+    display: flex;
+    gap: 16rpx;
+    margin-top: 16rpx;
+  }
+
+  .btn {
+    flex: 1;
+    padding: 18rpx 0;
+    text-align: center;
+    font-size: 26rpx;
+    border-radius: var(--r-card);
+
+    &-ghost {
+      color: var(--m1);
+      border: 1rpx solid var(--m1);
+    }
+  }
+
+  /* ---------- 结果 ---------- */
+  .result {
+    .gpa-line {
+      display: flex;
+      align-items: baseline;
+
+      .gpa-num {
+        font-size: 72rpx;
+        font-weight: 700;
+        color: var(--m1);
+      }
+
+      .gpa-unit {
+        margin-left: 12rpx;
+        font-size: 26rpx;
+        color: $text-3;
+      }
+    }
+
+    .sub-line {
+      margin-top: 12rpx;
+      font-size: 26rpx;
+      color: var(--mt);
+
+      .dot {
+        margin: 0 12rpx;
+        color: $text-3;
+      }
+    }
+  }
+
+  .empty {
+    text-align: center;
+
+    .empty-title {
+      display: block;
+      font-size: 28rpx;
+      color: var(--mt);
+    }
+  }
+}

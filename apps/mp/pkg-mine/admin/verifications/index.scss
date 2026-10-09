@@ -1,0 +1,80 @@
+@import '../frame.scss';
+
+/* 管理后台 · 认证审核
+   装饰签名「dot-c + flow-rev」（§十一 登记）：逆向流水读作"排队等处理的东西在往前走"。 */
+
+/* ⚠️ `.qz-flow*` 库里**没有 position**（只有 height + 背景 + 动效）。
+   进了 `.qz-fx` 会按普通流排到视差层顶边 = 裁切区之上，整条看不见 ——
+   "写了 top"不等于"top 生效"，必须先 absolute。
+   `.qz-fx` 相对 `.qz-deco` 外扩 40rpx，所以整宽用 -40rpx。
+   库里 opacity .45 超了 .4 红线 → 页内压到 .3，不改库。 */
+.ver-flow {
+  position: absolute;
+  left: -40rpx;
+  right: -40rpx;
+  top: 120rpx;
+  opacity: .3;
+}
+.ad-dot {
+  opacity: .28;
+}
+
+/* 驳回原因走行内输入，不用 `wx.showModal({editable:true})`：
+   那条路一旦输入不合规只能再弹一次，用户在两层弹窗里绕；
+   行内输入可以边写边看到还差几个字。 */
+.ver-reject {
+  display: flex;
+  align-items: center;
+  margin-top: $sp-3;
+}
+.ver-reject-input {
+  flex: 1;
+  min-width: 0;
+  height: 64rpx;
+  padding: 0 $sp-3;
+  font-size: $fs-tag;
+  background: var(--ms);
+  border-radius: $radius-sm;
+}
+.ver-hint {
+  display: block;
+  margin-top: $sp-1;
+  font-size: $fs-tag;
+  color: $warning;
+}
+.ver-actions {
+  display: flex;
+  align-items: center;
+  margin-top: $sp-3;
+}
+/* 「这条在这里处理不了」的那句实话：中性灰、不抢按钮的视觉重量，
+   但必须真的有一行样式 —— 类名写了而本页没定义，它就是一段没样式的裸文字（§九 ③） */
+.ver-off {
+  display: block;
+  margin-top: $sp-2;
+  padding: $sp-2 $sp-3;
+  border-radius: $radius-sm;
+  background: var(--ms);
+  font-size: $fs-tag;
+  color: $text-2;
+  line-height: 1.6;
+}
+.ver-btn {
+  flex: 1;
+  min-width: 0;
+  margin-right: $sp-3;
+  height: $hit-min;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: $fs-aux;
+  color: var(--mt);
+  background: var(--ms);
+  border-radius: $radius-pill;
+}
+.ver-btn:last-child { margin-right: 0; }
+.ver-btn-off { opacity: .5; }
+.ver-btn-danger {
+  color: $danger;
+  background: $danger-veil;
+}

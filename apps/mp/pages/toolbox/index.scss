@@ -1,0 +1,214 @@
+@import '../../styles/tokens.scss';
+
+/* AI 工具箱 · 星蓝主题
+   造型语言：小圆角 + 描边卡 + 顶部流动线，与首页的"泡泡感"形成对比 */
+
+.toolbox { display: flex; flex-direction: column; height: 100vh; }
+.toolbox-inner { flex: 1; display: flex; flex-direction: column; min-height: 0; }
+
+/* ---------- 装饰签名：双流线 + 光点（见 docs/dev/MP-VISUAL-SYSTEM.md 第十一节） ----------
+   流线只在装饰层定位，不动内容；两条都用 .qz-flow-soft 压到 .28，守住装饰 ≤0.4 的红线。
+   ⚠️ .qz-fx 四周外扩 40rpx（视差位移时不露边），所以这里的偏移量都要比页面观感多 40rpx。 */
+.deco-flow { position: absolute; }
+/* 页头上方留白处一条贯穿整页宽的行进虚线（不压文字） */
+.deco-flow-a { left: 0; right: 0; top: 48rpx; }
+/* 左分类轨道下方一条反向虚线：这一列是全站最"格栅"的区域，流线在这里露得住 */
+.deco-flow-b { left: 0; width: 240rpx; bottom: 200rpx; }
+
+/* ---------- 页头 ---------- */
+.head { position: relative; padding: $sp-6 $page-padding $sp-4; overflow: hidden; }
+.head-row { display: flex; align-items: center; }
+.head-main { flex: 1; min-width: 0; margin-left: $sp-4; }
+.head-title { display: block; font-size: $fs-h1; font-weight: $fw-black; color: $text-1; letter-spacing: .6rpx; }
+.head-sub { display: block; font-size: $fs-aux; color: $text-3; margin-top: 2rpx; }
+.head-files {
+  display: flex; flex-direction: column; align-items: center;
+  padding: $sp-2 $sp-3; border-radius: $radius-md;
+  background: $bg-card; box-shadow: $shadow-card;
+  border: 1rpx solid $line-soft;
+}
+.files-ico { width: 44rpx; height: 44rpx; }
+.files-text { font-size: $fs-tag; color: var(--mt); margin-top: 2rpx; }
+.head-flow { margin-top: $sp-4; }
+
+/* ---------- 搜索 ---------- */
+.search-box {
+  height: 84rpx; margin-top: $sp-4;
+  background: $bg-card; border-radius: $radius-pill;
+  display: flex; align-items: center; padding: 0 $sp-4 0 $sp-6;
+  border: 2rpx solid var(--ms);
+  box-shadow: 0 6rpx 18rpx var(--sh);
+}
+.search-icon { width: 40rpx; height: 40rpx; margin-right: $sp-3; }
+.search-input { flex: 1; font-size: $fs-body; color: $text-1; }
+.search-clear { padding: 0 $sp-2; }
+.clear-ico { width: 36rpx; height: 36rpx; }
+
+/* ---------- 主体 ---------- */
+.body { flex: 1; display: flex; flex-direction: row; overflow: hidden; }
+
+/* 左侧分类轨道 */
+.cats { width: 200rpx; height: 100%; }
+.cat {
+  position: relative;
+  display: flex; align-items: center;
+  padding: $sp-3 $sp-3 $sp-3 $sp-4;
+  margin: 0 $sp-3 $sp-2 0;
+  border-radius: 0 $radius-lg $radius-lg 0;
+  transition: background $dur-base $ease-out;
+}
+.cat-ico { width: 48rpx; height: 48rpx; }
+.cat-body { flex: 1; min-width: 0; margin-left: $sp-2; }
+.cat-name { display: block; font-size: $fs-aux; color: $text-2; }
+.cat-count { display: block; font-size: $fs-tag; color: $text-3; }
+/* 选中：白底 + 左侧彩色条 + 主色文字 */
+.cat-active {
+  background: $bg-card;
+  box-shadow: 0 6rpx 18rpx var(--sh);
+}
+.cat-active::before {
+  content: '';
+  position: absolute; left: 0; top: 22%; bottom: 22%; width: 8rpx;
+  border-radius: 0 8rpx 8rpx 0;
+  background: linear-gradient(180deg, var(--m1), var(--m3));
+}
+.cat-active .cat-name { color: var(--mt); font-weight: $fw-bold; }
+.cat-active .cat-ico { animation: qzPopIn $dur-base $ease-spring both; }
+
+/* 右侧工具列表 */
+.tools { flex: 1; padding: $sp-3 $page-padding $sp-8 $sp-3; }
+
+.tool {
+  display: flex; align-items: flex-start;
+  padding: $card-padding; margin-bottom: $sp-3;
+  position: relative; overflow: hidden;
+}
+/* 顶部流动线不再自己写 ::before（原来是静态三色条）：改用共享装饰类 .qz-topline，
+   它带 qzGradientShift 渐变流动，颜色只取 var(--m1..--m3)，页面这里不用再补样式。
+   卡片可点击 → .qz-lift 抬升下沉（.qz-card-line 把常驻影压成 none，按下时才出影）。 */
+.tool-ico { margin-right: $sp-3; }
+.tool-body { flex: 1; min-width: 0; }
+.tool-planned { opacity: .62; }
+.tool-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4rpx; }
+.tool-name { flex: 1; font-size: $fs-body; font-weight: $fw-semi; color: $text-1; margin-right: $sp-2; }
+.tool-badge-free { font-size: $fs-tag; color: $success; font-weight: $fw-semi; }
+.tool-badge-price { font-size: $fs-tag; color: $accent-500; font-weight: $fw-semi; }
+.tool-badge-planned {
+  font-size: $fs-tag; color: $text-3; padding: 2rpx 12rpx;
+  background: $border-strong; border-radius: $radius-pill;
+}
+.tool-desc { display: block; font-size: $fs-tag; color: $text-3; line-height: 1.55; margin-bottom: $sp-2; }
+.tool-foot { display: flex; align-items: center; justify-content: space-between; }
+.tool-count { font-size: $fs-tag; color: $text-3; }
+.tool-warn { font-size: $fs-tag; color: $warning; }
+
+.tools-count { text-align: center; font-size: $fs-tag; color: $text-3; padding: $sp-6 0; }
+
+/* ---------- 校园小工具入口（纯本地计算，与 AI 工具刻意分开） ---------- */
+/* 校园小工具入口
+   ⚠️ 外观全部交给库内类：`.qz-card` 给内边距/圆角/外边距，`.qz-card-tint` 换成主题浅底，
+      `th-toolkit` 把这一块的 --m1/--ms/--mt 切成小工具自己的柠黄（与下面星蓝的 AI 工具区分）。
+      页面只负责"图标 + 文字 + 箭头"的横向排版 —— 不要再自己写 background/border-radius。 */
+.toolkit-entry {
+  display: flex;
+  align-items: center;
+
+  .qz-ico {
+    margin-right: 20rpx;
+  }
+}
+
+.toolkit-entry-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.toolkit-entry-line {
+  display: flex;
+  align-items: center;
+}
+
+.toolkit-entry-title {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: var(--mt);
+}
+
+/* 「本地」小标签：这张卡与下面 AI 工具最本质的区别，值得单独标出来 */
+.toolkit-entry-chip {
+  margin-left: 12rpx;
+  padding: 2rpx 12rpx;
+  font-size: 20rpx;
+  border-radius: 999rpx;
+  /* 深色文字 + 亮色底（白字压在亮黄上对比度不够） */
+  color: var(--mt);
+  background: var(--m2);
+}
+
+.toolkit-entry-sub {
+  display: block;
+  margin-top: 8rpx;
+  font-size: 24rpx;
+  color: $text-3;
+}
+
+.toolkit-entry-arrow {
+  margin-left: 12rpx;
+  font-size: 40rpx;
+  color: var(--m1);
+}
+
+/* ---------- 本地小工具（纯前端计算 · 离线可用，独立于服务端工具列表） ---------- */
+/* ⚠️ .toolbox-inner 没有水平内边距（页头/列表各管各的），所以标题行自己补 $page-padding；
+   横向卡列走 scroll-x + white-space: nowrap 的行内排布（兼容性最稳，不用 gap）。 */
+.local-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin: 0 $page-padding $sp-3;
+}
+
+.local-title {
+  font-size: $fs-h3;
+  font-weight: $fw-semi;
+  color: $text-1;
+}
+
+.local-sub {
+  font-size: $fs-tag;
+  color: $text-3;
+}
+
+.local-scroll {
+  white-space: nowrap;
+  padding: 0 $page-padding;
+}
+
+.local-card {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 184rpx;
+  margin-right: $sp-3;
+  padding: $sp-4 0;
+  vertical-align: top;
+
+  &:last-child {
+    margin-right: 0;
+  }
+}
+
+.local-ico {
+  margin-bottom: 0;
+}
+
+.local-name {
+  display: block;
+  max-width: 100%;
+  margin-top: $sp-2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: $fs-tag;
+  color: $text-2;
+}

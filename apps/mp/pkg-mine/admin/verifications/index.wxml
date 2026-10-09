@@ -1,0 +1,156 @@
+<!-- 管理后台 · 认证审核（数据源 GET /admin/content/verifications + POST .../review）
+     装饰签名「dot-c + flow-rev」。
+     ⚠️ 材料只显示份数、不显示图片：`verification` 场景没有公开读通道
+     （`/files/public/:id` 只放行 avatar 场景），硬画出来就是一排裂图。 -->
+<view
+  class="qz-page th-mine ad ad-ver"
+  bindtouchstart="onFxStart"
+  bindtouchmove="onFxMove"
+  bindtouchend="onFxEnd"
+  bindtouchcancel="onFxEnd"
+>
+  <view class="qz-deco">
+    <view class="qz-fx" style="{{fxStyle}}">
+      <view class="ver-flow qz-flow qz-flow-rev"></view>
+      <view class="ad-dot qz-dot qz-dot-c"></view>
+    </view>
+  </view>
+
+  <view class="qz-content">
+    <block wx:if="{{gate !== 'ok'}}">
+      <view wx:if="{{gate === 'checking'}}" class="qz-container ad-body">
+        <view class="ad-skm qz-card qz-card-bar">
+          <view class="qz-skeleton ad-sk-label"></view>
+          <view class="qz-skeleton ad-sk-num"></view>
+        </view>
+      </view>
+      <view wx:elif="{{gate === 'denied'}}" class="qz-container ad-body">
+        <view class="qz-empty qz-an-in">
+          <view class="qz-empty-ico qz-ico qz-ico-xl qz-ico-float"><view class="qz-i qz-i-lock"></view></view>
+          <text class="qz-empty-title">没有权限</text>
+          <text class="qz-empty-text">当前账号不是平台管理员，审核队列不会在这里展示。</text>
+          <view class="qz-empty-flow qz-flow"></view>
+          <view class="qz-btn-main qz-press" bindtap="onBack">返回</view>
+        </view>
+      </view>
+      <view wx:elif="{{gate === 'error'}}" class="qz-container ad-body">
+        <view class="qz-err qz-an-in">
+          <text class="qz-err-text">{{gateError}}</text>
+          <view class="qz-err-btn qz-press" bindtap="onRetryGate">重新验证</view>
+        </view>
+      </view>
+    </block>
+
+    <block wx:else>
+      <view class="ad-band qz-an-in">
+        <view class="ad-band-row">
+          <view class="qz-ico qz-ico-m qz-ico-plain ad-band-ico"><view class="qz-i qz-i-chart"></view></view>
+          <view class="ad-band-main">
+            <text class="ad-band-title">管理后台</text>
+            <text class="ad-band-sub">{{adminName}} · 管理员</text>
+          </view>
+          <view class="ad-band-back qz-press" bindtap="onBack">返回</view>
+        </view>
+        <view class="ad-band-chips">
+          <view wx:for="{{roleChips}}" wx:key="*this" class="ad-chip">{{item}}</view>
+        </view>
+      </view>
+
+      <view class="ad-tabs qz-an-in qz-d1">
+        <view
+          wx:for="{{tabs}}"
+          wx:key="key"
+          class="ad-tab {{item.on ? 'ad-tab-on' : ''}} qz-press"
+          data-url="{{item.url}}"
+          bindtap="onTabTap"
+        >{{item.label}}</view>
+      </view>
+
+      <view class="ad-sync qz-an-in qz-d2">
+        <text class="ad-sync-time">{{updatedAt ? '更新于 ' + updatedAt : '首次拉取中…'}}</text>
+        <view class="ad-sync-btn qz-press" bindtap="onRefresh">{{busy ? '刷新中…' : '手动刷新'}}</view>
+      </view>
+
+      <view class="ad-filters qz-an-in qz-d3">
+        <view
+          wx:for="{{filters}}"
+          wx:key="value"
+          class="ad-filter {{item.on ? 'ad-filter-on' : ''}} qz-press {{item.anim}}"
+          data-value="{{item.value}}"
+          bindtap="onFilterTap"
+        >{{item.label}}</view>
+      </view>
+
+      <view wx:if="{{view === 'loading'}}" class="qz-container ad-body">
+        <view wx:for="{{[1,2,3]}}" wx:key="*this" class="ad-skm qz-card qz-card-bar">
+          <view class="qz-skeleton ad-sk-label"></view>
+          <view class="qz-skeleton ad-sk-num"></view>
+        </view>
+      </view>
+
+      <view wx:elif="{{view === 'error'}}" class="qz-container ad-body">
+        <view class="qz-err qz-an-in">
+          <text class="qz-err-text">{{error}}</text>
+          <view class="qz-err-btn qz-press" bindtap="onRetry">重试</view>
+        </view>
+      </view>
+
+      <view wx:elif="{{view === 'empty'}}" class="qz-container ad-body">
+        <view class="qz-empty qz-an-in">
+          <view class="qz-empty-ico qz-ico qz-ico-xl qz-ico-float"><view class="qz-i qz-i-check"></view></view>
+          <text class="qz-empty-title">{{emptyTitle}}</text>
+          <text class="qz-empty-text">切换上面的状态筛选可以看已通过或已驳回的记录。</text>
+          <view class="qz-empty-flow qz-flow"></view>
+        </view>
+      </view>
+
+      <view wx:else class="qz-container ad-body">
+        <view wx:for="{{rows}}" wx:key="id" class="ad-row qz-card qz-card-bar {{item.anim}}">
+          <view class="ad-row-main">
+            <text class="ad-row-title">{{item.title}}</text>
+            <text class="ad-row-desc">姓名 {{item.realName}} · 学号 {{item.studentNo}}</text>
+            <text class="ad-row-desc">{{item.school}}</text>
+            <text class="ad-row-extra">提交于 {{item.created}} · {{item.materials}}</text>
+          </view>
+          <view class="ad-tags">
+            <view wx:for="{{item.tags}}" wx:for-item="t" wx:key="*this" class="ad-chip ad-chip-plain">{{t}}</view>
+            <view class="ad-chip {{item.statusCls}}">{{item.statusText}}</view>
+          </view>
+          <text wx:if="{{item.rejectReason}}" class="ver-hint">驳回原因：{{item.rejectReason}}</text>
+
+          <!-- 不能出动作的行如实写原因：后端只给「服务者认证」定义了审核流程，
+               对其它类型画一个点了必然报错的按钮，比不画更让人困惑 -->
+          <text wx:if="{{item.offNote}}" class="ver-off">{{item.offNote}}</text>
+
+          <!-- 只有"待审 + 服务端定义了流程"的才给按钮。提交中把两张都禁用：
+               连点两次会发出两个 review 请求，第二个会把结论改写成另一条，而界面上看不出发生过 -->
+          <block wx:if="{{item.reviewable}}">
+            <block wx:if="{{rejectingId === item.id}}">
+              <view class="ver-reject">
+                <input
+                  class="ver-reject-input"
+                  type="text"
+                  maxlength="300"
+                  placeholder="至少 4 个字：对方要改哪里"
+                  value="{{rejectDraft}}"
+                  bindinput="onRejectInput"
+                />
+                <view class="ver-btn ver-btn-danger {{canReject ? '' : 'ver-btn-off'}} qz-press" data-id="{{item.id}}" bindtap="onRejectConfirm">提交</view>
+                <view class="ver-btn qz-press" bindtap="onRejectCancel">取消</view>
+              </view>
+              <text class="ver-hint">后端要求驳回原因至少 4 个字，否则用户不知道该改什么（当前 {{rejectDraft.length}} 字）</text>
+            </block>
+
+            <view wx:else class="ver-actions">
+              <view class="ver-btn {{busyId ? 'ver-btn-off' : ''}} qz-press" data-id="{{item.id}}" bindtap="onApprove">通过</view>
+              <view class="ver-btn ver-btn-danger {{busyId ? 'ver-btn-off' : ''}} qz-press" data-id="{{item.id}}" bindtap="onRejectStart">驳回</view>
+            </view>
+          </block>
+        </view>
+
+        <view wx:if="{{paging.more}}" class="ad-more qz-press" bindtap="onLoadMore">{{tail}}</view>
+        <text wx:else class="ad-end">{{tail}}</text>
+      </view>
+    </block>
+  </view>
+</view>

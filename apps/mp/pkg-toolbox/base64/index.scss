@@ -1,0 +1,95 @@
+@import '../../styles/tokens.scss';
+
+/* Base64 / URL 编解码 · 星蓝主题（th-toolbox）
+   造型：模式 chip + 输入纸面 + 结果卡；无裸色值、无自造 keyframes */
+.b64-page {
+  padding-bottom: $sp-8;
+}
+
+.card-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: $sp-4;
+  font-size: $fs-h3;
+  font-weight: $fw-semi;
+  color: var(--mt);
+
+  &-hint {
+    font-size: $fs-tag;
+    font-weight: $fw-medium;
+    color: $text-3;
+  }
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $sp-3;
+}
+
+.io-area {
+  width: 100%;
+  height: 240rpx;
+  padding: $sp-3 $sp-4;
+  font-size: $fs-body;
+  line-height: 1.6;
+  color: var(--mt);
+  background: $bg-card;
+  border: 1rpx solid var(--m2);
+  border-radius: var(--r-card);
+}
+
+.io-ph {
+  font-size: $fs-body;
+  color: $text-3;
+}
+
+.clear-chip {
+  padding: 4rpx 20rpx;
+  border-radius: $radius-pill;
+  font-size: $fs-tag;
+  font-weight: $fw-semi;
+  color: var(--m1);
+  background: var(--ms);
+}
+
+.out-scroll {
+  max-height: 320rpx;
+}
+
+.out-text {
+  display: block;
+  font-size: $fs-body;
+  line-height: 1.7;
+  color: var(--m1);
+  /* 编码产物常是一整串无空格字符：必须按字符断行，否则横向溢出 */
+  word-break: break-all;
+  white-space: pre-wrap;
+}
+
+.result-copy {
+  flex-shrink: 0;
+  font-size: $fs-tag;
+  font-weight: $fw-semi;
+  color: var(--m1);
+}
+
+.blank {
+  text-align: center;
+}
+
+.blank-title {
+  display: block;
+  font-size: $fs-h2;
+  font-weight: $fw-semi;
+  color: var(--mt);
+}
+
+.hint {
+  display: block;
+  margin-top: $sp-3;
+  font-size: $fs-tag;
+  line-height: 1.6;
+  color: $text-3;
+}

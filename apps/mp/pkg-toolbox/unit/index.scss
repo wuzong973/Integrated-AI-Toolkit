@@ -1,0 +1,200 @@
+@import '../../styles/tokens.scss';
+
+/* 单位换算（本地小工具）—— 只用 Design Token 取色：页面里不出现裸 #RRGGBB，
+   也不出现数字型 rgba()；投影用 var(--sh)（它是**投影色**，不能当背景）。
+   卡片本体一律用库内 .qz-card / .qz-card-grad / .qz-card-glow，这里只补排印与控件形状。 */
+.unit-page {
+  padding-bottom: $sp-8;
+
+  /* ---------- 装饰签名：halo + dot-b ---------- */
+  /* `.qz-fx` 相对 `.qz-deco` 向外扩了 40rpx（styles/deco.scss），
+     这里的坐标 = 想要的落点 + 40：光斑罩住页头图标与第一张卡上沿。 */
+  .unit-halo {
+    top: 120rpx;
+    left: 128rpx;
+    width: 360rpx;
+    height: 360rpx;
+    margin: -180rpx 0 0 -180rpx;
+    opacity: .2;
+  }
+
+  /* 库内 `.qz-dot` 默认 opacity .45，越过"装饰不透明度 ≤0.4"红线，
+     按规范在页内压回 .36，不改库（改库会波及共用这颗点的其他页面）。 */
+  .qz-dot {
+    opacity: .36;
+  }
+
+  /* 卡片标题类名是 `.card-title`，不是 `qz-card-title`（后者无人定义） */
+  .card-title {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: $sp-4;
+    font-size: $fs-h3;
+    font-weight: $fw-semi;
+    color: var(--mt);
+
+    &-hint {
+      font-size: $fs-tag;
+      font-weight: $fw-medium;
+      color: $text-3;
+    }
+  }
+
+  .hint {
+    display: block;
+    margin-top: $sp-3;
+    font-size: $fs-tag;
+    line-height: 1.6;
+    color: $text-3;
+  }
+
+  /* ---------- 组别 chip ---------- */
+  .chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: $sp-3;
+  }
+
+  /* ---------- 数值输入 ---------- */
+  .value-row {
+    display: flex;
+    align-items: center;
+    gap: $sp-3;
+  }
+
+  .value-input {
+    flex: 1;
+    min-width: 0;
+    height: $hit-min;
+    padding: 0 $sp-4;
+    font-size: $fs-h1;
+    font-weight: $fw-semi;
+    color: var(--mt);
+    background: $bg-card;
+    border: 1rpx solid var(--m2);
+    border-radius: var(--r-card);
+  }
+
+  .value-ph {
+    font-size: $fs-h2;
+    font-weight: $fw-medium;
+    color: $text-3;
+  }
+
+  .value-unit {
+    font-size: $fs-h3;
+    color: var(--mt);
+  }
+
+  /* ---------- 单位选择 + 交换 ---------- */
+  .unit-row {
+    display: flex;
+    align-items: center;
+    gap: $sp-3;
+    margin-top: $sp-4;
+  }
+
+  .picker {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .pick {
+    display: flex;
+    align-items: center;
+    min-height: $hit-min;
+    padding: 0 $sp-4;
+    background: $bg-card;
+    border: 1rpx solid var(--m2);
+    border-radius: var(--r-card);
+
+    &-tag {
+      flex-shrink: 0;
+      font-size: $fs-tag;
+      color: $text-3;
+    }
+
+    &-value {
+      flex: 1;
+      min-width: 0;
+      margin: 0 $sp-2;
+      font-size: $fs-body;
+      font-weight: $fw-semi;
+      color: var(--mt);
+    }
+
+    &-arrow {
+      flex-shrink: 0;
+      font-size: $fs-h2;
+      color: $text-3;
+    }
+  }
+
+  .swap {
+    flex-shrink: 0;
+    width: $hit-min;
+    height: $hit-min;
+    line-height: $hit-min - 4rpx;
+    text-align: center;
+    font-size: $fs-h1;
+    color: var(--m1);
+    background: $bg-card;
+    border: 1rpx solid var(--m1);
+    border-radius: 50%;
+    box-shadow: 0 6rpx 16rpx var(--sh);
+  }
+
+  /* ---------- 结果 ---------- */
+  .result-src {
+    display: block;
+    font-size: $fs-aux;
+    color: $text-2;
+  }
+
+  .result-body {
+    display: flex;
+    align-items: baseline;
+    margin-top: $sp-2;
+  }
+
+  .result-num {
+    font-size: 76rpx;
+    font-weight: $fw-black;
+    line-height: 1.2;
+    color: var(--m1);
+  }
+
+  .result-unit {
+    margin-left: $sp-3;
+    font-size: $fs-h2;
+    font-weight: $fw-semi;
+    color: var(--mt);
+  }
+
+  /* 一句人话说明（"1 米 = 100 厘米"） */
+  .result-ratio {
+    margin-top: $sp-4;
+    padding: $sp-3 $sp-4;
+    border-radius: var(--r-card);
+
+    .ratio-text {
+      display: block;
+      font-size: $fs-aux;
+      font-weight: $fw-semi;
+      color: var(--mt);
+    }
+  }
+
+  /* ---------- 空态 / 错态（不套 .qz-empty：那是独立空态卡，套进卡片阵列会压垮布局） ---------- */
+  .blank {
+    text-align: center;
+
+    .blank-title {
+      display: block;
+      font-size: $fs-h2;
+      font-weight: $fw-semi;
+      color: var(--mt);
+    }
+  }
+}

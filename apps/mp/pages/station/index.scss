@@ -1,0 +1,182 @@
+@import '../../styles/tokens.scss';
+
+/* 青智驿站 · 暖橙主题
+   造型语言：中圆角 + 左侧彩条卡 + 带图标的分类胶囊，比工具箱"更有人情味" */
+
+.station { padding-bottom: 200rpx; }
+
+/* ---------- 装饰签名：横向流水（`.qz-water` 需要自己给位置与尺寸） ----------
+   贴在列表区上方横淌，浓度沿用库里的 .16（红线 ≤.4），不压文字。 */
+.st-water {
+  position: absolute; left: -60rpx; right: -60rpx; top: 38%; height: 220rpx;
+}
+
+/* ---------- 顶部 ---------- */
+.head { position: relative; padding: $sp-6 $page-padding $sp-4; overflow: hidden; }
+.head-row { display: flex; align-items: center; }
+.head-main { flex: 1; min-width: 0; margin-left: $sp-4; }
+.head-title { display: block; font-size: $fs-h1; font-weight: $fw-black; color: $text-1; letter-spacing: .6rpx; }
+.head-sub { display: block; font-size: $fs-aux; color: $text-3; margin-top: 2rpx; }
+.head-btn {
+  display: flex; align-items: center;
+  padding: 10rpx $sp-4; border-radius: $radius-pill;
+  background: linear-gradient(135deg, var(--m1), var(--m2));
+  color: $text-inverse; font-size: $fs-aux; font-weight: $fw-semi;
+  box-shadow: 0 8rpx 20rpx var(--sh);
+}
+.head-btn-ico { width: 32rpx; height: 32rpx; margin-right: 4rpx; }
+.head-flow { margin-top: $sp-4; }
+
+/* Tab：选中项用渐变胶囊，切换时自然过渡 */
+.tabs {
+  display: flex; margin-top: $sp-4; padding: 6rpx;
+  background: var(--ms);
+  border-radius: $radius-pill;
+}
+.tab {
+  flex: 1; display: flex; align-items: center; justify-content: center;
+  height: 68rpx; border-radius: $radius-pill;
+  font-size: $fs-aux; color: $text-2;
+  transition: background $dur-base $ease-out, color $dur-base $ease-out;
+}
+.tab-ico { width: 36rpx; height: 36rpx; margin-right: 6rpx; }
+.tab-active {
+  background: $bg-card; color: var(--mt); font-weight: $fw-bold;
+  box-shadow: 0 6rpx 16rpx var(--sh);
+}
+.tab-active .tab-ico { animation: qzPopIn $dur-base $ease-spring both; }
+
+/* 搜索 */
+.search-box {
+  height: 80rpx; margin-top: $sp-4;
+  background: $bg-card; border-radius: $radius-pill;
+  display: flex; align-items: center; padding: 0 $sp-4 0 $sp-6;
+  border: 2rpx solid var(--ms);
+}
+.search-icon { width: 38rpx; height: 38rpx; margin-right: $sp-3; }
+.search-input { flex: 1; font-size: $fs-body; }
+
+/* 分类胶囊（带图标，横滑） */
+.cats { white-space: nowrap; padding: $sp-4 0 $sp-2; }
+.cat {
+  display: inline-flex; align-items: center;
+  padding: 8rpx $sp-4 8rpx 8rpx; margin-right: $sp-3;
+  background: $bg-card; border-radius: $radius-pill;
+  font-size: $fs-aux; color: $text-2;
+  border: 1rpx solid $line-soft;
+  box-shadow: $shadow-card;
+}
+.cat-ico { width: 36rpx; height: 36rpx; margin-right: 6rpx; }
+.cat-active {
+  background: linear-gradient(135deg, var(--m1), var(--m2));
+  color: $text-inverse; font-weight: $fw-semi;
+  border-color: transparent;
+  box-shadow: 0 8rpx 20rpx var(--sh);
+}
+
+/* ---------- 列表 ---------- */
+.list { padding: $sp-4 $page-padding; }
+
+/* ---------- 服务市场（M3-05） ---------- */
+
+/* 上架入口：胶囊 + 一句话说明，只在认证服务者面前出现 */
+.svc-entry {
+  display: flex; align-items: center;
+  padding: $sp-2 $sp-3; margin-bottom: $sp-4;
+  border-radius: var(--r-card, #{$radius-md});
+  background: var(--ms);
+}
+.svc-entry-chip { flex-shrink: 0; }
+.svc-entry-ico { width: 28rpx; height: 28rpx; margin-right: 6rpx; }
+.svc-entry-tip {
+  flex: 1; min-width: 0; margin-left: $sp-3;
+  font-size: $fs-tag; color: var(--mt); line-height: 1.5;
+}
+
+/* 服务卡：描边卡 + 左侧彩条（`.qz-card` 提供 position:relative，彩条才不会定位到页面） */
+.svc { padding: $card-padding $card-padding $card-padding $sp-6; }
+.svc-row { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: $sp-2; }
+.svc-title { flex: 1; min-width: 0; font-size: $fs-body; font-weight: $fw-semi; color: $text-1; margin-right: $sp-3; }
+/* 价格用强调色，但不用浮点数：文案在 TS 侧按「分 → 元」算好 */
+.svc-price { flex-shrink: 0; font-size: $fs-h3; font-weight: $fw-bold; color: $accent-500; }
+.svc-desc { display: block; font-size: $fs-aux; color: $text-2; line-height: 1.6; margin-bottom: $sp-3; }
+.svc-tags { display: flex; flex-wrap: wrap; margin-bottom: $sp-2; }
+/* 分类标签走渐变底：与技能标签（柔底 .tag）同屏并存时要有主次，
+   选择器多一层是必要的 —— 同权重的 `.tag` 在本文件里排在后面，会把它盖掉 */
+.svc-tags .tag-cat {
+  background: linear-gradient(135deg, var(--m1), var(--m2));
+  color: $text-inverse; font-weight: $fw-medium;
+}
+.svc-foot { display: flex; align-items: center; justify-content: space-between; }
+.svc-provider { display: flex; align-items: center; flex: 1; min-width: 0; }
+.svc-avatar { width: 32rpx; height: 32rpx; flex-shrink: 0; margin-right: 6rpx; }
+.svc-name { font-size: $fs-tag; color: $text-2; max-width: 200rpx; }
+.svc-rating { flex-shrink: 0; margin-left: $sp-2; font-size: $fs-tag; color: $warning; }
+.svc-meta { flex-shrink: 0; margin-left: $sp-3; font-size: $fs-tag; color: $text-3; }
+
+/* 服务市场空态的次按钮：与主按钮之间留出呼吸 */
+.svc-empty-sub { margin-top: $sp-3; }
+
+.task { padding: $card-padding $card-padding $card-padding $sp-6; }
+.task-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: $sp-2; }
+.task-title { flex: 1; font-size: $fs-body; font-weight: $fw-semi; color: $text-1; margin-right: $sp-3; }
+.task-budget { font-size: $fs-h3; font-weight: $fw-bold; color: $accent-500; }
+.task-desc { display: block; font-size: $fs-aux; color: $text-2; margin-bottom: $sp-3; }
+.task-tags { display: flex; flex-wrap: wrap; margin-bottom: $sp-2; }
+.tag {
+  padding: 2rpx 14rpx; margin: 0 $sp-2 $sp-2 0;
+  border-radius: $radius-pill; font-size: $fs-tag;
+  background: var(--ms); color: var(--mt);
+}
+.tag-ai { background: $tech-50; color: $tech-500; }
+.task-foot { display: flex; align-items: center; justify-content: space-between; }
+.task-status { display: flex; align-items: center; font-size: $fs-tag; color: $success; }
+.task-status-dot {
+  width: 12rpx; height: 12rpx; border-radius: 50%;
+  background: $success; margin-right: 6rpx;
+  animation: qzBreath 2.4s $ease-inout infinite;
+}
+.task-apply { font-size: $fs-tag; color: $text-3; }
+.list-foot { text-align: center; font-size: $fs-tag; color: $text-3; padding: $sp-6 0; }
+
+/* ---------- 悬浮发布按钮 ---------- */
+.fab {
+  position: fixed; right: $sp-6; bottom: calc(200rpx + env(safe-area-inset-bottom));
+  display: flex; align-items: center;
+  padding: 0 $sp-6; height: 96rpx;
+  background: linear-gradient(135deg, var(--m1), var(--m2));
+  color: $text-inverse;
+  border-radius: $radius-pill; font-size: $fs-aux; font-weight: $fw-semi;
+  box-shadow: 0 14rpx 32rpx var(--sh);
+  z-index: $z-float;
+}
+.fab-ico { width: 40rpx; height: 40rpx; margin-right: 6rpx; }
+.fab-text { white-space: nowrap; }
+.fab-ring {
+  position: absolute; left: 0; top: 0; right: 0; bottom: 0;
+  border-radius: $radius-pill; border: 3rpx solid var(--m1);
+  animation: qzPulse 3s $ease-out infinite;
+  pointer-events: none;
+}
+
+/* ---------- 演示数据提示（红线 10） ----------
+   与 pkg-os/plan 的 .plan-demo-note 同一套造型语言（左侧告警色条 + 淡底），
+   让"这是演示数据"在各页面看起来是同一件事。 */
+.demo-note {
+  display: flex; align-items: flex-start;
+  padding: $sp-3 $sp-4;
+  margin-bottom: $sp-4;
+  border-radius: var(--r-card, #{$radius-md});
+  background: $warning-veil;
+  border-left: 6rpx solid $warning;
+}
+/* ⚠️ `.qz-i` 基类不带尺寸（见 styles/icons.scss：尺寸由 `.qz-ico-*` 或外部样式给定）。
+   这里没有 `.qz-ico` 容器，必须自己给 —— 否则图标是 **0×0 隐形元素**，编译与守卫都不报。 */
+.demo-note-ico {
+  color: $warning;
+  flex-shrink: 0;
+  width: $ico-sm;
+  height: $ico-sm;
+  margin-right: $sp-3;
+}
+.demo-note-text { flex: 1; font-size: $fs-tag; color: $text-2; line-height: 1.6; }

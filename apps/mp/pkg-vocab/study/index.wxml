@@ -1,0 +1,251 @@
+<!-- 记单词 · 学习页（首页「开始学习」的落点）
+     视觉：苔绿主题（styles/themes.scss 的 .th-vocab）
+     题面上不带释义 —— 释义由作答后的响应给出，否则答案就印在选项上方了 -->
+<view
+  class="qz-page th-vocab study"
+  bindtouchstart="onFxStart"
+  bindtouchmove="onFxMove"
+  bindtouchend="onFxEnd"
+  bindtouchcancel="onFxEnd"
+>
+  <view class="qz-deco">
+    <view class="qz-fx" style="{{fxStyle}}">
+      <view class="study-blob qz-blob"></view>
+      <view class="study-curve qz-curve"></view>
+      <view class="qz-dot qz-dot-b"></view>
+    </view>
+  </view>
+
+  <view class="qz-content">
+    <view class="qz-head">
+      <view class="qz-head-row qz-an-in">
+        <view class="qz-ico qz-ico-l qz-ico-float">
+          <view class="qz-i qz-i-learn"></view>
+        </view>
+        <view class="qz-head-main">
+          <text class="qz-head-title">{{finished ? '今天的任务完成了' : '记单词'}}</text>
+          <text class="qz-head-sub">
+            {{finished ? '明天会再考你一遍，趁热把错的看一眼' : '先复习到期的，再学新词'}}
+          </text>
+        </view>
+      </view>
+      <view class="qz-head-chips qz-an-in qz-d1">
+        <view wx:if="{{!showEmpty && !finished}}" class="qz-chip qz-chip-on">第 {{idx + 1}} / {{total}} 题</view>
+        <!-- 演示产物必须可辨（红线 10）：Provider 名是 mock-* 时挂出来 -->
+        <view wx:if="{{demoAudio}}" class="qz-chip">演示模式 · 发音</view>
+      </view>
+      <view class="head-flow qz-flow"></view>
+    </view>
+
+    <view class="qz-container">
+      <view wx:if="{{error}}" class="qz-err qz-an-in">
+        <text class="qz-err-text">{{error}}</text>
+        <view class="qz-err-btn qz-press" bindtap="onRetry">重试</view>
+      </view>
+
+      <view wx:if="{{loading}}" class="qz-card qz-card-line study-sk">
+        <view class="qz-skeleton qz-skeleton-line"></view>
+        <view class="qz-skeleton qz-skeleton-line qz-skeleton-line-short"></view>
+      </view>
+
+      <!-- 进页就没有待学的词：说法由后端给（没选词书 / 今天已完成 / 词表建设中） -->
+      <view wx:elif="{{showEmpty}}" class="qz-empty qz-an-in qz-d2">
+        <view class="qz-empty-ico qz-ico qz-ico-xl">
+          <view class="qz-i qz-i-learn"></view>
+        </view>
+        <text class="qz-empty-title">暂时没有可学的词</text>
+        <text class="qz-empty-text">{{emptyText}}</text>
+        <view class="qz-empty-flow qz-flow"></view>
+        <view class="qz-btn-main qz-press" bindtap="onBack">{{goBook ? '回去选词书' : '返回'}}</view>
+      </view>
+
+      <!-- 答完最后一题 -->
+      <view wx:elif="{{finished}}" class="qz-card study-done qz-an-in qz-d2">
+        <view class="qz-topline"></view>
+        <view class="qz-ico qz-ico-xl qz-ico-bob study-done-ico">
+          <view class="qz-i qz-i-check"></view>
+        </view>
+        <text class="study-done-title">今天的任务完成了</text>
+        <text class="study-done-sub">答对 {{rightCount}} / {{total}} 题</text>
+        <view class="qz-btn-main qz-press study-done-btn" bindtap="onGoStats">看看学习统计</view>
+        <view class="qz-btn-sub qz-press study-done-back" bindtap="onBack">返回</view>
+      </view>
+
+      <block wx:else>
+        <!-- 题面。四种题型共用一张卡，哪些区块显示由 `show*` 系列开关决定
+             （规则集中在 index.ts 的 VIEW_RULES —— 散在这里写 wx:if 会让
+             "新题型忘了加分支"变成一道完全空白的题，且没有任何报错） -->
+        <view class="qz-card study-card qz-an-in qz-d2">
+          <view class="qz-topline"></view>
+          <view class="study-top">
+            <text class="study-tag {{isNew ? 'study-tag-new' : 'study-tag-rev'}}">{{isNew ? '新词' : '复习'}}</text>
+            <text class="study-type">{{typeLabel}}</text>
+            <text class="study-step">{{idx + 1}} / {{total}}</text>
+          </view>
+
+          <!-- 作答说明：告诉用户这道题要做什么 -->
+          <text class="study-hint">{{hint}}</text>
+
+          <!-- 看词选义：题面是词形 -->
+          <block wx:if="{{showWord}}">
+            <view class="study-word-row">
+              <text class="study-word">{{spelling}}</text>
+              <view
+                wx:if="{{showSpeaker}}"
+                class="study-spk qz-press {{speaking ? 'study-spk-on' : ''}}"
+                bindtap="onSpeak"
+              >
+                <view class="qz-ico qz-ico-s study-spk-ico {{speaking ? 'qz-ico-bob' : ''}}">
+                  <view class="qz-i qz-i-audio"></view>
+                </view>
+              </view>
+            </view>
+            <text wx:if="{{showPhonetic && phonetic}}" class="study-phonetic">{{phonetic}}</text>
+          </block>
+
+          <!-- 听音辨词：题面是声音。词形绝不能出现在这里，否则这道题就退化成送分题 -->
+          <block wx:elif="{{type === 'listening'}}">
+            <view class="study-listen">
+              <view
+                class="study-listen-btn qz-press {{speaking ? 'study-listen-on' : ''}}"
+                bindtap="onSpeak"
+              >
+                <view class="qz-ico qz-ico-l {{speaking ? 'qz-ico-bob' : 'qz-ico-slow'}}">
+                  <view class="qz-i qz-i-audio"></view>
+                </view>
+              </view>
+              <text class="study-listen-tip">{{speaking ? '正在播放…' : '点一下再听一遍'}}</text>
+            </view>
+          </block>
+
+          <!-- 看义拼词：题面是中文释义 -->
+          <block wx:elif="{{showSense}}">
+            <view class="study-sense">
+              <text class="study-sense-text">{{senseText}}</text>
+            </view>
+          </block>
+
+          <!-- 例句填空：题面是把目标词挖空的句子 -->
+          <block wx:else>
+            <view class="study-cloze">
+              <text class="study-cloze-en">{{prompt}}</text>
+              <text wx:if="{{promptZh}}" class="study-cloze-zh">{{promptZh}}</text>
+            </view>
+            <view
+              wx:if="{{showSpeaker}}"
+              class="study-spk study-spk-line qz-press {{speaking ? 'study-spk-on' : ''}}"
+              bindtap="onSpeak"
+            >
+              <view class="qz-ico qz-ico-s study-spk-ico {{speaking ? 'qz-ico-bob' : ''}}">
+                <view class="qz-i qz-i-audio"></view>
+              </view>
+              <text class="study-spk-text">听整句</text>
+            </view>
+          </block>
+
+          <!-- 选项（看词选义 / 听音辨词 / 例句填空） -->
+          <view wx:if="{{hasOptions}}" class="study-opts">
+            <view
+              wx:for="{{optionRows}}"
+              wx:key="key"
+              class="study-opt {{item.cls}} qz-press"
+              data-key="{{item.key}}"
+              bindtap="onPick"
+            >
+              <text class="study-opt-key">{{item.key}}</text>
+              <text class="study-opt-text">{{item.text}}</text>
+            </view>
+          </view>
+
+          <!-- 拼写输入（看义拼词）。作答后输入框锁住，避免改了半天发现已经判完了 -->
+          <view wx:if="{{hasInput}}" class="study-input-wrap">
+            <input
+              class="study-input {{answered ? (correct ? 'study-input-ok' : 'study-input-no') : ''}}"
+              value="{{inputValue}}"
+              placeholder="在这里拼写"
+              placeholder-class="study-input-ph"
+              maxlength="{{textMax}}"
+              disabled="{{answered}}"
+              confirm-type="done"
+              bindinput="onType"
+              bindconfirm="onSubmitSpelling"
+            />
+            <view
+              wx:if="{{!answered}}"
+              class="qz-btn-main qz-press study-input-btn"
+              bindtap="onSubmitSpelling"
+            >
+              提交
+            </view>
+          </view>
+        </view>
+
+        <!-- 作答反馈：答完才摊开释义 / 例句 / 词组 / 助记 -->
+        <view
+          wx:if="{{answered}}"
+          class="qz-card study-fb {{correct ? 'study-fb-ok' : nearMiss ? 'study-fb-near' : 'study-fb-no'}} qz-an-in"
+        >
+          <view class="study-fb-head">
+            <view class="qz-ico qz-ico-s study-fb-ico">
+              <view class="qz-i {{correct ? 'qz-i-check' : nearMiss ? 'qz-i-sparkle' : 'qz-i-close'}}"></view>
+            </view>
+            <text class="study-fb-title">{{correct ? '答对了' : nearMiss ? '就差一点' : '这个先记下来'}}</text>
+            <text class="study-fb-sub">{{nextTip}}</text>
+          </view>
+
+          <!-- 拼写/填空题：把"你写的"和"正确的"并排摆出来，用户才知道错在哪 -->
+          <view wx:if="{{hasInput}}" class="study-cmp">
+            <view class="study-cmp-row">
+              <text class="study-cmp-key">你写的</text>
+              <text class="study-cmp-val {{correct ? 'study-cmp-ok' : 'study-cmp-no'}}">{{submitted || '（空）'}}</text>
+            </view>
+            <view wx:if="{{!correct}}" class="study-cmp-row">
+              <text class="study-cmp-key">正确的</text>
+              <text class="study-cmp-val study-cmp-ok">{{answerText}}</text>
+            </view>
+          </view>
+
+          <!-- 读音：有英式音标时给一个切换（只在有值时才渲染开关） -->
+          <view wx:if="{{hasUk}}" class="study-accent">
+            <view class="qz-chip {{showUk ? '' : 'qz-chip-on'}} qz-press" bindtap="onToggleAccent">
+              美 {{phonetic}}
+            </view>
+            <view class="qz-chip {{showUk ? 'qz-chip-on' : ''}} qz-press" bindtap="onToggleAccent">
+              英 {{ukPhonetic}}
+            </view>
+          </view>
+
+          <view wx:if="{{senses.length}}" class="study-mean">
+            <text wx:for="{{senses}}" wx:key="meaning" class="study-mean-row">
+              <text class="study-mean-pos">{{item.pos}}</text>{{item.meaning}}
+            </text>
+          </view>
+
+          <view wx:if="{{examples.length}}" class="study-ex">
+            <view wx:for="{{examples}}" wx:key="en" class="study-ex-row">
+              <text class="study-ex-en">{{item.en}}</text>
+              <text class="study-ex-zh">{{item.zh}}</text>
+            </view>
+          </view>
+
+          <!-- 词组搭配：这是"不背单词"式内容组织的支柱，也是例句填空题的素材来源 -->
+          <view wx:if="{{phrases.length}}" class="study-ph">
+            <view wx:for="{{phrases}}" wx:key="phrase" class="study-ph-row">
+              <text class="study-ph-en">{{item.phrase}}</text>
+              <text class="study-ph-zh">{{item.zh}}</text>
+            </view>
+          </view>
+
+          <view wx:if="{{mnemonic}}" class="study-mnemo">
+            <text class="study-mnemo-key">助记</text>
+            <text class="study-mnemo-text">{{mnemonic}}</text>
+          </view>
+
+          <view class="qz-btn-main qz-press study-next" bindtap="onNext">
+            {{idx + 1 === total ? '完成' : '继续'}}
+          </view>
+        </view>
+      </block>
+    </view>
+  </view>
+</view>

@@ -1,0 +1,154 @@
+<!-- 日期计算 —— 两日期间隔天数 / 从某天推 N 天后的日期，纯本地计算
+     视觉：星蓝主题（th-toolbox）· 装饰签名：blob-b + dot-a -->
+<view
+  class="qz-page th-toolbox dc-page"
+  bindtouchstart="onFxStart"
+  bindtouchmove="onFxMove"
+  bindtouchend="onFxEnd"
+  bindtouchcancel="onFxEnd"
+>
+  <view class="qz-deco">
+    <view class="qz-fx" style="{{fxStyle}}">
+      <view class="qz-blob qz-blob-b"></view>
+      <view class="qz-dot qz-dot-a"></view>
+    </view>
+  </view>
+
+  <view class="qz-content">
+    <view class="qz-head">
+      <view class="qz-head-row qz-an-in">
+        <view class="qz-ico qz-ico-l qz-ico-float">
+          <view class="qz-i qz-i-calendar"></view>
+        </view>
+        <view class="qz-head-main">
+          <text class="qz-head-title">日期计算</text>
+          <text class="qz-head-sub">间隔天数 / 推算日期 · 本地计算</text>
+        </view>
+      </view>
+    </view>
+
+    <view class="qz-container">
+      <!-- 模式 -->
+      <view class="qz-card qz-an-in qz-d1">
+        <view class="card-title">
+          <text>算什么</text>
+          <text class="card-title-hint">两个模式共用同一份日期</text>
+        </view>
+        <view class="chips">
+          <view
+            wx:for="{{modeChips}}"
+            wx:key="key"
+            class="qz-chip qz-press {{mode === item.key ? 'qz-chip-on' : ''}}"
+            data-mode="{{item.key}}"
+            bindtap="onModeTap"
+          >
+            {{item.label}}
+          </view>
+        </view>
+      </view>
+
+      <!-- 间隔天数 -->
+      <block wx:if="{{mode === 'diff'}}">
+        <view class="qz-card qz-card-grad qz-an-in qz-d2">
+          <view class="card-title">
+            <text>选两个日期</text>
+            <text class="card-title-hint">只数日历天数，不含节假日调休</text>
+          </view>
+          <view class="pick-row">
+            <picker
+              mode="date"
+              value="{{fromDate}}"
+              start="{{minDate}}"
+              end="{{maxDate}}"
+              bindchange="onFromChange"
+            >
+              <view class="pick qz-press">
+                <text class="pick-tag">起</text>
+                <text class="pick-value">{{fromDate}}</text>
+                <text class="pick-arrow">›</text>
+              </view>
+            </picker>
+            <view class="swap qz-press" bindtap="onSwapDates">⇄</view>
+            <picker
+              mode="date"
+              value="{{toDate}}"
+              start="{{minDate}}"
+              end="{{maxDate}}"
+              bindchange="onToChange"
+            >
+              <view class="pick qz-press">
+                <text class="pick-tag">止</text>
+                <text class="pick-value">{{toDate}}</text>
+                <text class="pick-arrow">›</text>
+              </view>
+            </picker>
+          </view>
+        </view>
+
+        <view class="qz-card qz-card-glow qz-an-in qz-d3">
+          <view class="result-body">
+            <text class="result-num">{{diffDays}}</text>
+            <text class="result-unit">天</text>
+          </view>
+          <text class="result-span">{{diffSpan}}</text>
+          <view class="result-hint">
+            <text class="hint-text">{{diffHint}}</text>
+          </view>
+        </view>
+      </block>
+
+      <!-- 推算日期 -->
+      <block wx:else>
+        <view class="qz-card qz-card-grad qz-an-in qz-d2">
+          <view class="card-title">
+            <text>从哪天起、推多少天</text>
+            <text class="card-title-hint">负数就是往前推</text>
+          </view>
+          <picker
+            class="base-picker"
+            mode="date"
+            value="{{baseDate}}"
+            start="{{minDate}}"
+            end="{{maxDate}}"
+            bindchange="onBaseChange"
+          >
+            <view class="pick qz-press">
+              <text class="pick-tag">基准日</text>
+              <text class="pick-value">{{baseDate}}</text>
+              <text class="pick-arrow">›</text>
+            </view>
+          </picker>
+          <view class="value-row">
+            <input
+              class="value-input"
+              type="number"
+              value="{{nText}}"
+              placeholder="如 30 或 -7"
+              placeholder-class="value-ph"
+              bindinput="onNInput"
+            />
+            <text class="value-unit">天</text>
+          </view>
+        </view>
+
+        <view class="qz-card qz-card-glow qz-an-in qz-d3" wx:if="{{addStatus === 'ok'}}">
+          <text class="result-src">{{addSrc}}是</text>
+          <view class="result-body">
+            <text class="result-num">{{addText}}</text>
+            <text class="result-unit">{{addWd}}</text>
+          </view>
+        </view>
+
+        <view class="qz-card blank qz-an-in qz-d3" wx:elif="{{addStatus === 'invalid'}}">
+          <text class="blank-title">{{addInvalidText}}</text>
+          <text class="hint">填个整数天数就行，支持负数。</text>
+        </view>
+
+        <view class="qz-card blank qz-an-in qz-d3" wx:else>
+          <text class="blank-title">填一个天数，日期立刻算出来</text>
+          <text class="hint">比如 100 天后开学、-7 表示一周前。</text>
+        </view>
+      </block>
+    </view>
+  </view>
+</view>

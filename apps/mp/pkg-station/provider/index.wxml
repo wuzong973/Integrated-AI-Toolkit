@@ -1,0 +1,111 @@
+<!-- 服务者主页（M3-05）：TA 的在架服务 + 公开的服务者摘要
+     视觉：葡萄紫主题 · 圆角 28 · 双光斑 + 呼吸光点；空态用统一 .qz-empty -->
+<view
+  class="qz-page th-provider provider"
+  bindtouchstart="onFxStart"
+  bindtouchmove="onFxMove"
+  bindtouchend="onFxEnd"
+  bindtouchcancel="onFxEnd"
+>
+  <!-- 装饰层（不拦截点击，内容可读性不受影响） -->
+  <view class="qz-deco">
+    <view class="qz-fx" style="{{fxStyle}}">
+      <!-- 签名：blob-a/c + dot-c（个人橱窗：两枚错位光斑 + 一枚副点缀色呼吸光点） -->
+      <view class="qz-blob qz-blob-a"></view>
+      <view class="qz-blob qz-blob-c"></view>
+      <view class="qz-dot qz-dot-c"></view>
+    </view>
+  </view>
+
+  <view class="qz-content">
+    <!-- 页头 -->
+    <view class="qz-head">
+      <view class="qz-head-row qz-an-in">
+        <view class="qz-ico qz-ico-l qz-ico-float">
+          <view class="qz-i qz-i-verify"></view>
+        </view>
+        <view class="qz-head-main">
+          <text class="qz-head-title">{{head ? head.nickname + ' 的主页' : '服务者主页'}}</text>
+          <text class="qz-head-sub">看 TA 挂出来的服务，和这些服务共用的那份信用</text>
+        </view>
+      </view>
+      <view wx:if="{{head}}" class="qz-head-chips qz-an-in qz-d1">
+        <view class="qz-chip qz-chip-on">认证服务者</view>
+        <view class="qz-chip qz-chip-ghost">{{head.creditText}}</view>
+        <view class="qz-chip qz-chip-ghost">{{head.completedText}}</view>
+      </view>
+    </view>
+
+    <view class="qz-container provider-body">
+      <!-- ① 加载中 -->
+      <view wx:if="{{loading}}" class="qz-skeleton qz-an-in">
+        <view class="qz-skeleton-line"></view>
+        <view class="qz-skeleton-line"></view>
+        <view class="qz-skeleton-line qz-skeleton-line-short"></view>
+      </view>
+
+      <!-- ② 加载失败：说清原因 + 重试（不降级成"TA 没有服务"） -->
+      <view wx:elif="{{error}}" class="qz-err qz-an-in">
+        <text class="qz-err-text">{{error}}</text>
+        <view class="qz-err-btn qz-press" bindtap="onRetry">重试</view>
+      </view>
+
+      <!-- ③ 一条服务都没有 -->
+      <view wx:elif="{{emptyTitle}}" class="qz-empty qz-an-in">
+        <view class="qz-empty-ico qz-ico qz-ico-xl qz-ico-float">
+          <view class="qz-i qz-i-empty"></view>
+        </view>
+        <text class="qz-empty-title">{{emptyTitle}}</text>
+        <text class="qz-empty-text">{{emptyText}}</text>
+        <view class="qz-empty-flow qz-flow"></view>
+        <view class="qz-btn-main qz-press" bindtap="onGoMarket">去服务市场看看</view>
+        <view class="qz-btn-sub qz-press provider-empty-sub" bindtap="onGoPublish">去发布需求</view>
+      </view>
+
+      <!-- ④ 有服务：摘要卡 + 服务列表 -->
+      <block wx:else>
+        <!-- 认证信息：只有服务接口真下发的这四项（详见 index.ts 顶部说明），
+             学校 / 作品集 / 技能画像要等他人主页接口（M3-05），这里不摆空位 -->
+        <view wx:if="{{head}}" class="qz-card qz-card-tint qz-an-in qz-d2">
+          <view class="sum-row">
+            <view class="qz-ico qz-ico-m qz-ico-bob"><view class="qz-i qz-i-verify"></view></view>
+            <view class="sum-body">
+              <text class="sum-name">{{head.nickname}}</text>
+              <text class="sum-meta">{{head.creditText}} · {{head.completedText}}</text>
+              <text class="sum-rating">{{head.ratingText}}</text>
+            </view>
+          </view>
+          <view class="sum-flow qz-flow"></view>
+        </view>
+
+        <view class="qz-sec qz-an-in qz-d3">
+          <view class="qz-sec-bar"></view>
+          <text class="qz-sec-title">在架服务</text>
+          <text class="qz-sec-sub">{{total}} 个</text>
+        </view>
+
+        <!-- 主题浅底卡 + 抬升反馈：与驿站市场页的描边卡区分（同一条列表在两个入口长得不一样） -->
+        <view
+          wx:for="{{services}}"
+          wx:key="id"
+          class="prow qz-card qz-card-tint qz-lift {{item.anim}}"
+          data-id="{{item.id}}"
+          bindtap="onServiceTap"
+        >
+          <view class="prow-row">
+            <text class="prow-title qz-ellipsis">{{item.title}}</text>
+            <text class="prow-price">{{item.priceText}}</text>
+          </view>
+          <text class="prow-desc qz-ellipsis-2">{{item.description}}</text>
+          <view class="prow-foot">
+            <text wx:if="{{item.metaText}}" class="prow-meta">{{item.metaText}}</text>
+            <view class="qz-item-arrow">›</view>
+          </view>
+          <view class="prow-tags">
+            <text wx:for="{{item.skillTags}}" wx:for-item="tag" wx:key="*this" class="prow-tag">{{tag}}</text>
+          </view>
+        </view>
+      </block>
+    </view>
+  </view>
+</view>

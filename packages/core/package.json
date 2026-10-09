@@ -1,0 +1,19 @@
+{
+  "name": "@qz/core",
+  "version": "0.1.0",
+  "private": true,
+  "description": "青智校园共享业务核心：枚举、模型、状态机、校验、工具函数（与端侧解耦，可在小程序 / H5 / 后端复用）",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "vitest": "^2.1.8"
+  }
+}

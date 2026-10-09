@@ -1,0 +1,372 @@
+@import '../../styles/tokens.scss';
+
+/* 行程规划 —— 只用 Design Token 取色，禁止硬编码色值 */
+.trip {
+  padding-bottom: 40rpx;
+
+  /* ---------- 装饰签名：curve + dot-b ----------
+     ⚠️ 库内 `.qz-curve` 只给高度与渐变、不带定位（见 styles/deco.scss），
+        它在 `.qz-fx` 里按普通流排到视差层顶边，而 `.qz-fx` 相对 `.qz-deco` 外扩了 40rpx
+        —— 弧线上沿那 40rpx 会被 `.qz-deco` 的 `overflow: hidden` 裁掉（不报错、只是缺一段）。
+        按外扩补 40rpx 即回到包装前的屏幕位置；左右 0 仍是 `.qz-fx` 的整宽，与原先一致。 */
+  .qz-curve {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 40rpx;
+  }
+
+  .head {
+    padding: 24rpx 8rpx 16rpx;
+
+    .title {
+      display: block;
+      font-size: 44rpx;
+      font-weight: 600;
+      color: var(--mt);
+    }
+
+    .sub {
+      display: block;
+      margin-top: 8rpx;
+      font-size: 24rpx;
+      color: $text-3;
+    }
+  }
+
+  /* ⚠️ 卡片标题类名是 `.card-title`（不是 `qz-card-title`）—— 后者在 styles/ 里没有定义，
+     写了它样式一行都不生效，且编译与 tsc 都不报。见 MP-VISUAL-SYSTEM 第九节 ③。 */
+  .card-title {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: 16rpx;
+    font-size: 30rpx;
+    font-weight: 600;
+    color: var(--mt);
+
+    &-hint {
+      font-size: 22rpx;
+      font-weight: 400;
+      color: $text-3;
+    }
+  }
+
+  .hint {
+    display: block;
+    margin-top: 12rpx;
+    font-size: 22rpx;
+    line-height: 1.5;
+    color: $text-3;
+  }
+
+  .ph {
+    color: $text-3;
+    font-size: 26rpx;
+  }
+
+  /* ---------- 目的地 ---------- */
+  .city-input {
+    padding: 16rpx 12rpx;
+    font-size: 30rpx;
+    color: var(--mt);
+    background: var(--ms);
+    border-radius: var(--r-card);
+  }
+
+  /* ---------- Day 切换 ---------- */
+  .days {
+    display: flex;
+    gap: 12rpx;
+    margin: 24rpx 0 12rpx;
+  }
+
+  .day {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    align-items: center;
+    padding: 14rpx 0;
+    background: $bg-card;
+    border: 1rpx solid var(--ms);
+    border-radius: var(--r-card);
+
+    &-on {
+      background: var(--ms);
+      border-color: var(--m1);
+    }
+
+    &-label {
+      font-size: 26rpx;
+      font-weight: 600;
+      color: var(--mt);
+    }
+
+    &-sub {
+      margin-top: 4rpx;
+      font-size: 20rpx;
+      color: $text-3;
+    }
+
+    &-add {
+      flex: 0 0 72rpx;
+      justify-content: center;
+      font-size: 36rpx;
+      color: var(--m1);
+      border-color: var(--m1);
+    }
+  }
+
+  /* ---------- 当前这天 ---------- */
+  .day-bar {
+    display: flex;
+    align-items: center;
+    margin: 4rpx 0 20rpx;
+    font-size: 24rpx;
+  }
+
+  .day-bar-date {
+    display: flex;
+    align-items: center;
+    padding: 8rpx 16rpx;
+    background: var(--ms);
+    border-radius: var(--r-card);
+  }
+
+  .day-bar-label {
+    color: $text-3;
+  }
+
+  .day-bar-value {
+    margin-left: 10rpx;
+    font-weight: 600;
+    color: var(--mt);
+  }
+
+  .day-bar-arrow {
+    margin-left: 6rpx;
+    color: $text-3;
+  }
+
+  .day-bar-stats {
+    flex: 1;
+    margin-left: 16rpx;
+    font-size: 22rpx;
+    color: $text-3;
+  }
+
+  .link {
+    font-size: 24rpx;
+    color: var(--m3);
+  }
+
+  /* ---------- 时间轴 ----------
+     左侧一列是"轴"（节点 + 连线），右侧是内容。轴的高度由右侧内容撑开，
+     所以 `.line` 用 `flex: 1` 而不是固定高度 —— 卡片高低不一也能连上。 */
+  .stop {
+    display: flex;
+  }
+
+  .rail {
+    display: flex;
+    flex: 0 0 40rpx;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .node {
+    width: 18rpx;
+    height: 18rpx;
+    margin-top: 14rpx;
+    background: var(--m1);
+    border-radius: 50%;
+
+    /* 时间撞了的站：节点换成点缀色，让"这里有问题"在轴上就看得见 */
+    &.node-warn {
+      background: var(--m3);
+    }
+  }
+
+  .line {
+    flex: 1;
+    width: 2rpx;
+    margin: 6rpx 0;
+    background: var(--ms);
+  }
+
+  .stop-body {
+    flex: 1;
+    min-width: 0;
+    padding-bottom: 20rpx;
+  }
+
+  .stop-time {
+    display: flex;
+    align-items: baseline;
+    padding: 6rpx 0 10rpx;
+  }
+
+  .time-text {
+    font-size: 30rpx;
+    font-weight: 700;
+    color: var(--m1);
+
+    /* 还没定时间的站：降级成次要文字，别和已定的时间抢注意力 */
+    &.time-empty {
+      font-size: 26rpx;
+      font-weight: 400;
+      color: $text-3;
+    }
+  }
+
+  .stay-text {
+    margin-left: 14rpx;
+    font-size: 22rpx;
+    color: $text-3;
+  }
+
+  /* 路程（从上一站到这里）：用点缀色，与"时间"区分开 —— 它是算出来的，不是用户填的 */
+  .leg-text {
+    display: block;
+    margin-bottom: 10rpx;
+    padding-left: 2rpx;
+    font-size: 22rpx;
+    color: var(--m3);
+  }
+
+  /* ---------- 算每段路 ---------- */
+  .calc {
+    display: flex;
+    align-items: center;
+    gap: 16rpx;
+    margin-top: 20rpx;
+  }
+
+  .mode {
+    display: flex;
+    flex: 0 0 auto;
+    align-items: baseline;
+    padding: 16rpx 22rpx;
+    background: var(--ms);
+    border-radius: var(--r-card);
+  }
+
+  .mode-label {
+    font-size: 22rpx;
+    color: $text-3;
+  }
+
+  .mode-value {
+    margin-left: 10rpx;
+    font-size: 26rpx;
+    font-weight: 600;
+    color: var(--m1);
+  }
+
+  .btn-busy {
+    color: $text-3;
+    border-color: $text-3;
+  }
+
+  /* ---------- 站点卡片 ---------- */
+  .stop-card {
+    padding: 16rpx;
+
+    .stop-name {
+      padding: 8rpx 0;
+      font-size: 30rpx;
+      font-weight: 600;
+      color: var(--mt);
+      border-bottom: 1rpx solid var(--ms);
+    }
+
+    .stop-addr {
+      padding: 10rpx 0 6rpx;
+      font-size: 24rpx;
+      color: $text-3;
+    }
+  }
+
+  .stop-foot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 8rpx;
+  }
+
+  .stay {
+    display: flex;
+    align-items: baseline;
+  }
+
+  .stay-label {
+    font-size: 24rpx;
+    color: $text-3;
+  }
+
+  .stay-input {
+    width: 110rpx;
+    margin: 0 8rpx;
+    padding: 4rpx 10rpx;
+    text-align: center;
+    font-size: 26rpx;
+    font-weight: 600;
+    color: var(--m1);
+    background: var(--ms);
+    border-radius: 8rpx;
+  }
+
+  .stay-unit {
+    font-size: 24rpx;
+    color: $text-3;
+  }
+
+  .del {
+    padding: 6rpx 16rpx;
+    font-size: 24rpx;
+    color: $text-3;
+  }
+
+  .warn {
+    display: block;
+    margin-top: 10rpx;
+    font-size: 22rpx;
+    color: $warning;
+  }
+
+  /* ---------- 按钮 ---------- */
+  .btn {
+    padding: 18rpx 0;
+    text-align: center;
+    font-size: 26rpx;
+    border-radius: var(--r-card);
+
+    &-ghost {
+      margin-top: 8rpx;
+      color: var(--m1);
+      border: 1rpx solid var(--m1);
+    }
+
+    &-solid {
+      margin-top: 20rpx;
+      font-weight: 600;
+      color: $text-inverse;
+      background: var(--m1);
+    }
+  }
+
+  /* ---------- 空态 ---------- */
+  .empty {
+    text-align: center;
+
+    .empty-ico {
+      margin: 8rpx auto 16rpx;
+    }
+
+    .empty-title {
+      display: block;
+      font-size: 28rpx;
+      color: var(--mt);
+    }
+  }
+}

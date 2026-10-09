@@ -1,0 +1,105 @@
+@import '../../styles/tokens.scss';
+
+/* 聊天记录 · 幻紫主题（模块色板见 styles/themes.scss 的 .th-os）
+   造型语言：继续用超大圆角，但**不做 AI 页那种左右对撞的聊天气泡** ——
+   只读回看要一眼看出"这是记录，不是能接着输入的地方"：
+   时间轴 + 角色标签，用户的话用主题浅底靠右缩进。 */
+
+.hist { padding-bottom: 60rpx; }
+
+/* ---------- 装饰签名：curve + dot-a（档案曲线） ----------
+   两段错位大弧从页头后方掠过，透明度压到 0.4 以下，只衬不抢 */
+.hist-curve-a {
+  position: absolute; left: -40rpx; right: -40rpx; top: 200rpx;
+  opacity: .22;
+}
+.hist-curve-b {
+  position: absolute; left: -40rpx; right: -40rpx; top: 46%;
+  opacity: .14;
+}
+
+.head-flow { margin-top: $sp-4; }
+.hist-chip-warn { background: $warning-veil; color: $warning; }
+
+/* ---------- 会话列表 ---------- */
+.hist-list { padding: 0; }
+.hist-list .qz-item { padding-left: $card-padding; padding-right: $card-padding; }
+
+/* 加载骨架：沿用列表行的形状，加载完不"跳一下" */
+.sk-row { display: flex; padding: $card-padding; border-bottom: 1rpx solid $border; }
+.sk-row:last-child { border-bottom: none; }
+.sk-main { flex: 1; min-width: 0; }
+
+/* ---------- 截断提示（红线 9：截断了必须说，不能装作这就是全部） ---------- */
+.hist-tip {
+  display: flex; align-items: flex-start;
+  padding: $sp-3 $sp-4; margin-bottom: $sp-4;
+  background: $warning-veil;
+  border: 1rpx solid $warning-line;
+  border-radius: $radius-md;
+}
+.hist-tip-ico { width: 30rpx; height: 30rpx; margin-right: $sp-2; flex-shrink: 0; }
+.hist-tip-text { flex: 1; font-size: $fs-tag; color: $warning; line-height: 1.5; }
+
+/* ---------- 记录（时间轴） ---------- */
+.hist-log { padding: $card-padding; }
+
+/* 日期分隔：一条短竖线 + 灰字，同一天只在首条出现 */
+.hist-day {
+  display: flex; align-items: center;
+  margin: $sp-4 0 $sp-3;
+  padding-left: $sp-3;
+  border-left: 6rpx solid var(--m1);
+  height: 32rpx;
+  font-size: $fs-aux; font-weight: $fw-bold; color: $text-3;
+}
+.hist-day:first-child { margin-top: 0; }
+
+.hist-row { display: flex; flex-direction: column; padding: $sp-2 0; }
+.hist-meta { display: flex; align-items: baseline; margin-bottom: 6rpx; }
+.hist-role { font-size: $fs-tag; font-weight: $fw-bold; color: var(--mt); }
+.hist-time { margin-left: $sp-2; font-size: $fs-tag; color: $text-3; }
+
+.hist-bubble {
+  max-width: 92%;
+  padding: $sp-3 $sp-4;
+  background: $bg-card;
+  border: 1rpx solid var(--ms);
+  border-radius: $radius-lg;
+  box-shadow: 0 4rpx 14rpx var(--sh);
+}
+.hist-text { font-size: $fs-body; color: $text-1; line-height: 1.6; }
+
+/* 我说的那句：主题浅底 + 靠右。刻意不用 AI 页的整块渐变 —— 那是"刚发出去"的语义 */
+.hist-user { align-items: flex-end; }
+.hist-user .hist-bubble {
+  max-width: 86%;
+  background: var(--ms); border-color: transparent; box-shadow: none;
+}
+.hist-user .hist-role { color: $text-2; }
+
+/* ---------- 记录里的结果卡（形态区分与 AI 页一致） ---------- */
+.hist-cards { margin-top: $sp-3; }
+.hist-card {
+  display: flex; align-items: center;
+  padding: $sp-2 $sp-3; margin-top: $sp-2;
+  background: $bg-page;
+  border: 1rpx solid var(--ms);
+  border-radius: $radius-md;
+}
+.hist-card-guide {
+  background: $warning-veil;
+  border: 1rpx dashed $warning-line;
+}
+.hist-card-files { background: $bg-card; border: 1rpx dashed $border-strong; }
+.hist-card-ico { width: 40rpx; height: 40rpx; margin-right: $sp-3; flex-shrink: 0; }
+.hist-card-main { flex: 1; min-width: 0; }
+.hist-card-title { display: block; font-size: $fs-aux; font-weight: $fw-medium; color: $text-1; }
+.hist-card-sub { display: block; font-size: $fs-tag; color: $text-3; }
+.hist-card-arrow { margin-left: $sp-2; font-size: $fs-h2; line-height: 1; color: $text-3; }
+
+/* ---------- 页脚 ---------- */
+.hist-foot { margin: $sp-4 0 $sp-6; }
+
+/* 错误条的重试按钮沿用全局 .qz-err-btn 配色，只把点击区补到 $hit-min */
+.qz-err-btn { padding: 12rpx $sp-5; }

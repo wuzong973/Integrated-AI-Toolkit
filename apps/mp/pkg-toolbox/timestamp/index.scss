@@ -1,0 +1,137 @@
+@import '../../styles/tokens.scss';
+
+/* 时间戳转换 · 星蓝主题（th-toolbox）
+   造型：口径 chip + 双向卡片；取色只用语义令牌与 tokens.scss 变量，页面无裸色值 */
+.ts-page {
+  padding-bottom: $sp-8;
+}
+
+.card-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: $sp-4;
+  font-size: $fs-h3;
+  font-weight: $fw-semi;
+  color: var(--mt);
+
+  &-hint {
+    font-size: $fs-tag;
+    font-weight: $fw-medium;
+    color: $text-3;
+  }
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $sp-3;
+}
+
+.io-input {
+  height: $hit-min;
+  padding: 0 $sp-4;
+  font-size: $fs-h2;
+  font-weight: $fw-semi;
+  color: var(--mt);
+  background: $bg-card;
+  border: 1rpx solid var(--m2);
+  border-radius: var(--r-card);
+}
+
+.io-ph {
+  font-size: $fs-body;
+  color: $text-3;
+}
+
+.now-chip {
+  padding: 4rpx 20rpx;
+  border-radius: $radius-pill;
+  font-size: $fs-tag;
+  font-weight: $fw-semi;
+  color: var(--m1);
+  background: var(--ms);
+}
+
+.pick-row {
+  display: flex;
+  gap: $sp-3;
+
+  picker {
+    flex: 1;
+    min-width: 0;
+  }
+}
+
+.pick {
+  display: flex;
+  align-items: center;
+  min-height: $hit-min;
+  padding: 0 $sp-4;
+  background: $bg-card;
+  border: 1rpx solid var(--m2);
+  border-radius: var(--r-card);
+
+  &-tag {
+    flex-shrink: 0;
+    font-size: $fs-tag;
+    color: $text-3;
+  }
+
+  &-value {
+    flex: 1;
+    min-width: 0;
+    margin: 0 $sp-2;
+    font-size: $fs-body;
+    font-weight: $fw-semi;
+    color: var(--mt);
+  }
+
+  &-arrow {
+    flex-shrink: 0;
+    font-size: $fs-h2;
+    color: $text-3;
+  }
+}
+
+.result-box {
+  margin-top: $sp-4;
+  padding: $sp-4;
+  border-radius: var(--r-card);
+  background: var(--ms);
+}
+
+.result-text {
+  display: block;
+  font-size: 40rpx;
+  font-weight: $fw-black;
+  color: var(--m1);
+  word-break: break-all;
+}
+
+.result-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: $sp-2;
+}
+
+.result-sub {
+  font-size: $fs-tag;
+  color: $text-3;
+}
+
+.result-copy {
+  flex-shrink: 0;
+  font-size: $fs-tag;
+  font-weight: $fw-semi;
+  color: var(--m1);
+}
+
+.hint {
+  display: block;
+  margin-top: $sp-3;
+  font-size: $fs-tag;
+  line-height: 1.6;
+  color: $text-3;
+}

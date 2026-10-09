@@ -1,0 +1,224 @@
+<!-- 青智驿站（文档 5.3.7）
+     视觉：暖橙主题 · 圆角 22 · 烟火气；分类胶囊带糖果图标，卡片带左侧彩色条
+     两个 Tab：任务大厅（.qz-card-glow 卡） / 服务市场（.qz-card-line 卡，M3-05） -->
+<view
+  class="qz-page th-station station"
+  bindtouchstart="onFxStart"
+  bindtouchmove="onFxMove"
+  bindtouchend="onFxEnd"
+  bindtouchcancel="onFxEnd"
+>
+  <!-- 装饰签名（视觉规范第十一节 station 行）：横向流水 + 光斑 + 一颗点缀光点。
+       流线只有页头 `.head-flow` 那一条（红线：≤2 条），水波不算流线、浓度 .16 -->
+  <view class="qz-deco">
+    <view class="qz-fx" style="{{fxStyle}}">
+      <view class="qz-blob qz-blob-a"></view>
+      <view class="qz-dot qz-dot-c"></view>
+      <view class="st-water qz-water"></view>
+    </view>
+  </view>
+
+  <view class="qz-content">
+    <!-- 顶部 -->
+    <view class="head">
+      <view class="head-row qz-an-in">
+        <view class="qz-ico qz-ico-l qz-ico-float">
+          <view class="qz-i qz-i-station"></view>
+        </view>
+        <view class="head-main">
+          <text class="head-title">青智驿站</text>
+          <text class="head-sub">把需求交给同学，把服务卖出去</text>
+        </view>
+        <view class="head-btn qz-press" bindtap="onPublish">
+          <view class="qz-i qz-i-plus head-btn-ico"></view>
+          <text>发布</text>
+        </view>
+      </view>
+
+      <!-- Tab -->
+      <view class="tabs qz-an-in qz-d1">
+        <view class="tab {{tab === 'service' ? 'tab-active' : ''}} qz-press" data-tab="service" bindtap="onTabTap">
+          <view class="qz-i qz-i-workbench tab-ico"></view>
+          <text>服务市场</text>
+        </view>
+        <view class="tab {{tab === 'task' ? 'tab-active' : ''}} qz-press" data-tab="task" bindtap="onTabTap">
+          <view class="qz-i qz-i-orders tab-ico"></view>
+          <text>任务大厅</text>
+        </view>
+      </view>
+
+      <!-- 搜索 -->
+      <view class="search-box qz-an-in qz-d2">
+        <view class="qz-i qz-i-search search-icon"></view>
+        <input
+          class="search-input"
+          placeholder="搜索需求或服务"
+          value="{{keyword}}"
+          bindinput="onKeywordInput"
+          confirm-type="search"
+          bindconfirm="onSearch"
+        />
+      </view>
+
+      <!-- 分类 -->
+      <scroll-view class="cats qz-an-in qz-d3" scroll-x enable-flex show-scrollbar="{{false}}">
+        <view
+          wx:for="{{categories}}"
+          wx:key="id"
+          class="cat {{activeCategory === item.id ? 'cat-active' : ''}} qz-press"
+          data-id="{{item.id}}"
+          bindtap="onCategoryTap"
+        >
+          <view class="qz-i {{item.icon}} cat-ico"></view>
+          <text class="cat-text">{{item.name}}</text>
+        </view>
+      </scroll-view>
+
+      <view class="head-flow qz-flow"></view>
+    </view>
+
+    <!-- 列表 -->
+    <view class="list">
+      <!-- ==================== 服务市场（M3-05） ==================== -->
+      <block wx:if="{{tab === 'service'}}">
+        <!-- 上架入口：只有认证服务者看得到（后端 POST /services 对非认证者一律 40312，
+             给一个点了必然被拒的按钮比少一个入口更糟） -->
+        <view wx:if="{{isProvider}}" class="svc-entry qz-an-in">
+          <view class="svc-entry-chip qz-chip qz-chip-on qz-press" bindtap="onCreateService">
+            <view class="qz-i qz-i-plus svc-entry-ico"></view>
+            <text>上架服务</text>
+          </view>
+          <text class="svc-entry-tip">把你会做的事挂上来，同学能在这里找到你</text>
+        </view>
+
+        <view wx:if="{{serviceError}}" class="qz-err qz-an-in">
+          <text class="qz-err-text">{{serviceError}}</text>
+          <view class="qz-err-btn qz-press" bindtap="onRetry">重试</view>
+        </view>
+
+        <!-- 服务卡：描边卡 + 左侧彩条（与任务卡的彩色柔影卡区分层次） -->
+        <block wx:elif="{{services.length}}">
+          <view
+            wx:for="{{services}}"
+            wx:key="id"
+            class="svc qz-card qz-card-line qz-card-bar qz-lift {{item.anim}}"
+            data-id="{{item.id}}"
+            bindtap="onServiceTap"
+          >
+            <view class="svc-row">
+              <text class="svc-title qz-ellipsis">{{item.title}}</text>
+              <text class="svc-price">{{item.priceText}}</text>
+            </view>
+            <text class="svc-desc qz-ellipsis-2">{{item.description}}</text>
+            <view class="svc-tags">
+              <text wx:if="{{item.categoryName}}" class="tag tag-cat">{{item.categoryName}}</text>
+              <text wx:for="{{item.skillTags}}" wx:for-item="tag" wx:key="*this" class="tag">{{tag}}</text>
+            </view>
+            <view class="svc-foot">
+              <view class="svc-provider">
+                <view class="qz-i qz-i-mine svc-avatar"></view>
+                <text class="svc-name qz-ellipsis">{{item.providerName}}</text>
+                <text class="svc-rating">{{item.ratingText}}</text>
+              </view>
+              <text class="svc-meta">{{item.areaText}}{{item.areaText && item.deliveryText ? ' · ' : ''}}{{item.deliveryText}}</text>
+            </view>
+          </view>
+          <view class="list-foot">共 {{serviceTotal}} 个服务</view>
+        </block>
+
+        <!-- 加载中：先给骨架，不留一片空白 -->
+        <view wx:elif="{{serviceLoading}}" class="qz-skeleton qz-an-in">
+          <view class="qz-skeleton-line"></view>
+          <view class="qz-skeleton-line"></view>
+          <view class="qz-skeleton-line qz-skeleton-line-short"></view>
+        </view>
+
+        <!-- 空态：冷启动期这才是常态（库里还没有任何服务商品），文案只说事实 -->
+        <view wx:else class="qz-empty qz-an-in">
+          <view class="qz-empty-ico qz-ico qz-ico-xl qz-ico-float">
+            <view class="qz-i qz-i-empty"></view>
+          </view>
+          <text class="qz-empty-title">还没有服务上架</text>
+          <text class="qz-empty-text">{{serviceEmptyText}}</text>
+          <view class="qz-empty-flow qz-flow"></view>
+          <view class="qz-btn-main qz-press" bindtap="onGoTaskHall">去任务大厅看看</view>
+          <!-- 次按钮按身份分岔：能上架的人直接上架，其余人先走认证（M3-02 已跑通） -->
+          <view wx:if="{{isProvider}}" class="qz-btn-sub qz-press svc-empty-sub" bindtap="onCreateService">
+            我要上架服务
+          </view>
+          <view wx:else class="qz-btn-sub qz-press svc-empty-sub" bindtap="onGoApply">成为认证服务者</view>
+        </view>
+      </block>
+
+      <!-- ==================== 任务大厅 ==================== -->
+      <block wx:else>
+        <view wx:if="{{error}}" class="qz-err qz-an-in">
+          <text class="qz-err-text">{{error}}</text>
+          <view class="qz-err-btn qz-press" bindtap="onRetry">重试</view>
+        </view>
+
+        <!--
+          红线 10：列表含示例数据时必须显式标注。
+          seed 写入的 4 条示例任务带 QZ-DEMO- 前缀，服务端判定后下发 isDemo；
+          不标注的话用户无法分辨"平台真实任务"与"造出来的示例"。
+        -->
+        <block wx:elif="{{tasks.length}}">
+          <view wx:if="{{hasDemoTasks}}" class="demo-note qz-an-in">
+            <view class="qz-i qz-i-bell demo-note-ico"></view>
+            <text class="demo-note-text">当前展示的是演示数据：这些需求由初始化脚本写入，不是真实用户发布的。真实需求发布功能上线后会替换掉它们。</text>
+          </view>
+          <view
+            wx:for="{{tasks}}"
+            wx:key="id"
+            class="task qz-card qz-card-glow qz-card-bar qz-an-in qz-d{{index + 1}} qz-lift"
+            data-id="{{item.id}}"
+            bindtap="onTaskTap"
+          >
+            <view class="task-row">
+              <text class="task-title qz-ellipsis">{{item.title}}</text>
+              <text class="task-budget">¥{{item.budget / 100}}</text>
+            </view>
+            <text class="task-desc qz-ellipsis-2">{{item.description}}</text>
+            <view class="task-tags">
+              <text wx:for="{{item.skillTags}}" wx:for-item="tag" wx:key="*this" class="tag">{{tag}}</text>
+              <text wx:if="{{item.source === 'os_plan'}}" class="tag tag-ai">AI 编排</text>
+            </view>
+            <view class="task-foot">
+              <view class="task-status">
+                <view class="task-status-dot"></view>
+                <text>{{item.status === 'published' ? '招募中' : item.status}}</text>
+              </view>
+              <text class="task-apply">{{item.applyCount}} 人报名</text>
+            </view>
+          </view>
+          <view class="list-foot">共 {{total}} 条需求</view>
+        </block>
+
+        <!-- 加载中：列表还没回来时给骨架，不留一片空白 -->
+        <view wx:elif="{{loading}}" class="qz-skeleton qz-an-in">
+          <view class="qz-skeleton-line"></view>
+          <view class="qz-skeleton-line"></view>
+          <view class="qz-skeleton-line qz-skeleton-line-short"></view>
+        </view>
+
+        <!-- 空态（拉取失败时只保留上方的错误条，不再叠加一个"暂无需求"） -->
+        <view wx:else class="qz-empty qz-an-in">
+          <view class="qz-empty-ico qz-ico qz-ico-xl qz-ico-float">
+            <view class="qz-i qz-i-empty"></view>
+          </view>
+          <text class="qz-empty-title">暂无需求</text>
+          <text class="qz-empty-text">还没有人发布需求。用 AI 描述你的目标，系统会自动帮你生成任务。</text>
+          <view class="qz-empty-flow qz-flow"></view>
+          <view class="qz-btn-main qz-press" bindtap="onPublish">发布第一个需求</view>
+        </view>
+      </block>
+    </view>
+  </view>
+
+  <!-- 悬浮发布按钮：只在任务大厅出现（服务市场有自己的"上架服务"入口，两个 FAB 会打架） -->
+  <view wx:if="{{tab === 'task'}}" class="fab qz-press" bindtap="onPublish">
+    <view class="fab-ring"></view>
+    <view class="qz-i qz-i-plus fab-ico"></view>
+    <text class="fab-text">发布需求</text>
+  </view>
+</view>

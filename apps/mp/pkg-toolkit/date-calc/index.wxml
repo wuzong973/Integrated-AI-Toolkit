@@ -1,0 +1,157 @@
+<!-- 日期差计算（校园小工具）
+     视觉：工具主题 · 「两个日期 → 间隔」+「基准日 ± 天数 → 目标日」两段式，纯本地计算
+     装饰签名（见 docs/dev/MP-VISUAL-SYSTEM.md）：water + dot-c
+     ⚠️ WXML 不能调函数：所有数字、人话、按钮显示与否都由 index.ts 算好后 setData -->
+<view
+  class="qz-page th-toolkit date-calc"
+  bindtouchstart="onFxStart"
+  bindtouchmove="onFxMove"
+  bindtouchend="onFxEnd"
+  bindtouchcancel="onFxEnd"
+>
+  <!-- 装饰层：一道横向流水 + 一枚呼吸光点，不拦截点击，只随指针位移 -->
+  <view class="qz-deco">
+    <view class="qz-fx" style="{{fxStyle}}">
+      <view class="dc-water qz-water"></view>
+      <view class="qz-dot qz-dot-c"></view>
+    </view>
+  </view>
+
+  <view class="qz-content">
+    <view class="head">
+      <view class="head-row">
+        <view class="qz-ico qz-ico-s qz-ico-float">
+          <view class="qz-i qz-i-calendar"></view>
+        </view>
+        <view class="head-main">
+          <text class="title">日期差计算</text>
+          <text class="sub">本地计算，不上传、不占额度</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- ---------- 第一段：输入两个日期 ---------- -->
+    <view class="qz-card qz-an-in qz-d1">
+      <view class="card-title">
+        <text>两个日期相差几天</text>
+        <text class="card-title-hint">先选起始，再选目标</text>
+      </view>
+
+      <picker mode="date" value="{{todayText}}" bindchange="onFromChange">
+        <view class="date-row qz-press">
+          <text class="date-label">起始日期</text>
+          <text class="date-value {{fromText ? 'date-on' : 'date-ph'}}">{{fromText ? fromText : '点击选择起始日期'}}</text>
+          <text class="date-arrow">›</text>
+        </view>
+      </picker>
+
+      <picker mode="date" value="{{todayText}}" bindchange="onToChange">
+        <view class="date-row qz-press">
+          <text class="date-label">目标日期</text>
+          <text class="date-value {{toText ? 'date-on' : 'date-ph'}}">{{toText ? toText : '点击选择目标日期'}}</text>
+          <text class="date-arrow">›</text>
+        </view>
+      </picker>
+
+      <view class="link qz-press" wx:if="{{canSwap}}" bindtap="onSwap">↕ 交换这两个日期</view>
+
+      <text class="hint">日期只做本地比较，不会发送到任何服务器。</text>
+    </view>
+
+    <!-- ---------- 结果：选齐了才显示 ---------- -->
+    <view class="qz-card result qz-an-in" wx:if="{{diff}}">
+      <text class="lead">{{leadText}}</text>
+      <view class="num-row">
+        <text class="big-num">{{diff.days}}</text>
+        <text class="big-unit">天</text>
+      </view>
+      <text class="span">{{spanText}}</text>
+
+      <view class="wk-row">
+        <view class="wk">
+          <text class="wk-date">{{fromText}}</text>
+          <text class="wk-day">{{diff.fromWeekday}}</text>
+        </view>
+        <text class="wk-arrow">→</text>
+        <view class="wk">
+          <text class="wk-date">{{toText}}</text>
+          <text class="wk-day">{{diff.toWeekday}}</text>
+        </view>
+      </view>
+
+      <text class="hint">{{hint}}</text>
+    </view>
+
+    <!-- 只选了一个（或一个都没选）时的引导 —— 不显示任何看起来像结果的数字 -->
+    <view class="qz-card guide" wx:else>
+      <text class="guide-title">两个日期都选好，结果自动出来</text>
+      <text class="hint">
+        同一天会显示 0 天；目标日在起始日之前会显示「已经过去」。
+      </text>
+    </view>
+
+    <!-- ---------- 第二段：基准日 ± 天数 ---------- -->
+    <view class="qz-card qz-an-in qz-d2">
+      <view class="card-title">
+        <text>某个日期之后（或之前）是哪天</text>
+        <text class="card-title-hint">天数可填负数</text>
+      </view>
+
+      <picker mode="date" value="{{todayText}}" bindchange="onBaseChange">
+        <view class="date-row qz-press">
+          <text class="date-label">基准日期</text>
+          <text class="date-value {{baseText ? 'date-on' : 'date-ph'}}">{{baseText ? baseText : '点击选择基准日期'}}</text>
+          <text class="date-arrow">›</text>
+        </view>
+      </picker>
+
+      <view class="offset-row">
+        <text class="offset-label">相差天数</text>
+        <input
+          class="offset-input"
+          type="digit"
+          value="{{offsetText}}"
+          placeholder="如 100，往前推填 -100"
+          bindinput="onOffsetInput"
+        />
+      </view>
+
+      <view class="chips">
+        <view
+          class="chip qz-press"
+          wx:for="{{quickOffsets}}"
+          wx:key="text"
+          data-value="{{item.text}}"
+          bindtap="onQuickOffset"
+        >
+          {{item.label}}
+        </view>
+      </view>
+
+      <view class="btn btn-ghost qz-press" wx:if="{{canUseToday}}" bindtap="onBaseToday">
+        基准日改成今天
+      </view>
+    </view>
+
+    <view class="qz-card target qz-an-in" wx:if="{{added}}">
+      <text class="target-date">{{added.date}}</text>
+      <text class="target-week">{{added.weekday}}</text>
+      <text class="hint">{{addedNote}}</text>
+    </view>
+
+    <view class="qz-card guide" wx:else>
+      <text class="guide-title">选好基准日，再填天数</text>
+      <text class="hint">
+        正数往后推、负数往前推，跨月跨年会自动落到真实的那天。
+      </text>
+    </view>
+
+    <!-- ---------- 诚实边界（纯信息卡，不给点击反馈） ---------- -->
+    <view class="qz-card note">
+      <text class="note-text">
+        这里只数日历天数：不含法定节假日、不含调休，也不含寒暑假。
+        要算「还有几个工作日」，请对照当年官方放假安排自己扣。
+      </text>
+    </view>
+  </view>
+</view>

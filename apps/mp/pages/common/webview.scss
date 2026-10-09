@@ -1,0 +1,7 @@
+@import '../../styles/tokens.scss';
+
+/* H5 容器页：真内容由 web-view 自己渲染，本页样式只服务两个降级分支
+   （骨架与错误条都用共享组件，这里只补一处顶部留白，别让它贴着导航栏） */
+.webview {
+  padding-top: $sp-12;
+}

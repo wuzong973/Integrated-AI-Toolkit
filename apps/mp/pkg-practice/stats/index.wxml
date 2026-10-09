@@ -1,0 +1,132 @@
+<!-- 练习中心 · 统计页
+     视觉：靛青主题（styles/themes.scss 的 .th-practice） -->
+<view
+  class="qz-page th-practice pstats"
+  bindtouchstart="onFxStart"
+  bindtouchmove="onFxMove"
+  bindtouchend="onFxEnd"
+  bindtouchcancel="onFxEnd"
+>
+  <view class="qz-deco">
+    <view class="qz-fx" style="{{fxStyle}}">
+      <view class="practice-blob-a qz-blob"></view>
+      <view class="practice-blob-b qz-blob"></view>
+    </view>
+  </view>
+
+  <view class="qz-content">
+    <view class="qz-head">
+      <view class="qz-head-row qz-an-in">
+        <view class="qz-ico qz-ico-l qz-ico-float">
+          <view class="qz-i qz-i-chart"></view>
+        </view>
+        <view class="qz-head-main">
+          <text class="qz-head-title">练习统计</text>
+          <text class="qz-head-sub">坚持的天数与各模块的进度</text>
+        </view>
+      </view>
+      <view class="head-flow qz-flow"></view>
+    </view>
+
+    <view class="qz-container">
+      <view wx:if="{{error}}" class="qz-err qz-an-in">
+        <text class="qz-err-text">{{error}}</text>
+        <view class="qz-err-btn qz-press" bindtap="onRetry">重试</view>
+      </view>
+
+      <view wx:if="{{loading}}" class="qz-card qz-card-line pstats-sk">
+        <view class="qz-skeleton qz-skeleton-line"></view>
+        <view class="qz-skeleton qz-skeleton-line qz-skeleton-line-short"></view>
+      </view>
+
+      <block wx:else>
+        <!-- 连续打卡 -->
+        <view class="qz-card pstats-hero qz-an-in qz-d2">
+          <view class="qz-topline"></view>
+          <view class="qz-shine qz-shine-slow"></view>
+          <view class="pstats-hero-num">
+            <text class="pstats-hero-v">{{streak}}</text>
+            <text class="pstats-hero-k">连续打卡天数</text>
+          </view>
+          <view class="pstats-hero-sub">
+            <text>最近 30 天练了 {{activeDays}} 天 · 今天 {{todayDone}} 题</text>
+          </view>
+        </view>
+
+        <!-- 各模块今天 -->
+        <view class="qz-sec">
+          <view class="qz-sec-bar"></view>
+          <text class="qz-sec-title">今天各模块</text>
+        </view>
+
+        <view class="qz-card qz-card-line pstats-mods qz-an-in qz-d3">
+          <view wx:for="{{modules}}" wx:key="module" class="pstats-mod">
+            <view class="pstats-mod-head">
+              <text class="pstats-mod-title">{{item.title}}</text>
+              <text class="pstats-mod-v">{{item.count}} 题</text>
+            </view>
+            <view class="practice-bar">
+              <view class="practice-bar-fill" style="width: {{item.percent}}%"></view>
+            </view>
+          </view>
+        </view>
+
+        <!-- 累计 -->
+        <view class="qz-sec">
+          <view class="qz-sec-bar"></view>
+          <text class="qz-sec-title">累计</text>
+        </view>
+
+        <view class="qz-card qz-card-line practice-nums qz-an-in qz-d3">
+          <view class="practice-num">
+            <text class="practice-num-v">{{tracked}}</text>
+            <text class="practice-num-k">在练</text>
+          </view>
+          <view class="practice-num">
+            <text class="practice-num-v">{{mastered}}</text>
+            <text class="practice-num-k">已掌握</text>
+          </view>
+          <view class="practice-num">
+            <text class="practice-num-v">{{due}}</text>
+            <text class="practice-num-k">待复习</text>
+          </view>
+        </view>
+
+        <!-- 分项正确率 -->
+        <view class="qz-card qz-card-line practice-nums qz-an-in qz-d4">
+          <view class="practice-num">
+            <text class="practice-num-v">{{sentenceAccuracy}}</text>
+            <text class="practice-num-k">句子正确率</text>
+          </view>
+          <view class="practice-num">
+            <text class="practice-num-v">{{speakAvg}}</text>
+            <text class="practice-num-k">口语均分</text>
+          </view>
+          <view class="practice-num">
+            <text class="practice-num-v">{{writeAvg}}</text>
+            <text class="practice-num-k">作文均分</text>
+          </view>
+        </view>
+
+        <!-- 日历 -->
+        <view class="qz-sec">
+          <view class="qz-sec-bar"></view>
+          <text class="qz-sec-title">最近 30 天</text>
+          <text class="qz-sec-sub">实心 = 那天练过</text>
+        </view>
+
+        <view class="qz-card qz-card-line pstats-cal qz-an-in qz-d4">
+          <view
+            wx:for="{{calendar}}"
+            wx:key="day"
+            class="pstats-cell {{item.has ? 'pstats-cell-on' : ''}} {{item.isToday ? 'pstats-cell-today' : ''}}"
+          >
+            <text class="pstats-cell-d">{{item.count > 0 ? item.count : ''}}</text>
+          </view>
+        </view>
+
+        <view class="pstats-back qz-btn-sub qz-press" bindtap="onBack">返回</view>
+      </block>
+    </view>
+  </view>
+</view>

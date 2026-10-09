@@ -1,0 +1,561 @@
+@import '../../styles/tokens.scss';
+
+/* 练习中心 · 练习页
+   取色只用主题变量；⚠️ `--sh` 是投影色（带 alpha），不能当背景。
+   中性文字色用 `$text-1/-2/-3`（tokens.scss）—— 不要自造 `--color-text-*`。 */
+
+.practice-blob-a {
+  top: 60rpx;
+  left: -80rpx;
+  width: 320rpx;
+  height: 320rpx;
+  background: var(--m2);
+  opacity: 0.24;
+}
+
+.practice-blob-b {
+  bottom: 120rpx;
+  right: -80rpx;
+  width: 300rpx;
+  height: 300rpx;
+  background: var(--m4);
+  opacity: 0.18;
+}
+
+.practice-curve {
+  /* ⚠️ 同 `pkg-practice/home`：`.qz-curve` 不带 `position`，只写 `top` 是不生效的死属性。
+     补上 `position: absolute` 后这条弧才真的落在 420rpx 处，左右 -40rpx 是按
+     `.qz-fx` 相对 `.qz-deco` 外扩 40rpx 换算的整页宽。 */
+  position: absolute;
+  left: -40rpx;
+  right: -40rpx;
+  top: 420rpx;
+  border-top-color: var(--m3);
+  opacity: 0.28;
+}
+
+/* ---------- 顶部进度 ---------- */
+
+.sess-top {
+  display: flex;
+  align-items: center;
+  padding: 24rpx 40rpx 0;
+}
+
+.sess-top-idx {
+  font-size: 24rpx;
+  color: var(--mt);
+  font-weight: 500;
+}
+
+.sess-top-bar {
+  flex: 1;
+  height: 8rpx;
+  margin: 0 20rpx;
+  border-radius: 4rpx;
+  background: var(--ms);
+  overflow: hidden;
+}
+
+.sess-top-fill {
+  height: 100%;
+  border-radius: 4rpx;
+  background: var(--m1);
+}
+
+.sess-top-mode {
+  font-size: 22rpx;
+  color: $text-3;
+}
+
+.sess-sk {
+  height: 300rpx;
+}
+
+/* ---------- 模式页签 ---------- */
+
+.sess-tabs {
+  display: flex;
+  margin-bottom: 20rpx;
+}
+
+.sess-tab {
+  padding: 10rpx 26rpx;
+  margin-right: 14rpx;
+  border-radius: 999rpx;
+  font-size: 24rpx;
+  color: var(--mt);
+  background: var(--ms);
+}
+
+.sess-tab-on {
+  color: $text-inverse;
+  background: var(--m1);
+}
+
+/* ---------- 题面卡片 ---------- */
+
+.sess-card {
+  padding: 34rpx 30rpx;
+}
+
+.sess-hint {
+  display: inline-block;
+  padding: 6rpx 18rpx;
+  margin-bottom: 24rpx;
+  border-radius: 999rpx;
+  font-size: 22rpx;
+  color: var(--mt);
+  background: var(--ms);
+}
+
+.sess-zh {
+  display: block;
+  font-size: 36rpx;
+  font-weight: 500;
+  line-height: 1.5;
+  color: $text-1;
+}
+
+/* 口语的目标句 */
+.sess-en {
+  display: flex;
+  align-items: center;
+  margin-top: 22rpx;
+  padding: 22rpx 24rpx;
+  border-radius: 18rpx;
+  background: var(--ms);
+}
+
+.sess-en-text {
+  flex: 1;
+  font-size: 32rpx;
+  line-height: 1.5;
+  color: var(--mt);
+}
+
+.sess-en-ico {
+  margin-left: 16rpx;
+}
+
+/* 听写：音频就是题面 */
+.sess-listen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 40rpx 0 20rpx;
+}
+
+.sess-listen-ico {
+  background: var(--ms);
+}
+
+.sess-listen-text {
+  margin-top: 16rpx;
+  font-size: 24rpx;
+  color: $text-2;
+}
+
+/* ---------- 连词成句 ---------- */
+
+.sess-assembled {
+  min-height: 120rpx;
+  margin-top: 24rpx;
+  padding: 22rpx 24rpx;
+  border-radius: 18rpx;
+  border: 2rpx dashed var(--m2);
+  background: var(--ms);
+}
+
+.sess-assembled-text {
+  font-size: 32rpx;
+  line-height: 1.5;
+  color: $text-1;
+}
+
+.sess-assembled-ph {
+  font-size: 26rpx;
+  color: $text-3;
+}
+
+.sess-chunks {
+  display: flex;
+  flex-wrap: wrap;
+  margin-top: 24rpx;
+}
+
+.sess-chunk {
+  padding: 16rpx 24rpx;
+  margin: 0 16rpx 16rpx 0;
+  border-radius: 16rpx;
+  font-size: 28rpx;
+  color: var(--mt);
+  background: var(--ms);
+  border: 2rpx solid var(--m2);
+}
+
+/* 已选中的砖块：淡出（不是消失 —— 消失会让用户以为丢了） */
+.sess-chunk-off {
+  opacity: 0.25;
+}
+
+.sess-clear {
+  margin-top: 8rpx;
+  font-size: 24rpx;
+  color: var(--m1);
+}
+
+/* ---------- 输入 ---------- */
+
+.sess-input {
+  width: 100%;
+  box-sizing: border-box;
+  margin-top: 26rpx;
+  padding: 24rpx;
+  border-radius: 18rpx;
+  font-size: 30rpx;
+  background: var(--ms);
+}
+
+/* ---------- 录音 ---------- */
+
+.sess-rec {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 30rpx;
+  padding: 40rpx 0;
+  border-radius: 24rpx;
+  background: var(--ms);
+  border: 2rpx solid var(--m2);
+}
+
+.sess-rec-on {
+  background: var(--m1);
+  border-color: var(--m1);
+}
+
+.sess-rec-on .sess-rec-text {
+  color: $text-inverse;
+}
+
+.sess-rec-dim {
+  opacity: 0.5;
+}
+
+.sess-rec-text {
+  margin-top: 12rpx;
+  font-size: 28rpx;
+  color: var(--mt);
+}
+
+.sess-rec-tip {
+  display: block;
+  margin-top: 16rpx;
+  font-size: 22rpx;
+  text-align: center;
+  color: $text-3;
+}
+
+.sess-submit {
+  margin-top: 34rpx;
+}
+
+.sess-reveal {
+  margin-top: 24rpx;
+  font-size: 24rpx;
+  text-align: center;
+  color: var(--m1);
+}
+
+/* ---------- 作文 ---------- */
+
+.sess-topic-title {
+  display: block;
+  font-size: 36rpx;
+  font-weight: 500;
+  line-height: 1.4;
+  color: $text-1;
+}
+
+.sess-brief {
+  display: block;
+  margin-top: 14rpx;
+  font-size: 26rpx;
+  line-height: 1.6;
+  color: $text-2;
+}
+
+.sess-outline {
+  margin-top: 26rpx;
+  padding: 22rpx 24rpx;
+  border-radius: 18rpx;
+  background: var(--ms);
+}
+
+.sess-outline-row {
+  display: flex;
+  margin-bottom: 12rpx;
+}
+
+.sess-outline-no {
+  width: 36rpx;
+  font-size: 24rpx;
+  font-weight: 500;
+  color: var(--m1);
+}
+
+.sess-outline-text {
+  flex: 1;
+  font-size: 26rpx;
+  line-height: 1.6;
+  color: var(--mt);
+}
+
+.sess-minwords {
+  margin-top: 20rpx;
+  font-size: 22rpx;
+  color: $text-3;
+}
+
+.sess-essay {
+  width: 100%;
+  box-sizing: border-box;
+  height: 520rpx;
+  margin-top: 18rpx;
+  padding: 24rpx;
+  border-radius: 18rpx;
+  font-size: 30rpx;
+  line-height: 1.7;
+  background: var(--ms);
+}
+
+/* ---------- 作答结果 ---------- */
+
+.sess-result {
+  margin-top: 24rpx;
+  padding: 30rpx 28rpx;
+}
+
+.sess-result-ok {
+  border-left: 8rpx solid var(--m1);
+}
+
+.sess-result-no {
+  border-left: 8rpx solid var(--m3);
+}
+
+.sess-result-title {
+  display: block;
+  font-size: 30rpx;
+  font-weight: 500;
+  line-height: 1.5;
+  color: $text-1;
+}
+
+.sess-words {
+  display: flex;
+  flex-wrap: wrap;
+  margin-top: 22rpx;
+}
+
+.sess-word {
+  padding: 8rpx 18rpx;
+  margin: 0 14rpx 14rpx 0;
+  border-radius: 12rpx;
+  font-size: 26rpx;
+}
+
+.sess-word-ok {
+  color: var(--mt);
+  background: var(--ms);
+}
+
+.sess-word-no {
+  color: $text-inverse;
+  background: var(--m3);
+}
+
+.sess-toshort {
+  margin-top: 20rpx;
+  padding: 18rpx 22rpx;
+  border-radius: 14rpx;
+  background: var(--ms);
+}
+
+.sess-toshort-text {
+  font-size: 24rpx;
+  line-height: 1.6;
+  color: var(--mt);
+}
+
+.sess-target {
+  margin-top: 22rpx;
+}
+
+.sess-target-k {
+  display: block;
+  font-size: 22rpx;
+  color: $text-3;
+}
+
+.sess-target-v {
+  display: block;
+  margin-top: 8rpx;
+  font-size: 30rpx;
+  line-height: 1.5;
+  color: var(--mt);
+}
+
+.sess-next {
+  display: block;
+  margin-top: 22rpx;
+  font-size: 24rpx;
+  color: $text-2;
+}
+
+/* ---------- 作文批改 ---------- */
+
+.sess-review {
+  margin-top: 24rpx;
+  padding: 30rpx 28rpx;
+}
+
+.sess-review-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.sess-review-title {
+  font-size: 30rpx;
+  font-weight: 500;
+}
+
+.sess-review-total {
+  font-size: 34rpx;
+  font-weight: 500;
+  color: var(--m1);
+}
+
+.sess-degraded {
+  margin-top: 18rpx;
+  padding: 18rpx 22rpx;
+  border-radius: 14rpx;
+  background: var(--ms);
+}
+
+.sess-degraded-text {
+  font-size: 24rpx;
+  line-height: 1.6;
+  color: var(--mt);
+}
+
+.sess-dim {
+  margin-top: 24rpx;
+}
+
+.sess-dim-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.sess-dim-title {
+  font-size: 26rpx;
+  font-weight: 500;
+}
+
+.sess-dim-score {
+  font-size: 26rpx;
+  color: var(--m1);
+}
+
+.sess-dim-reason {
+  display: block;
+  margin-top: 8rpx;
+  font-size: 24rpx;
+  line-height: 1.6;
+  color: $text-2;
+}
+
+.sess-sample {
+  margin-top: 24rpx;
+  padding: 30rpx 28rpx;
+}
+
+.sess-sample-k {
+  display: block;
+  font-size: 24rpx;
+  font-weight: 500;
+  color: var(--mt);
+}
+
+.sess-sample-text {
+  display: block;
+  margin-top: 16rpx;
+  font-size: 28rpx;
+  line-height: 1.8;
+  color: $text-1;
+}
+
+.sess-sample-zh {
+  display: block;
+  margin-top: 16rpx;
+  font-size: 24rpx;
+  line-height: 1.7;
+  color: $text-2;
+}
+
+.sess-next-btn {
+  margin-top: 34rpx;
+}
+
+/* ---------- 收尾 / 空态 ---------- */
+
+.sess-done,
+.sess-empty {
+  padding: 50rpx 30rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.sess-done-ico {
+  background: var(--ms);
+}
+
+.sess-done-title {
+  margin-top: 24rpx;
+  font-size: 36rpx;
+  font-weight: 500;
+}
+
+.sess-done-sub {
+  margin-top: 12rpx;
+  font-size: 26rpx;
+  color: $text-2;
+}
+
+.sess-done-btn {
+  width: 100%;
+  margin-top: 40rpx;
+}
+
+.sess-done-back {
+  width: 100%;
+  margin-top: 20rpx;
+}
+
+.sess-empty-text {
+  margin-top: 24rpx;
+  font-size: 28rpx;
+  text-align: center;
+  line-height: 1.6;
+  color: $text-2;
+}
+
+.sess-empty-back {
+  width: 100%;
+  margin-top: 36rpx;
+}

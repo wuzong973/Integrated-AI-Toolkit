@@ -1,0 +1,139 @@
+@import '../../styles/tokens.scss';
+
+/* 任务看板 · 星紫主题（模块色板见 styles/themes.scss 的 .th-plan）
+   造型语言：圆角 34（大圆角）+ 左侧彩色脊线的时间轴 + 彩色柔影节点卡，
+   "编排感"来自渐变文字进度 + 顶部流动彩线 */
+
+.plan { padding-bottom: 220rpx; }
+
+/* ---------- 装饰签名：flow-thick + blob-a（泳道推进感） ----------
+   两条一正一反的粗流线横贯屏后，压到 0.4 以下的不透明度，只当地底纹理 */
+.plan-flow-a {
+  position: absolute; left: -40rpx; right: -40rpx; top: 280rpx;
+  opacity: .28;
+}
+.plan-flow-b {
+  position: absolute; left: -40rpx; right: -40rpx; top: 560rpx;
+  opacity: .18;
+}
+
+/* ---------- 页头 ---------- */
+.head-flow { margin-top: $sp-4; }
+
+/* ---------- 演示数据标注（红线 10）----------
+   真实计划没取到时页面退到演示数据兜底，必须让用户一眼看出来。
+   角标用警示色，说明条用中性底色 + 左侧色条，避免被当成装饰忽略。 */
+.plan-chip-demo {
+  background: $warning-veil;
+  color: $warning;
+  font-weight: $fw-semi;
+}
+.plan-demo-note {
+  display: flex; align-items: flex-start;
+  padding: $sp-3 $sp-4;
+  border-radius: var(--r-card, #{$radius-md});
+  background: $warning-veil;
+  border-left: 6rpx solid $warning;
+}
+/* ⚠️ `.qz-i` 基类不带尺寸（见 styles/icons.scss：尺寸由 `.qz-ico-*` 或外部样式给定）。
+   这里没有 `.qz-ico` 容器，必须自己给 —— 否则图标是 **0×0 隐形元素**，编译与守卫都不报。 */
+.plan-demo-ico {
+  color: $warning;
+  flex-shrink: 0;
+  width: $ico-sm;
+  height: $ico-sm;
+  margin-right: $sp-3;
+}
+.plan-demo-text { flex: 1; font-size: $fs-tag; color: $text-2; line-height: 1.6; }
+
+/* ---------- 进度卡 ---------- */
+.plan-card { padding: $card-padding; }
+.plan-top {
+  display: flex; align-items: flex-end; justify-content: space-between;
+  margin-bottom: $sp-3;
+}
+.plan-num { display: flex; align-items: baseline; }
+.plan-pct { font-size: $fs-display; font-weight: $fw-black; letter-spacing: -1rpx; }
+.plan-num-label { display: block; margin-top: 4rpx; font-size: $fs-tag; color: $text-3; }
+.plan-num .plan-num-label { margin-left: $sp-2; }
+.plan-count { text-align: right; }
+.plan-count-num { display: block; font-size: $fs-h3; font-weight: $fw-bold; color: var(--mt); }
+.plan-goal { display: block; font-size: $fs-aux; color: $text-2; margin-bottom: $sp-3; }
+.bar {
+  position: relative; height: 18rpx; overflow: hidden;
+  background: var(--ms); border-radius: $radius-pill;
+}
+.bar-water { position: absolute; left: 0; top: 0; right: 0; bottom: 0; }
+.bar-fill {
+  position: relative; height: 100%;
+  background: linear-gradient(90deg, var(--m1), var(--m2));
+  border-radius: $radius-pill;
+  transition: width $dur-base $ease-out;
+}
+
+/* ---------- 筛选胶囊 ---------- */
+.filters { white-space: nowrap; margin: $sp-4 0 $sp-2; }
+.filter { margin-right: $sp-3; }
+
+/* ---------- 加载骨架 / 错误条 ----------
+   骨架用全局 .qz-skeleton，这里只补卡内边距与行距；
+   错误条的重试按钮沿用全局 .qz-err-btn 配色，只把点击区补到 $hit-min。 */
+.plan-skeleton { padding: $card-padding; }
+.qz-err-btn {
+  display: flex; align-items: center;
+  min-height: $hit-min; padding: 0 $sp-6;
+}
+
+/* ---------- 阶段时间轴 ---------- */
+.timeline { padding-top: $sp-2; }
+/* 左侧脊线：把"阶段"串成一条时间轴 */
+.stage { position: relative; padding-left: $sp-6; margin-bottom: $sp-4; }
+.stage::before {
+  content: '';
+  position: absolute; left: 8rpx; top: 12rpx; bottom: 0;
+  width: 4rpx; border-radius: 4rpx;
+  background: linear-gradient(180deg, var(--m1), var(--m2));
+  opacity: .5;
+}
+.stage-head { position: relative; display: flex; align-items: center; margin-bottom: $sp-2; }
+/* 脊线上的呼吸节点 */
+.stage-head::before {
+  content: '';
+  position: absolute; left: -#{$sp-6}; top: 50%;
+  width: 20rpx; height: 20rpx; margin-top: -10rpx;
+  border-radius: 50%;
+  background: var(--m1);
+  box-shadow: 0 0 0 6rpx var(--ms);
+  animation: qzBreath 4.4s $ease-inout infinite;
+}
+.stage-name { flex: 1; min-width: 0; font-size: $fs-aux; font-weight: $fw-semi; color: $text-1; }
+.stage-count { margin-left: $sp-2; flex-shrink: 0; }
+.stage-line { margin-bottom: $sp-2; }
+.stage-body { padding: 0; }
+
+/* ---------- 节点 ---------- */
+.node-budget { font-size: $fs-tag; font-weight: $fw-semi; color: $accent-500; margin-left: $sp-2; }
+.node-action { flex-shrink: 0; margin-left: $sp-2; }
+/* 已发布真人节点：后端回写的 refTaskId（截尾显示，够用户核对"真的发出去了"） */
+.node-ref {
+  display: block; margin-top: 2rpx;
+  font-size: $fs-tag; color: var(--mt);
+}
+.tone-ok { background: $soft-mint; color: $success; }
+.tone-fail { background: $soft-rose; color: $danger; }
+.tone-run { background: var(--ms); color: var(--mt); }
+.tone-confirm { background: $soft-lemon; color: $warning; }
+.tone-human { background: $soft-peach; color: $accent-500; }
+.tone-wait { background: $soft-slate; color: $ink-soft; }
+
+/* ---------- 底部动作 ---------- */
+.plan-foot { display: flex; align-items: center; }
+.foot-main { flex: 1; font-size: $fs-aux; }
+.foot-sub { flex: 1; margin-left: $sp-2; font-size: $fs-aux; }
+.foot-danger {
+  flex: 1; margin-left: $sp-2;
+  height: $hit-min; line-height: $hit-min; text-align: center;
+  border-radius: $radius-pill;
+  background: $soft-rose; color: $danger;
+  font-size: $fs-aux;
+}

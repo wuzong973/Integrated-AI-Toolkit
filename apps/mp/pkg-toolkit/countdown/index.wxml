@@ -1,0 +1,105 @@
+<!-- 考试倒计时（校园小工具）
+     视觉：工具主题 · 新增卡 + 倒计时列表，纯本地存储，无网络请求
+     装饰签名（见 docs/dev/MP-VISUAL-SYSTEM.md）：blob-c + dot-a -->
+<view
+  class="qz-page th-toolkit countdown"
+  bindtouchstart="onFxStart"
+  bindtouchmove="onFxMove"
+  bindtouchend="onFxEnd"
+  bindtouchcancel="onFxEnd"
+>
+  <!-- 装饰层（不拦截点击；只有装饰层跟随指针，内容区不跟随） -->
+  <view class="qz-deco">
+    <view class="qz-fx" style="{{fxStyle}}">
+      <view class="qz-blob qz-blob-c"></view>
+      <view class="qz-dot qz-dot-a"></view>
+    </view>
+  </view>
+
+  <view class="qz-content">
+    <view class="head qz-an-in qz-d1">
+      <text class="title">考试倒计时</text>
+      <text class="sub">日期自己选，只存在这台手机上</text>
+    </view>
+
+    <!-- ---------- 新增 ---------- -->
+    <view class="qz-card qz-an-in qz-d2">
+      <view class="card-title">
+        <text>加一场考试</text>
+        <text class="card-title-hint">日期以官方通知为准</text>
+      </view>
+
+      <input
+        class="name-input"
+        value="{{draftName}}"
+        placeholder="考试名称，如 四六级"
+        bindinput="onNameInput"
+      />
+
+      <view class="presets">
+        <view
+          class="preset qz-press"
+          wx:for="{{namePresets}}"
+          wx:key="*this"
+          data-name="{{item}}"
+          bindtap="onPresetTap"
+        >
+          {{item}}
+        </view>
+      </view>
+
+      <picker mode="date" value="{{draftDate}}" bindchange="onDraftDateChange">
+        <view class="date-row">
+          <text class="date-label">考试日期</text>
+          <text class="date-value">{{draftDate}}</text>
+          <text class="date-arrow">›</text>
+        </view>
+      </picker>
+
+      <view class="btn btn-solid qz-press" bindtap="onAdd">开始倒计时</view>
+
+      <text class="hint">
+        这里不预测考试日期（四六级、考研每年都在变），请按学校或官方通知填写；
+        日期后面还能直接改，不用删了重加。
+      </text>
+    </view>
+
+    <!-- ---------- 列表 ---------- -->
+    <view class="qz-card item" wx:for="{{rows}}" wx:key="id">
+      <view class="item-head">
+        <text class="item-name">{{item.name}}</text>
+        <view class="del qz-press" data-id="{{item.id}}" bindtap="onRemove">×</view>
+      </view>
+
+      <view class="item-days">
+        <text class="days-text state-{{item.state}}">{{item.daysText}}</text>
+        <text class="weeks-text" wx:if="{{item.weeksText}}">{{item.weeksText}}</text>
+      </view>
+
+      <picker
+        mode="date"
+        value="{{item.dateText}}"
+        data-id="{{item.id}}"
+        bindchange="onRowDateChange"
+      >
+        <view class="date-row">
+          <text class="date-label">日期</text>
+          <text class="date-value">{{item.dateText}}</text>
+          <text class="date-arrow">›</text>
+        </view>
+      </picker>
+
+      <view class="cal qz-press" data-id="{{item.id}}" bindtap="onAddToCalendar">
+        <view class="qz-i qz-i-bell"></view>
+        <text>加到手机日历</text>
+      </view>
+    </view>
+
+    <view class="qz-card empty qz-an-in" wx:if="{{rows.length === 0}}">
+      <text class="empty-title">添加第一场考试，倒计时就开始了</text>
+      <text class="hint">
+        数据只保存在本机，换手机需要重新添加；也不会同步到任何服务器。
+      </text>
+    </view>
+  </view>
+</view>

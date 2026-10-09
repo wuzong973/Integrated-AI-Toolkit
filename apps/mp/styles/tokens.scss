@@ -1,0 +1,150 @@
+/**
+ * 青智校园 Design Token（文档 5.1，任务清单 M0-18）
+ * 纪律：页面禁止硬编码色值/间距，一律引用此处变量。
+ *
+ * 本文件只声明「全局令牌」：中性色、品牌色、间距、形状、动效。
+ * 「模块主题色板」（每个页面一套糖果配色）在 styles/themes.scss，页面用 var(--m1) 取用。
+ * 视觉规范见 docs/dev/MP-VISUAL-SYSTEM.md。
+ */
+
+/* ---------- 色彩：品牌 ---------- */
+$brand-500: #00B8A9;   // 青智青：主按钮、Tab 选中、品牌标识
+$brand-600: #009E91;   // 按下态
+$brand-50:  #E6F9F7;   // 浅底：标签、选中背景
+
+/* ---------- 色彩：AI 能力识别色（核心语义，文档 5.1.2） ---------- */
+$tech-500: #3B6EF6;    // AI 图标、Agent 气泡、AI 生成标记
+$tech-600: #2A56D4;
+$tech-50:  #EDF2FF;
+
+/* ---------- 色彩：功能 ---------- */
+$accent-500: #FF7A45;  // 价格、热门、限时
+$success:    #16B364;
+$warning:    #F79009;
+$danger:     #F04438;
+
+/* ---------- 色彩：文字 ---------- */
+$text-1: #101828;
+$text-2: #475467;
+$text-3: #98A2B3;
+$text-inverse: #FFFFFF;
+
+/* ---------- 色彩：容器 ---------- */
+$bg-page: #F5F7FA;
+$bg-card: #FFFFFF;
+$bg-mask: rgba(16, 24, 40, .45);
+$border: #F2F4F7;
+$border-strong: #EAECF0;
+
+/* ---------- 色彩：柔和装饰色（气泡 / 光斑 / 纹理取色，全局通用） ---------- */
+$soft-lilac: #F2F0FF;   // 薰衣草
+$soft-sky:   #ECF8FF;   // 天空
+$soft-mint:  #ECFBF5;   // 薄荷
+$soft-peach: #FFF4EC;   // 蜜桃
+$soft-rose:  #FFF0F5;   // 玫瑰
+$soft-lemon: #FFFCEB;   // 柠檬
+$soft-aqua:  #E9FAF8;   // 水青
+$soft-slate: #F4F6FB;   // 雾蓝
+
+/* ---------- 色彩：中性阶梯（比 text-* 更细，供装饰层与分割用） ---------- */
+$ink-soft:  #667085;
+$line-soft: #F7F9FC;
+
+/* ---------- 色彩：彩色柔影（卡片投影带主题色倾向，避免死板灰） ---------- */
+$shadow-tint-brand:  rgba(0, 184, 169, .22);
+$shadow-tint-tech:   rgba(59, 110, 246, .20);
+$shadow-tint-warm:   rgba(255, 122, 69, .22);
+$shadow-tint-rose:   rgba(236, 72, 153, .20);
+$shadow-tint-violet: rgba(124, 107, 248, .22);
+
+/* ---------- 色彩：玻璃白罩与状态柔色（渐变头区/状态徽章专用） ----------
+ * 页面 SCSS 禁止再写裸 rgba(255,255,255,.x) / rgba(247,144,9,.x) 字面量，
+ * 一律取用下列令牌（就近选档）。 */
+$glass-faint: rgba(255, 255, 255, .16);   // 极薄：大色块上的轻纱底
+$glass-soft:  rgba(255, 255, 255, .24);   // 薄：徽章/图标底座
+$glass-mid:   rgba(255, 255, 255, .32);   // 中：分隔与高亮边
+$glass-text:  rgba(255, 255, 255, .88);   // 渐变上的次级文字
+$glass-card:  rgba(255, 255, 255, .95);   // 近白玻璃卡（头区内嵌卡）
+$warning-veil: rgba(247, 144, 9, .15);    // 警示柔底
+$warning-line: rgba(247, 144, 9, .5);     // 警示虚线框
+$danger-veil:  rgba(240, 68, 56, .14);    // 危险柔底/描边
+
+/* ---------- 间距（base 8） ---------- */
+$sp-1: 4rpx;
+$sp-2: 8rpx;
+$sp-3: 12rpx;
+$sp-4: 16rpx;
+$sp-5: 20rpx;
+$sp-6: 24rpx;
+$sp-8: 32rpx;
+$sp-12: 48rpx;
+
+/* ---------- 圆角阶梯（可爱风：圆角更饱满） ---------- */
+$radius-xs: 6rpx;
+$radius-sm: 8rpx;
+$radius-md: 16rpx;
+$radius-lg: 24rpx;
+$radius-xl: 32rpx;
+$radius-2xl: 40rpx;
+$radius-blob: 42% 58% 54% 46% / 48% 44% 56% 52%;  // 有机形（气泡/云朵）
+$radius-pill: 999rpx;
+
+/* ---------- 阴影（双层柔影 + 彩色倾向） ---------- */
+$shadow-card: 0 4rpx 16rpx rgba(16, 24, 40, .06);
+$shadow-soft: 0 2rpx 6rpx rgba(16, 24, 40, .03), 0 8rpx 24rpx rgba(16, 24, 40, .05);
+$shadow-float: 0 8rpx 32rpx rgba(16, 24, 40, .12);
+/* 按压态的"压进去"：按下时叠一层 inset，松手即撤（与 .qz-lift 换档阴影同族，见 §四） */
+$shadow-press-inset: inset 0 3rpx 10rpx rgba(16, 24, 40, .10);
+$shadow-lift: 0 12rpx 32rpx rgba(16, 24, 40, .10), 0 4rpx 10rpx rgba(16, 24, 40, .04);
+$shadow-inset-top: inset 0 2rpx 0 rgba(255, 255, 255, .7);
+
+/* ---------- 字号 ---------- */
+$fs-display: 48rpx;
+$fs-h1: 36rpx;
+$fs-h2: 32rpx;
+$fs-h3: 28rpx;
+$fs-body: 28rpx;
+$fs-aux: 24rpx;
+$fs-tag: 20rpx;
+
+/* ---------- 字重 ---------- */
+$fw-medium: 500;
+$fw-semi: 600;
+$fw-bold: 700;
+$fw-black: 800;
+
+/* ---------- 动效：时长与缓动（统一节奏，页面禁止自造曲线） ---------- */
+$dur-instant: .12s;   // 按压反馈
+$dur-press-in: .08s;  // 按压的**下压段**（比 $dur-instant 还短：反馈必须"立刻到"）
+$dur-fast: .2s;       // 状态切换
+$dur-base: .32s;      // 常规过渡
+$dur-slow: .55s;      // 入场动画
+$ease-out: cubic-bezier(.22, .85, .36, 1);      // 减速（入场/位移）
+$ease-spring: cubic-bezier(.34, 1.56, .64, 1);  // 回弹（弹出/强调）
+$ease-inout: cubic-bezier(.65, .05, .36, 1);    // 匀速呼吸
+
+/* ---------- 动效：装饰层节奏（错落才有"活"的感觉） ---------- */
+$loop-float: 5.2s;
+$loop-drift: 9s;
+$loop-blob: 11s;
+$loop-flow: 1.4s;
+
+/* ---------- 页面结构 ---------- */
+$page-padding: 32rpx;   // 页面左右留白
+$card-padding: 24rpx;   // 卡片内边距
+$nav-height: 88rpx;
+$tabbar-height: 100rpx;
+$hit-min: 88rpx;        // 最小点击区（无障碍硬要求）
+
+/* ---------- 图标尺寸（糖果图标底座，见 components.scss 的 .qz-ico） ---------- */
+$ico-sm: 56rpx;
+$ico-md: 88rpx;
+$ico-lg: 112rpx;
+$ico-xl: 152rpx;
+
+/* ---------- 层级 ---------- */
+$z-sticky: 10;
+$z-float: 20;
+$z-mask: 100;
+$z-popup: 110;
+$z-toast: 200;

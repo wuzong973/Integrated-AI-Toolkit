@@ -1,0 +1,213 @@
+<!-- 服务者入驻认证（M3-02）：学生身份 → 技能认证 → 服务承诺
+     视觉：靛蓝主题 · 中圆角 + 光环 + 柔流线，突出"一步一步来"的流程感 -->
+<view
+  class="qz-page th-apply apply"
+  bindtouchstart="onFxStart"
+  bindtouchmove="onFxMove"
+  bindtouchend="onFxEnd"
+  bindtouchcancel="onFxEnd"
+>
+  <!-- 装饰层（不拦截点击，内容可读性不受影响） -->
+  <view class="qz-deco">
+    <view class="qz-fx" style="{{fxStyle}}">
+      <!-- 签名：flow-soft + halo（入驻仪式感：页头图标上罩一层呼吸光环，底下压一条缓进行进虚线） -->
+      <view class="apply-halo-box"><view class="qz-halo"></view></view>
+      <view class="apply-fx-flow qz-flow qz-flow-soft"></view>
+    </view>
+  </view>
+
+  <view class="qz-content">
+    <!-- 页头 -->
+    <view class="qz-head">
+      <view class="qz-head-row qz-an-in">
+        <view class="qz-ico qz-ico-l qz-ico-float">
+          <view class="qz-i qz-i-verify"></view>
+        </view>
+        <view class="qz-head-main">
+          <text class="qz-head-title">成为青智服务者</text>
+          <text class="qz-head-sub">三步入驻：学生认证 / 技能认证 / 服务承诺</text>
+        </view>
+      </view>
+      <view class="apply-flow qz-flow qz-flow-thick"></view>
+    </view>
+
+    <view class="qz-container apply-body">
+      <!-- ① 加载中 -->
+      <view wx:if="{{stage === 'loading'}}" class="qz-skeleton qz-an-in">
+        <view class="qz-skeleton-line"></view>
+        <view class="qz-skeleton-line qz-skeleton-line-short"></view>
+      </view>
+
+      <!-- ② 出错 -->
+      <view wx:elif="{{stage === 'error'}}" class="qz-err qz-an-in">
+        <text class="qz-err-text">{{error}}</text>
+        <view class="qz-err-btn qz-press" bindtap="onRetry">重试</view>
+      </view>
+
+      <!-- ③ 已是认证服务者 -->
+      <view wx:elif="{{stage === 'approved'}}" class="qz-empty qz-an-in qz-d1">
+        <view class="qz-empty-ico qz-ico qz-ico-xl qz-ico-float">
+          <view class="qz-i qz-i-workbench"></view>
+        </view>
+        <text class="qz-empty-title">你已经是认证服务者</text>
+        <text class="qz-empty-text">可以直接去驿站的任务大厅报名接单了。</text>
+        <view class="qz-empty-flow qz-flow"></view>
+        <view class="qz-btn-main qz-press" bindtap="onGoWorkbench">去工作台</view>
+      </view>
+
+      <!-- ④ 审核中 -->
+      <view wx:elif="{{stage === 'pending'}}" class="qz-empty qz-an-in qz-d1">
+        <view class="qz-empty-ico qz-ico qz-ico-xl qz-ico-float">
+          <view class="qz-i qz-i-verify"></view>
+        </view>
+        <text class="qz-empty-title">入驻申请审核中</text>
+        <text class="qz-empty-text">平台会尽快完成审核。审核结果会在这里更新，通过后即可接单。</text>
+        <view class="qz-empty-flow qz-flow"></view>
+        <view class="qz-btn-sub qz-press" bindtap="onRetry">刷新状态</view>
+      </view>
+
+      <!-- ⑤ 表单（含"被驳回后重新提交"） -->
+      <block wx:else>
+        <!-- 驳回原因：M3-02 验收标准要求"驳回时给出具体原因"，
+             所以它必须在表单**上方**，而不是藏进二级页 -->
+        <view wx:if="{{rejectReason}}" class="reject-box qz-an-in">
+          <text class="reject-title">上次申请未通过</text>
+          <text class="reject-why">{{rejectReason}}</text>
+          <text class="reject-tip">按上面的原因修改后可以重新提交。</text>
+        </view>
+
+        <!-- 步骤指示 -->
+        <view class="steps qz-an-in">
+          <view class="step {{step >= 1 ? 'on' : ''}}">
+            <view class="step-dot">1</view>
+            <text class="step-label">学生身份</text>
+          </view>
+          <view class="step-line {{step >= 2 ? 'on' : ''}}"></view>
+          <view class="step {{step >= 2 ? 'on' : ''}}">
+            <view class="step-dot">2</view>
+            <text class="step-label">技能认证</text>
+          </view>
+          <view class="step-line {{step >= 3 ? 'on' : ''}}"></view>
+          <view class="step {{step >= 3 ? 'on' : ''}}">
+            <view class="step-dot">3</view>
+            <text class="step-label">服务承诺</text>
+          </view>
+        </view>
+
+        <!-- ========== 步骤 1 · 学生身份 ========== -->
+        <view wx:if="{{step === 1}}" class="qz-card form-card qz-an-in qz-d1">
+          <view class="field">
+            <text class="field-label">真实姓名 *</text>
+            <input
+              class="field-input"
+              placeholder="与学生证一致"
+              value="{{form.realName}}"
+              data-key="realName"
+              bindinput="onInput"
+            />
+          </view>
+          <view class="field">
+            <text class="field-label">学号 *</text>
+            <input
+              class="field-input"
+              placeholder="用于核对学籍"
+              value="{{form.studentNo}}"
+              data-key="studentNo"
+              bindinput="onInput"
+            />
+          </view>
+          <view class="field">
+            <text class="field-label">学校 *</text>
+            <picker
+              mode="selector"
+              range="{{schoolNames}}"
+              value="{{schoolIndex}}"
+              bindchange="onSchoolChange"
+            >
+              <view class="field-picker {{form.schoolId ? '' : 'placeholder'}}">
+                {{schoolIndex >= 0 ? schoolNames[schoolIndex] : '请选择学校'}}
+              </view>
+            </picker>
+          </view>
+          <view class="field">
+            <text class="field-label">学院</text>
+            <input
+              class="field-input"
+              placeholder="选填"
+              value="{{form.college}}"
+              data-key="college"
+              bindinput="onInput"
+            />
+          </view>
+          <view class="field">
+            <text class="field-label">学生证照片 * （最多 3 张）</text>
+            <view class="qz-btn-sub qz-press" bindtap="onPickMaterial">+ 上传学生证</view>
+            <text wx:if="{{materialText}}" class="field-file">{{materialText}}</text>
+          </view>
+        </view>
+
+        <!-- ========== 步骤 2 · 技能认证 ========== -->
+        <view wx:if="{{step === 2}}" class="qz-card form-card qz-an-in qz-d1">
+          <view class="field">
+            <text class="field-label">技能标签 * （至少 1 个，最多 10 个）</text>
+            <view class="skill-add">
+              <input
+                class="field-input skill-input"
+                placeholder="如：摄影、后期修图"
+                value="{{skillInput}}"
+                bindinput="onSkillInput"
+                bindconfirm="onSkillAdd"
+              />
+              <view class="qz-btn-sub qz-press skill-btn" bindtap="onSkillAdd">添加</view>
+            </view>
+            <view class="skill-tags" wx:if="{{skillTags.length}}">
+              <view
+                wx:for="{{skillTags}}"
+                wx:key="*this"
+                class="qz-chip skill-chip qz-press"
+                data-tag="{{item}}"
+                bindtap="onSkillRemove"
+              >
+                {{item}} ×
+              </view>
+            </view>
+          </view>
+          <view class="field">
+            <text class="field-label">作品集（选填，最多 9 张）</text>
+            <view class="qz-btn-sub qz-press" bindtap="onPickPortfolio">+ 上传作品</view>
+            <text wx:if="{{portfolioText}}" class="field-file">{{portfolioText}}</text>
+          </view>
+        </view>
+
+        <!-- ========== 步骤 3 · 服务承诺 ========== -->
+        <view wx:if="{{step === 3}}" class="qz-card form-card qz-an-in qz-d1">
+          <view class="promise qz-press" bindtap="onToggleAgreed">
+            <view class="promise-box {{agreed ? 'on' : ''}}">{{agreed ? '✓' : ''}}</view>
+            <text class="promise-text">我已阅读并同意《服务者协议》《交易规则》</text>
+          </view>
+          <view class="promise qz-press" bindtap="onToggleTruthful">
+            <view class="promise-box {{truthful ? 'on' : ''}}">{{truthful ? '✓' : ''}}</view>
+            <text class="promise-text">我承诺所提交材料真实有效</text>
+          </view>
+          <view class="promise promise-plain">
+            <view class="promise-box promise-box-lock">·</view>
+            <text class="promise-text">我理解平台采用担保交易，验收后放款</text>
+          </view>
+        </view>
+
+        <!-- 步骤按钮 -->
+        <view class="form-actions">
+          <view wx:if="{{step > 1}}" class="qz-btn-sub act qz-press" bindtap="onPrev">上一步</view>
+          <view wx:if="{{step < 3}}" class="qz-btn-main act qz-press" bindtap="onNext">下一步</view>
+          <view
+            wx:else
+            class="qz-btn-main act qz-press {{submitting ? 'disabled' : ''}}"
+            bindtap="onSubmit"
+          >
+            {{submitting ? '提交中…' : (resubmit ? '重新提交审核' : '提交审核')}}
+          </view>
+        </view>
+      </block>
+    </view>
+  </view>
+</view>

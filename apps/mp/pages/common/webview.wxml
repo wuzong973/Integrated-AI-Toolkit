@@ -1,0 +1,33 @@
+<!-- 通用 H5 容器（协议 / 公告 / 帮助）
+     ⚠️ `web-view` 是**全屏原生组件**，嵌不进 view 结构，所以真内容分支保持原生标签、
+     页面骨架（.qz-page / .qz-empty / .qz-err）只能用在两个降级分支上：
+     ① 没有 url 参数；② web-view 加载失败（业务域名没在小程序后台配置时最常见）。 -->
+<web-view wx:if="{{url && !showError}}" src="{{url}}" binderror="onLoadError" />
+
+<view wx:else class="qz-page th-login webview">
+  <!-- 装饰层：降级分支（没有 url / web-view 加载失败）才需要门面。
+       签名见规范第十一节——只留一枚 blob-b，且**刻意不接 .qz-fx 视差**：
+       这一屏只有一个返回按钮，装饰跟着手指动只会显得晃眼（同 settings 页的克制语气）。 -->
+  <view class="qz-deco">
+    <view class="qz-blob qz-blob-b"></view>
+  </view>
+
+  <view class="qz-content">
+    <view class="qz-container">
+      <view wx:if="{{showError}}" class="qz-err qz-an-in">
+        <text class="qz-err-text">页面加载失败（业务域名未配置）</text>
+        <view class="qz-err-btn qz-press" bindtap="onBack">返回</view>
+      </view>
+
+      <view wx:else class="qz-empty qz-an-in">
+        <view class="qz-empty-ico qz-ico qz-ico-xl qz-ico-float">
+          <view class="qz-i qz-i-file"></view>
+        </view>
+        <text class="qz-empty-title">暂无内容</text>
+        <text class="qz-empty-text">缺少可显示的链接参数。协议正文目前显示在登录页的弹窗里。</text>
+        <view class="qz-empty-flow qz-flow"></view>
+        <view class="qz-btn-main qz-press" bindtap="onBack">返回</view>
+      </view>
+    </view>
+  </view>
+</view>

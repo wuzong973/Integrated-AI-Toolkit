@@ -1,0 +1,123 @@
+<!-- 单位换算（长度 / 重量 / 温度）—— 复用 utils/unit-convert 的口径与算法，纯本地计算
+     视觉：星蓝主题（th-toolbox）· 装饰签名：halo + dot-b -->
+<view
+  class="qz-page th-toolbox unit-page"
+  bindtouchstart="onFxStart"
+  bindtouchmove="onFxMove"
+  bindtouchend="onFxEnd"
+  bindtouchcancel="onFxEnd"
+>
+  <view class="qz-deco">
+    <view class="qz-fx" style="{{fxStyle}}">
+      <view class="unit-halo qz-halo"></view>
+      <view class="qz-dot qz-dot-b"></view>
+    </view>
+  </view>
+
+  <view class="qz-content">
+    <view class="qz-head">
+      <view class="qz-head-row qz-an-in">
+        <view class="qz-ico qz-ico-l qz-ico-float">
+          <view class="qz-i qz-i-chart"></view>
+        </view>
+        <view class="qz-head-main">
+          <text class="qz-head-title">单位换算</text>
+          <text class="qz-head-sub">长度 / 重量 / 温度 · 本地计算</text>
+        </view>
+      </view>
+    </view>
+
+    <view class="qz-container">
+      <!-- 类别 -->
+      <view class="qz-card qz-an-in qz-d1">
+        <view class="card-title">
+          <text>换算哪一类</text>
+          <text class="card-title-hint">切一类会换成该类常用单位并立即重算</text>
+        </view>
+        <view class="chips">
+          <view
+            wx:for="{{chips}}"
+            wx:key="key"
+            class="qz-chip qz-press {{groupIndex === index ? 'qz-chip-on' : ''}}"
+            data-index="{{index}}"
+            bindtap="onGroupTap"
+          >
+            {{item.label}}
+          </view>
+        </view>
+      </view>
+
+      <!-- 输入 -->
+      <view class="qz-card qz-card-grad qz-an-in qz-d2">
+        <view class="card-title">
+          <text>换算</text>
+          <text class="card-title-hint">{{fromLabel}} → {{toLabel}}</text>
+        </view>
+        <view class="value-row">
+          <input
+            class="value-input"
+            type="digit"
+            value="{{valueText}}"
+            placeholder="如 1.75"
+            placeholder-class="value-ph"
+            bindinput="onValueInput"
+          />
+          <text class="value-unit">{{fromLabel}}</text>
+        </view>
+        <view class="unit-row">
+          <picker
+            class="picker"
+            mode="selector"
+            range="{{units}}"
+            range-key="label"
+            value="{{fromIndex}}"
+            bindchange="onFromChange"
+          >
+            <view class="pick qz-press">
+              <text class="pick-tag">从</text>
+              <text class="pick-value">{{fromLabel}}</text>
+              <text class="pick-arrow">›</text>
+            </view>
+          </picker>
+          <view class="swap qz-press" bindtap="onSwap">⇄</view>
+          <picker
+            class="picker"
+            mode="selector"
+            range="{{units}}"
+            range-key="label"
+            value="{{toIndex}}"
+            bindchange="onToChange"
+          >
+            <view class="pick qz-press">
+              <text class="pick-tag">到</text>
+              <text class="pick-value">{{toLabel}}</text>
+              <text class="pick-arrow">›</text>
+            </view>
+          </picker>
+        </view>
+      </view>
+
+      <!-- 结果（三态互斥） -->
+      <view class="qz-card qz-card-glow qz-an-in qz-d3" wx:if="{{status === 'ok'}}">
+        <text class="result-src">{{srcText}} =</text>
+        <view class="result-body">
+          <text class="result-num">{{resultText}}</text>
+          <text class="result-unit">{{toLabel}}</text>
+        </view>
+        <view class="result-ratio">
+          <text class="ratio-text">{{ratioText}}</text>
+        </view>
+      </view>
+
+      <view class="qz-card blank qz-an-in qz-d3" wx:elif="{{status === 'invalid'}}">
+        <text class="blank-title">{{invalidText}}</text>
+        <text class="hint">只填数字就行，比如 1.75、1024、0.5。</text>
+      </view>
+
+      <view class="qz-card blank qz-an-in qz-d3" wx:else>
+        <text class="blank-title">填一个数，结果立刻出来</text>
+        <text class="hint">温度走真实换算式（0 摄氏度 = 32 华氏度），不会把温差当数值乘。</text>
+      </view>
+    </view>
+  </view>
+</view>

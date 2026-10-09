@@ -1,0 +1,92 @@
+@import '../../styles/tokens.scss';
+
+/* 信用 · 琥珀主题（模块色板见 styles/themes.scss 的 .th-credit）
+   造型语言：中圆角 + 彩色柔影；信用分做成"糖果圆环"，流水卡带彩色指示条 */
+
+.credit { padding-bottom: 60rpx; }
+
+/* ---------- 信用分卡（渐变卡 + 彩色柔影 + 光斑） ---------- */
+.score-card { display: flex; align-items: center; padding: $sp-6 $card-padding; }
+.score-deco { position: absolute; left: 0; top: 0; right: 0; bottom: 0; overflow: hidden; }
+.s-blob { position: absolute; border-radius: $radius-blob; background: var(--m2); opacity: .22; }
+.s-blob-a {
+  width: 240rpx; height: 240rpx; right: -90rpx; top: -120rpx;
+  animation: qzBlob $loop-blob $ease-inout infinite;
+}
+.s-blob-b {
+  width: 150rpx; height: 150rpx; left: -70rpx; bottom: -80rpx;
+  animation: qzBlob $loop-drift $ease-inout infinite;
+}
+
+/* 糖果圆环：分数是这一页的主角 */
+.score-ring {
+  position: relative; z-index: 1;
+  width: 168rpx; height: 168rpx; flex-shrink: 0;
+  border-radius: 50%;
+  display: flex; align-items: baseline; justify-content: center;
+  background: linear-gradient(135deg, var(--m1), var(--m2));
+  box-shadow: $shadow-float;
+}
+.score-num {
+  position: relative;
+  font-size: 60rpx; font-weight: $fw-black; color: $text-inverse; line-height: 1.1;
+}
+.score-unit { position: relative; font-size: $fs-tag; color: $glass-text; margin-left: 4rpx; }
+
+.score-body { position: relative; z-index: 1; flex: 1; min-width: 0; margin-left: $sp-6; }
+.score-level { display: block; font-size: $fs-h2; font-weight: $fw-bold; color: $text-1; }
+.score-desc { display: block; font-size: $fs-aux; color: $text-2; }
+.score-tip { display: block; font-size: $fs-tag; color: $text-3; margin-top: 2rpx; }
+.score-bar {
+  height: 12rpx; margin-top: $sp-3;
+  border-radius: $radius-pill; background: $bg-page; overflow: hidden;
+}
+.score-bar-fill {
+  height: 100%; border-radius: $radius-pill;
+  background: linear-gradient(90deg, var(--m1), var(--m2), var(--m3));
+  background-size: 300% 100%;
+  animation: qzGradientShift $loop-drift $ease-inout infinite;
+  transition: width $dur-slow $ease-out;
+}
+.score-flow { position: absolute; left: 0; right: 0; bottom: 0; opacity: .5; }
+
+/* ---------- Tab（胶囊，点击区满足 $hit-min） ---------- */
+.tabs { display: flex; align-items: center; padding-bottom: $sp-3; }
+.tab {
+  height: $hit-min; padding: 0 $sp-6; margin-right: $sp-3;
+  font-size: $fs-body;
+}
+
+/* ---------- 卡片小标题 ---------- */
+.card-head { display: flex; align-items: center; margin-bottom: $sp-2; }
+.card-head-ico { width: 36rpx; height: 36rpx; margin-right: $sp-2; }
+.card-title { font-size: $fs-body; font-weight: $fw-bold; color: $text-1; }
+
+/* ---------- 规则 / 流水行 ---------- */
+.rule { padding: $sp-3 0; }
+.rule-delta { font-size: $fs-body; font-weight: $fw-bold; }
+.rules-tip { display: block; margin-top: $sp-3; font-size: $fs-tag; color: $text-3; }
+.log { padding: $sp-3 0; }
+.log-right { text-align: right; }
+.log-delta { display: block; font-size: $fs-body; font-weight: $fw-bold; }
+.log-balance { display: block; font-size: $fs-tag; color: $text-3; }
+.pos { color: $success; }
+.neg { color: $danger; }
+
+/* ---------- 收到的评价（主题浅底卡里的评价行） ----------
+   星级用 ★ 字符 + 模块主色（琥珀），不引第三方评分组件；
+   标签沿用 .qz-chip，只把底色换成白，避免和浅底卡糊成一片。 */
+.review { padding: $sp-4 0; border-bottom: 1rpx solid $line-soft; }
+.review:first-child { padding-top: 0; }
+.review:last-child { padding-bottom: 0; border-bottom: none; }
+.review-head { display: flex; align-items: center; }
+.review-who { flex: 1; min-width: 0; margin-left: $sp-3; }
+.review-name { display: block; font-size: $fs-aux; font-weight: $fw-semi; color: $text-1; }
+.review-time { display: block; font-size: $fs-tag; color: $text-3; }
+.review-stars { flex-shrink: 0; font-size: $fs-h3; color: var(--m1); letter-spacing: 2rpx; }
+.review-content {
+  display: block; margin-top: $sp-2;
+  font-size: $fs-aux; color: $text-2; line-height: 1.75;
+}
+.review-tags { display: flex; flex-wrap: wrap; margin-top: $sp-2; }
+.review-tag { margin: 0 $sp-2 $sp-2 0; background: $bg-card; color: var(--mt); }

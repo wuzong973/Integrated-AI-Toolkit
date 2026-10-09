@@ -1,0 +1,125 @@
+# 《青智校园》生产基础设施（仅 Redis + Qdrant，**不含 MySQL**）
+#
+# 落地位置：/www/wwwroot/qingzhi.wzl136122.cn/scripts/deploy/docker-compose.infra.yml
+#   cd /www/wwwroot/qingzhi.wzl136122.cn/scripts/deploy
+#   docker compose -p qz-infra -f docker-compose.infra.yml up -d
+#
+# ## 为什么与仓库里的 docker-compose.prod.yml 是两份
+#
+#   docker-compose.prod.yml 假设"MySQL / MinIO / Qdrant / Redis 全部容器化"。
+#   本机实际情况不同，硬套那份会踩三个坑：
+#     1) 服务器已有 MySQL 5.7.44（在服务另外两个项目），**不能也不需要**再起一个容器；
+#        用户明确要求"与服务器上现有的 MySQL 走同一套配置"。
+#     2) MinIO 开源版已归档、且需要单独子域 + 签名路径不能剥前缀，
+#        第一阶段用 `STORAGE_DRIVER=local` 更稳（见 .env 注释）。
+#   3) 一份 compose 里混着"必须的"和"可选的"，回滚时不知道该 down 哪些。
+#   → 所以这里只放**本机真正需要容器化的两个**：Redis 与 Qdrant；
+#     可选能力（Stirling-PDF）用 profile `selfhost` 隔离，默认 up 不会启动。
+#
+# ## 隔离设计（全部加 qz- 前缀，只绑环回）
+#
+#   容器名 / 卷名 / 网络名 均带 qz- 前缀，端口只绑 127.0.0.1，
+#   公网扫不到 → 不需要动 firewalld，也不需要改腾讯云安全组。
+#   端口刻意避开既有占用：6379（宝塔 Redis 插件的默认位）不用，改用 6380。
+
+name: qz-infra
+
+services:
+  # ---------- 队列底座（redis-stream 驱动）+ 限流 / 缓存 ----------
+  qz-redis:
+    image: redis:7-alpine
+    container_name: qz-redis
+    restart: unless-stopped
+    # ⚠️ `noeviction` 不是随手写的：Redis 在这里是**队列**（Streams）的底座，
+    #    用 allkeys-lru 之类会在内存吃紧时**把队列里的消息删掉**，
+    #    表现为"任务提交成功但永远卡在排队中"，且没有任何报错。
+    #    maxmemory 给到 256M 是因为这台机器总共 3.6G、还跑着另外两个项目。
+    command: >
+      redis-server
+      --appendonly yes
+      --appendfsync everysec
+      --maxmemory 256mb
+      --maxmemory-policy noeviction
+      --save ""
+    ports:
+      - "127.0.0.1:6380:6379"
+    volumes:
+      - qz-redis-data:/data
+    networks: [qz-net]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    deploy:
+      resources:
+        limits:
+          memory: 384M
+
+  # ---------- 向量库（M4-06 校园知识库语义检索） ----------
+  qz-qdrant:
+    image: qdrant/qdrant:v1.12.4
+    container_name: qz-qdrant
+    restart: unless-stopped
+    ports:
+      # 6334（gRPC）不对外开，只开 REST
+      - "127.0.0.1:6333:6333"
+    environment:
+      QDRANT__SERVICE__HTTP_PORT: "6333"
+      QDRANT__LOG_LEVEL: "INFO"
+    volumes:
+      - qz-qdrant-data:/qdrant/storage
+    networks: [qz-net]
+    healthcheck:
+      test: ["CMD-SHELL", "bash -c ':> /dev/tcp/127.0.0.1/6333' || exit 1"]
+      interval: 20s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    deploy:
+      resources:
+        limits:
+          memory: 640M
+
+  # ---------- 可选：Stirling-PDF（PDF_PROVIDER=stirling 时的 PDF 操作引擎） ----------
+  # profile selfhost：默认 `up -d` 不会启动它，需显式
+  #   docker compose -p qz-infra -f docker-compose.infra.yml --profile selfhost up -d
+  # ⚠️ open-core 许可边界：主 LICENSE 为 MIT，但 app/proprietary、engine/、
+  #   frontend/editor/proprietary 等目录专有 —— 本项目只调用其**社区功能**
+  #   （合并/拆分/压缩 REST API），专有目录的能力不要配置、不要依赖。
+  stirling-pdf:
+    image: stirlingtools/stirling-pdf:latest
+    container_name: qz-stirling-pdf
+    restart: unless-stopped
+    profiles: ["selfhost"]
+    ports:
+      # 与整个文件同一纪律：只绑环回，公网扫不到
+      - "127.0.0.1:8080:8080"
+    volumes:
+      - qz-stirling-data:/data
+    networks: [qz-net]
+    healthcheck:
+      # 探的是任务清单指定的状态端点（200 即健康）；镜像基于 Ubuntu，自带 wget
+      test: ["CMD-SHELL", "wget -q --spider http://127.0.0.1:8080/api/v1/info/status || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+
+networks:
+  qz-net:
+    name: qz-net
+    driver: bridge
+
+volumes:
+  qz-redis-data:
+    name: qz-redis-data
+  qz-qdrant-data:
+    name: qz-qdrant-data
+  qz-stirling-data:
+    name: qz-stirling-data

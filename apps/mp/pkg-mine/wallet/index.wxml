@@ -1,0 +1,193 @@
+<!-- 钱包与结算（文档 6.6.3 / 6.11）
+     视觉：翡翠主题 · 圆角 26 · 余额卡带渐变 + 光斑 + 扫光，流水走描边卡 + 糖果图标 -->
+<view
+  class="qz-page th-wallet wallet"
+  bindtouchstart="onFxStart"
+  bindtouchmove="onFxMove"
+  bindtouchend="onFxEnd"
+  bindtouchcancel="onFxEnd"
+>
+  <!-- 装饰层（不拦截点击，内容可读性不受影响）
+       签名：rise + blob-c —— 金币泡泡自下而上冒，配一枚低位光斑 -->
+  <view class="qz-deco">
+    <view class="qz-fx" style="{{fxStyle}}">
+      <view class="qz-blob qz-blob-c"></view>
+      <view class="rise-dot qz-rise"></view>
+      <view class="rise-dot rise-dot-b qz-rise"></view>
+      <view class="rise-dot rise-dot-c qz-rise"></view>
+    </view>
+  </view>
+
+  <view class="qz-content">
+    <!-- 页头 -->
+    <view class="qz-head">
+      <view class="qz-head-row">
+        <view class="qz-ico qz-ico-l qz-ico-float">
+          <view class="qz-i qz-i-wallet"></view>
+        </view>
+        <view class="qz-head-main">
+          <text class="qz-head-title">钱包与结算</text>
+          <text class="qz-head-sub">余额、担保中与每一笔流水</text>
+        </view>
+      </view>
+    </view>
+
+    <view class="qz-container">
+      <!-- 余额卡：渐变 + 光斑 + 扫光 -->
+      <view class="balance-card qz-card-glow qz-an-in qz-d1">
+        <view class="balance-deco">
+          <view class="b-blob b-blob-a"></view>
+          <view class="b-blob b-blob-b"></view>
+          <view class="b-dot"></view>
+        </view>
+        <view class="qz-shine qz-shine-slow"></view>
+
+        <text class="balance-label">可提现余额（元）</text>
+        <text class="balance-value">¥{{balanceText}}</text>
+
+        <view class="balance-row">
+          <view class="bal-item">
+            <text class="bal-num">¥{{frozenText}}</text>
+            <text class="bal-label">担保中</text>
+          </view>
+          <view class="bal-item">
+            <text class="bal-num">¥{{totalIncomeText}}</text>
+            <text class="bal-label">累计收入</text>
+          </view>
+        </view>
+
+        <view class="qz-btn-main withdraw-btn qz-press" bindtap="onWithdraw">
+          {{submitting ? '提交中…' : '申请提现'}}
+        </view>
+        <!-- ⚠️ 这句由 index.ts 的 withdrawTip 提供：只说"扣减 + 送审"，
+             不写「T+1 / 到账」（钱没有出账通道），也不写服务费 5%（提现手续费恒为 0） -->
+        <text class="withdraw-tip">{{withdrawTip}}</text>
+        <view class="balance-flow qz-flow"></view>
+      </view>
+
+      <!-- 积分卡：仅计费模式展示（免费开放期整块隐藏） -->
+      <view
+        wx:if="{{showPoints}}"
+        class="points-card qz-card qz-card-tint qz-an-in qz-d2 qz-lift"
+        bindtap="onPointsTap"
+      >
+        <view class="qz-ico qz-ico-m qz-ico-float">
+          <view class="qz-i qz-i-sparkle"></view>
+        </view>
+        <view class="points-main">
+          <text class="points-num">{{points}}</text>
+          <text class="points-label">{{pointsWalletLabel}}</text>
+        </view>
+        <text class="points-arrow">›</text>
+      </view>
+    </view>
+
+    <!-- 流水 -->
+    <view class="qz-sec">
+      <view class="qz-sec-bar"></view>
+      <text class="qz-sec-title">资金流水</text>
+      <text class="qz-sec-sub">每笔都有余额快照</text>
+    </view>
+
+    <view class="qz-container">
+      <view
+        wx:if="{{error || ledger.length || loading}}"
+        class="qz-card qz-card-line ledger-card qz-an-in qz-d3"
+      >
+        <view wx:if="{{error}}" class="qz-err">
+          <text class="qz-err-text">{{error}}</text>
+          <view class="qz-err-btn qz-press" bindtap="onRetry">重试</view>
+        </view>
+
+        <block wx:elif="{{ledger.length}}">
+          <view wx:for="{{ledger}}" wx:key="index" class="qz-item qz-item-line ledger-item">
+            <view class="qz-ico qz-ico-s">
+              <view class="qz-i {{item.icon}}"></view>
+            </view>
+            <view class="qz-item-main">
+              <text class="qz-item-title">{{item.remark}}</text>
+              <text class="qz-item-desc">{{item.timeText}}</text>
+            </view>
+            <view class="ledger-right">
+              <text class="ledger-amount {{item.isIncome ? 'income' : 'expense'}}">
+                {{item.isIncome ? '+' : '-'}}¥{{item.amountText}}
+              </text>
+              <text class="ledger-balance">余额 ¥{{item.balanceText}}</text>
+            </view>
+          </view>
+        </block>
+
+        <view wx:else class="ledger-loading">
+          <view class="qz-skeleton qz-skeleton-line"></view>
+          <view class="qz-skeleton qz-skeleton-line"></view>
+          <view class="qz-skeleton qz-skeleton-line qz-skeleton-line-short"></view>
+        </view>
+      </view>
+
+      <!-- 空态：暂无流水 -->
+      <view wx:else class="qz-empty qz-an-in qz-d3">
+        <view class="qz-empty-ico qz-ico qz-ico-xl qz-ico-float">
+          <view class="qz-i qz-i-empty"></view>
+        </view>
+        <text class="qz-empty-title">还没有资金流水</text>
+        <text class="qz-empty-text">完成第一笔订单后，收入、冻结与结算记录会出现在这里</text>
+        <view class="qz-empty-flow qz-flow"></view>
+      </view>
+    </view>
+
+    <!-- 提现记录（M3-13：GET /wallet/withdrawals，按申请时间倒序）
+         状态是后端真实状态，本期只会是 pending → "审核中"；
+         不要在这里加任何"预计几天到账"的措辞（平台尚未接入出账通道） -->
+    <view class="qz-sec">
+      <view class="qz-sec-bar"></view>
+      <text class="qz-sec-title">提现记录</text>
+      <text class="qz-sec-sub">每笔申请的状态与手续费</text>
+    </view>
+
+    <view class="qz-container">
+      <!-- 错误分支：只影响本区块，余额与流水照旧显示 -->
+      <view wx:if="{{withdrawalsError}}" class="qz-err qz-an-in qz-d4">
+        <text class="qz-err-text">{{withdrawalsError}}</text>
+        <view class="qz-err-btn qz-press" bindtap="onRetryWithdrawals">重试</view>
+      </view>
+
+      <!-- 列表分支 -->
+      <view
+        wx:elif="{{withdrawals.length}}"
+        class="qz-card qz-card-line ledger-card qz-an-in qz-d4"
+      >
+        <view wx:for="{{withdrawals}}" wx:key="id" class="qz-item qz-item-line ledger-item">
+          <view class="qz-ico qz-ico-s">
+            <view class="qz-i {{item.icon}}"></view>
+          </view>
+          <view class="qz-item-main">
+            <text class="qz-item-title">提现 ¥{{item.amountText}}</text>
+            <text class="qz-item-desc">{{item.timeText}} · {{item.feeText}}</text>
+          </view>
+          <view class="qz-chip withdraw-status {{item.statusClass}}">{{item.statusText}}</view>
+        </view>
+        <text wx:if="{{withdrawalLimited}}" class="withdraw-more">仅展示最近 {{withdrawalLimit}} 条申请，更早的可在资金流水里查到</text>
+      </view>
+
+      <!-- 加载分支 -->
+      <view wx:elif="{{withdrawalsLoading}}" class="qz-card qz-card-line ledger-card qz-an-in qz-d4">
+        <view class="ledger-loading">
+          <view class="qz-skeleton qz-skeleton-line"></view>
+          <view class="qz-skeleton qz-skeleton-line"></view>
+          <view class="qz-skeleton qz-skeleton-line qz-skeleton-line-short"></view>
+        </view>
+      </view>
+
+      <!-- 空态分支（.qz-empty 标准写法） -->
+      <view wx:else class="qz-empty qz-an-in qz-d4">
+        <view class="qz-empty-ico qz-ico qz-ico-xl qz-ico-float">
+          <view class="qz-i qz-i-rocket"></view>
+        </view>
+        <text class="qz-empty-title">还没有提现记录</text>
+        <text class="qz-empty-text">申请提现后会进入人工审核，每一笔的状态显示在这里</text>
+        <view class="qz-empty-flow qz-flow"></view>
+        <view class="qz-btn-main qz-press" bindtap="onWithdraw">申请提现</view>
+      </view>
+    </view>
+  </view>
+</view>

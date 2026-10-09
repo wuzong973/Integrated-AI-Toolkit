@@ -1,0 +1,209 @@
+@import '../../styles/tokens.scss';
+
+/* 练习中心 · 首页
+   取色只用主题变量（.th-practice 定义在 styles/themes.scss）
+   ⚠️ `--sh` 是**投影色**（带 alpha），不能当背景用；卡片底色用 .qz-card（白底）。
+   ⚠️ 中性文字色用 `$text-1/-2/-3`（tokens.scss 定义）。
+      本目录曾写成 `var(--color-text-primary, #212121)` 这种**自造令牌** ——
+      项目里根本没有 `--color-text-*`，于是永远取到兜底的灰，
+      与靛青主题不搭，而且**编译、lint、守卫全都不报错**。
+      这就是"本页需要 @import 才有 SCSS 变量可用"的原因。 */
+
+.practice-blob-a {
+  top: 90rpx;
+  left: -70rpx;
+  width: 300rpx;
+  height: 300rpx;
+  background: var(--m2);
+  opacity: 0.26;
+}
+
+.practice-blob-b {
+  top: 460rpx;
+  right: -90rpx;
+  width: 340rpx;
+  height: 340rpx;
+  background: var(--m4);
+  opacity: 0.2;
+}
+
+.practice-curve {
+  /* ⚠️ 库内 `.qz-curve` 只带背景与动效、**不带 `position`** —— 原来这里只写了 `top`，
+     而 `top` 对 `position: static` 的元素**完全无效**：这条"句式节奏线"其实是按普通流
+     排在 `.qz-fx` 顶边，被 `.qz-deco` 的 `overflow: hidden` 削掉外扩的那 40rpx，
+     显示的并不是设计意图里 300rpx 处的那道弧（编译与 lint 都不报）。
+     左右 -40rpx 是按 `.qz-fx` 外扩换算后的整页宽（与 `.vocab-curve` 同一写法）。 */
+  position: absolute;
+  left: -40rpx;
+  right: -40rpx;
+  top: 300rpx;
+  border-top-color: var(--m3);
+  opacity: 0.32;
+}
+
+.practice-sk {
+  height: 160rpx;
+}
+
+/* ---------- 模块入口 ---------- */
+
+.practice-mod {
+  padding: 30rpx 28rpx;
+  margin-bottom: 24rpx;
+}
+
+.practice-mod-dim {
+  opacity: 0.72;
+}
+
+.practice-mod-head {
+  display: flex;
+  align-items: center;
+}
+
+.practice-mod-ico {
+  background: var(--ms);
+}
+
+.practice-mod-quota {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  margin-left: 16rpx;
+}
+
+.practice-mod-quota-v {
+  font-size: 34rpx;
+  font-weight: 500;
+  color: var(--m1);
+  line-height: 1.2;
+}
+
+.practice-mod-quota-k {
+  font-size: 22rpx;
+  color: $text-3;
+}
+
+.practice-bar {
+  height: 10rpx;
+  margin: 22rpx 0 14rpx;
+  border-radius: 6rpx;
+  background: var(--ms);
+  overflow: hidden;
+}
+
+.practice-bar-fill {
+  height: 100%;
+  border-radius: 6rpx;
+  background: var(--m1);
+}
+
+.practice-mod-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.practice-mod-done {
+  font-size: 24rpx;
+  color: $text-2;
+}
+
+.practice-due {
+  padding: 4rpx 16rpx;
+  border-radius: 999rpx;
+  font-size: 22rpx;
+  color: var(--mt);
+  background: var(--ms);
+}
+
+.practice-reason {
+  display: block;
+  margin-top: 14rpx;
+  font-size: 24rpx;
+  color: $text-3;
+}
+
+/* ---------- 累计数字 ---------- */
+
+.practice-nums {
+  display: flex;
+  padding: 30rpx 0;
+}
+
+.practice-num {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.practice-num-v {
+  font-size: 40rpx;
+  font-weight: 500;
+  color: var(--m1);
+  line-height: 1.2;
+}
+
+.practice-num-k {
+  margin-top: 6rpx;
+  font-size: 22rpx;
+  color: $text-3;
+}
+
+/* ---------- 打卡日历（5 列 × 6 行） ---------- */
+
+.practice-cal {
+  display: flex;
+  flex-wrap: wrap;
+  padding: 24rpx 16rpx;
+}
+
+.practice-cell {
+  width: calc(20% - 12rpx);
+  margin: 6rpx;
+  height: 60rpx;
+  border-radius: 12rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--ms);
+  opacity: 0.5;
+}
+
+/* 有练习的日子：实心主题色（这是"我坚持了"最直接的视觉反馈） */
+.practice-cell-on {
+  background: var(--m1);
+  opacity: 1;
+}
+
+.practice-cell-today {
+  border: 2rpx solid var(--m3);
+}
+
+.practice-cell-d {
+  font-size: 22rpx;
+  color: var(--mt);
+}
+
+.practice-cell-on .practice-cell-d {
+  color: $text-inverse;
+}
+
+/* ---------- 底部链接 ---------- */
+
+.practice-links {
+  display: flex;
+  margin-top: 30rpx;
+}
+
+.practice-link {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.practice-link-ico {
+  margin-right: 10rpx;
+}

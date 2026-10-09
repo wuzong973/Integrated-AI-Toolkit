@@ -1,0 +1,195 @@
+<!-- 任务详情（文档 5.3.9）
+     视觉：朱砂主题 · 圆角 24 · 左侧彩条卡 + 行进流线，突出"任务在跑"的热度 -->
+<view
+  class="qz-page th-task task"
+  bindtouchstart="onFxStart"
+  bindtouchmove="onFxMove"
+  bindtouchend="onFxEnd"
+  bindtouchcancel="onFxEnd"
+>
+  <!-- 装饰层（不拦截点击，内容可读性不受影响）
+       装饰签名 curve + dot-b（热榜点缀），与同模块其余页刻意错开 -->
+  <view class="qz-deco">
+    <view class="qz-fx" style="{{fxStyle}}">
+      <view class="task-curve qz-curve"></view>
+      <view class="qz-dot qz-dot-b"></view>
+    </view>
+  </view>
+
+  <view class="qz-content">
+    <!-- 页头 -->
+    <view class="qz-head">
+      <view class="qz-head-row qz-an-in">
+        <view class="qz-ico qz-ico-l qz-ico-float">
+          <view class="qz-i qz-i-fire"></view>
+        </view>
+        <view class="qz-head-main">
+          <text class="qz-head-title">任务详情</text>
+          <text class="qz-head-sub">看清要求再报名，接单更安心</text>
+        </view>
+      </view>
+      <view wx:if="{{task}}" class="qz-head-chips qz-an-in qz-d1">
+        <view class="qz-chip qz-chip-on">{{task.statusText}}</view>
+        <view class="qz-chip qz-chip-ghost">{{task.applyCount}} 人报名</view>
+      </view>
+    </view>
+
+    <!-- 错误态 -->
+    <view wx:if="{{error}}" class="qz-container">
+      <view class="qz-err qz-an-in">
+        <text class="qz-err-text">{{error}}</text>
+      </view>
+    </view>
+
+    <block wx:elif="{{task}}">
+      <!-- 概览：彩色柔影卡 + 左侧彩条 -->
+      <view class="qz-container">
+        <view class="qz-card qz-card-glow qz-card-bar overview qz-an-in qz-d2">
+          <text class="ov-title">{{task.title}}</text>
+
+          <view class="ov-budget">
+            <text class="ov-amount">¥{{task.budgetYuan}}</text>
+            <view class="qz-chip qz-chip-ghost">
+              {{task.budgetType === 'fixed' ? '一口价' : task.budgetType === 'hourly' ? '按小时' : '可议价'}}
+            </view>
+          </view>
+
+          <view wx:if="{{task.location}}" class="ov-info">
+            <view class="qz-ico qz-ico-s"><view class="qz-i qz-i-station"></view></view>
+            <text class="ov-info-text">{{task.location}}</text>
+          </view>
+          <view wx:if="{{task.deadline}}" class="ov-info">
+            <view class="qz-ico qz-ico-s"><view class="qz-i qz-i-clock"></view></view>
+            <text class="ov-info-text">{{task.deadline}}</text>
+          </view>
+
+          <view class="ov-tags">
+            <view wx:for="{{task.skillTags}}" wx:for-item="tag" wx:key="*this" class="qz-chip">{{tag}}</view>
+            <view wx:if="{{task.source === 'os_plan'}}" class="qz-chip qz-chip-on">AI 编排任务</view>
+          </view>
+
+          <view class="ov-flow qz-flow"></view>
+        </view>
+      </view>
+
+      <!-- 需求描述：描边卡（密集文字用最轻的卡型） -->
+      <view class="qz-container">
+        <view class="qz-card qz-card-line qz-an-in qz-d3">
+          <view class="card-head">
+            <view class="qz-ico qz-ico-s"><view class="qz-i qz-i-doc"></view></view>
+            <text class="qz-sec-title card-head-title">需求描述</text>
+          </view>
+          <text class="desc">{{task.description}}</text>
+        </view>
+      </view>
+
+      <!-- 发布者：主题浅底卡 -->
+      <view class="qz-container">
+        <view class="qz-card qz-card-tint qz-an-in qz-d4">
+          <view class="card-head">
+            <view class="qz-ico qz-ico-s"><view class="qz-i qz-i-mine"></view></view>
+            <text class="qz-sec-title card-head-title">发布者</text>
+          </view>
+          <view class="pub">
+            <view class="pub-avatar">
+              <view class="qz-i qz-i-mine pub-ico"></view>
+            </view>
+            <view class="pub-body">
+              <text class="pub-name">{{task.publisher.nickname || '青智同学'}}</text>
+              <view class="pub-meta">
+                <view class="qz-i qz-i-credit pub-meta-ico"></view>
+                <text>信用分 {{task.publisher.creditScore}}</text>
+                <text class="pub-dot">·</text>
+                <text>已完成 {{task.publisher.completedOrders || 0}} 单</text>
+              </view>
+            </view>
+          </view>
+        </view>
+      </view>
+
+      <!-- 报名情况（发布者视角） -->
+      <block wx:if="{{isPublisher}}">
+        <view class="qz-sec qz-an-in qz-d5">
+          <view class="qz-sec-bar"></view>
+          <text class="qz-sec-title">报名情况</text>
+          <text class="qz-sec-sub">{{task.applyCount}} 人</text>
+        </view>
+
+        <view class="qz-container">
+          <!-- 有报名：渐变卡 -->
+          <view wx:if="{{applications.length}}" class="qz-card qz-card-grad card-flush qz-an-in qz-d6">
+            <view
+              wx:for="{{applications}}"
+              wx:key="id"
+              class="qz-item qz-item-line applicant qz-lift"
+            >
+              <view class="qz-ico qz-ico-s"><view class="qz-i qz-i-workbench"></view></view>
+              <view class="qz-item-main">
+                <text class="qz-item-title">{{item.providerName}}</text>
+                <text class="qz-item-desc">信用 {{item.rating}} · 报价 {{item.quoteYuan ? '¥' + item.quoteYuan : '待议'}}</text>
+                <text wx:if="{{item.message}}" class="qz-item-desc applicant-msg">{{item.message}}</text>
+                <!-- 匹配度只有服务端真的算出来才显示（不要在这里兜一个数字） -->
+                <text wx:if="{{item.hasMatch}}" class="qz-item-desc applicant-match">匹配度 {{item.matchScore}}% · {{item.matchWhy}}</text>
+              </view>
+              <!-- ⚠️ 传的是 providerId 而不是报名记录的 id：选定接口要的是"选谁" -->
+              <view class="qz-btn-sub applicant-btn qz-press" data-id="{{item.providerId}}" bindtap="onSelect">选定</view>
+            </view>
+          </view>
+
+          <!-- 无报名：统一空态 + 推荐服务者 -->
+          <view wx:else class="qz-empty qz-an-in qz-d6">
+            <view class="qz-empty-ico qz-ico qz-ico-l qz-ico-float">
+              <view class="qz-i qz-i-empty"></view>
+            </view>
+            <text class="qz-empty-title">还没有人报名</text>
+            <text class="qz-empty-text">稍等一会儿，或主动邀请技能匹配的服务者</text>
+            <view class="qz-empty-flow qz-flow"></view>
+          </view>
+
+          <!--
+            推荐服务者（M3-09）。分数与依据都来自服务端真实计算。
+            ⚠️ 刻意没有"邀请"按钮：主动邀请要发订阅消息（M3-19，未开工），
+            摆一个点了没反应的按钮就是又一个"假成功"。
+          -->
+          <view wx:if="{{recommended.length}}" class="qz-card card-flush qz-an-in qz-d7">
+            <view class="qz-item qz-item-line" wx:for="{{recommended}}" wx:key="userId">
+              <view class="qz-ico qz-ico-s"><view class="qz-i qz-i-tutor"></view></view>
+              <view class="qz-item-main">
+                <text class="qz-item-title">{{item.nickname}}</text>
+                <text class="qz-item-desc">匹配度 {{item.score}}% · {{item.matchWhy}}</text>
+              </view>
+            </view>
+          </view>
+        </view>
+      </block>
+    </block>
+
+    <!-- 加载态 -->
+    <view wx:else class="qz-container">
+      <view class="qz-card qz-card-line">
+        <view class="qz-skeleton qz-skeleton-line"></view>
+        <view class="qz-skeleton qz-skeleton-line qz-skeleton-line-short"></view>
+      </view>
+      <view class="qz-card qz-card-line">
+        <view class="qz-skeleton qz-skeleton-line"></view>
+        <view class="qz-skeleton qz-skeleton-line qz-skeleton-line-short"></view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 底部操作栏（按角色与状态渲染，逻辑不变） -->
+  <view wx:if="{{task}}" class="qz-footer-bar task-footer">
+    <block wx:if="{{isPublisher}}">
+      <view class="qz-btn-sub foot-btn qz-press" bindtap="onEdit">编辑</view>
+      <view class="qz-btn-sub foot-btn qz-press" bindtap="onClose">关闭需求</view>
+      <view class="qz-btn-main foot-btn foot-btn-main qz-press" bindtap="onChat">联系服务者</view>
+    </block>
+    <block wx:elif="{{canApply}}">
+      <view class="qz-btn-sub foot-btn qz-press" bindtap="onChat">私聊发布者</view>
+      <view class="qz-btn-main foot-btn foot-btn-main qz-press" bindtap="onApply">立即报名 / 抢单</view>
+    </block>
+    <block wx:else>
+      <view class="qz-btn-plain foot-btn foot-disabled">{{task.statusText}}</view>
+    </block>
+  </view>
+</view>

@@ -1,0 +1,133 @@
+# 《青智校园》生产基础设施（腾讯云 101.35.46.146 / OpenCloudOS 9.4 / 宝塔面板）
+#
+# 为什么单开一个文件而不是复用根目录的 docker-compose.yml：
+#   根目录那份是**开发用**的，端口写死 3306/6379/9000。这台机器上 3306 已经被
+#   既有的 MySQL 5.7.44 占着（服务另外两个项目），直接 `up` 会因端口绑定失败而起不来，
+#   或者更糟——把已有项目的库挤掉。本文件全部改绑 **127.0.0.1 + 备用端口**，
+#   公网一个端口都不开，只经 nginx 反代出去。
+#
+# 端口选择（宿主机侧，全部 127.0.0.1）：
+#   3308  MySQL 8.4   ← 项目迁移按 8.4 生成；服务器自带的是 5.7.44，不能直接用它
+#   6380  Redis 7     ← 不用 6379：宝塔的 Redis 插件将来会用默认端口
+#   9120  MinIO API   ← 不用 9000：与常见监控/注册组件撞名的概率高
+#   9121  MinIO 控制台
+#   6333  Qdrant HTTP ← 知识库检索（M4-06）必需；根目录 compose 里没有这个服务
+#   6334  Qdrant gRPC
+#
+# 用法（在服务器上，先备好同目录的 .env）：
+#   cd /www/wwwroot/qingzhi.wzl136122.cn/scripts/deploy
+#   docker compose -f docker-compose.prod.yml up -d
+#
+# ⚠️ 口令一律从 .env 读，**不给默认值**：缺变量时 `${VAR:?}` 会让 compose 直接报错退出，
+#    而不是悄悄用弱口令起一个能被爆破的库（红线：.env 严禁入库）。
+
+name: qingzhi
+
+services:
+  mysql:
+    image: mysql:8.4
+    container_name: qz-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${QZ_MYSQL_ROOT_PASSWORD:?missing in scripts/deploy/.env}
+      MYSQL_DATABASE: ${QZ_MYSQL_DATABASE:-qingzhi}
+      MYSQL_USER: ${QZ_MYSQL_USER:-qz}
+      MYSQL_PASSWORD: ${QZ_MYSQL_PASSWORD:?missing in scripts/deploy/.env}
+      TZ: Asia/Shanghai
+    # 与开发版一致：字符集与时区在服务端锁定。
+    # 中文乱码在这里是"不报错但数据坏掉"的那一类，必须启动参数定死，不能指望客户端自觉。
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+      - --default-time-zone=+08:00
+      - --max-connections=120
+    ports:
+      - '127.0.0.1:3308:3306'
+    volumes:
+      - qz-mysqldata:/var/lib/mysql
+      # 首次初始化时建影子库并授权（见 scripts/db/init-db.sql 里的说明）
+      - ../../scripts/db/init-db.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
+    healthcheck:
+      # 容器内用 127.0.0.1 而不是 localhost：localhost 走 socket，密码校验行为与 TCP 不一致
+      test: ['CMD-SHELL', 'mysqladmin ping -h 127.0.0.1 -u root -p"$$MYSQL_ROOT_PASSWORD" --silent']
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 60s
+    # 这台机器只有 3.6G 内存，且还跑着另外两个项目 —— 每个容器都要有硬顶，
+    # 否则一次 OOM 是整机遭殃，不是"这个服务挂了"。
+    mem_limit: 768m
+
+  redis:
+    image: redis:7-alpine
+    container_name: qz-redis
+    restart: unless-stopped
+    # appendonly：作业队列（QUEUE_DRIVER=redis-stream）的 pending 作业不能只活在内存里，
+    # 否则进程一重启，用户排队的任务就凭空消失
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy noeviction
+    ports:
+      - '127.0.0.1:6380:6379'
+    volumes:
+      - qz-redisdata:/data
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    mem_limit: 384m
+
+  minio:
+    image: minio/minio:latest
+    container_name: qz-minio
+    restart: unless-stopped
+    command: server /data --console-address ':9001'
+    environment:
+      MINIO_ROOT_USER: ${QZ_MINIO_ROOT_USER:?missing in scripts/deploy/.env}
+      MINIO_ROOT_PASSWORD: ${QZ_MINIO_ROOT_PASSWORD:?missing in scripts/deploy/.env}
+    ports:
+      - '127.0.0.1:9120:9000'
+      # 控制台不对外：只在需要人工看对象时临时用 ssh -L 转出去
+      - '127.0.0.1:9121:9001'
+    volumes:
+      - qz-miniodata:/data
+    healthcheck:
+      test: ['CMD', 'mc', 'ready', 'local']
+      interval: 10s
+      timeout: 5s
+      retries: 6
+    mem_limit: 512m
+
+  # 自动建桶（一次性）。桶名与 STORAGE_BUCKET 必须一致，否则上传时报 NoSuchBucket，
+  # 而那个错在作业里表现为"任务失败"，看不出是桶没建。
+  minio-init:
+    image: minio/mc:latest
+    depends_on:
+      minio:
+        condition: service_healthy
+    entrypoint: >
+      /bin/sh -c "
+      mc alias set local http://minio:9000 ${QZ_MINIO_ROOT_USER:?} ${QZ_MINIO_ROOT_PASSWORD:?} &&
+      mc mb --ignore-existing local/${QZ_MINIO_BUCKET:-qingzhi-prod} &&
+      echo 'bucket ready'
+      "
+    restart: 'no'
+
+  qdrant:
+    image: qdrant/qdrant:v1.19.1
+    container_name: qz-qdrant
+    restart: unless-stopped
+    # 与 providers/vector 的口径一致：裸 HTTP 调用，不给应用引 SDK 依赖
+    environment:
+      QDRANT__SERVICE__API_KEY: ${QZ_QDRANT_API_KEY:?missing in scripts/deploy/.env}
+    ports:
+      - '127.0.0.1:6333:6333'
+      - '127.0.0.1:6334:6334'
+    volumes:
+      - qz-qdrantdata:/qdrant/storage
+    mem_limit: 768m
+
+volumes:
+  qz-mysqldata:
+  qz-redisdata:
+  qz-miniodata:
+  qz-qdrantdata:

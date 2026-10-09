@@ -1,0 +1,16 @@
+{
+  "name": "@qz/sdk",
+  "version": "0.1.0",
+  "private": true,
+  "description": "青智校园跨端 API SDK（供 H5 / 管理后台复用；小程序端实现见 apps/mp/utils/request.ts）",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@qz/core": "*"
+  }
+}

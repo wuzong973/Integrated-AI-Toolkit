@@ -1,0 +1,80 @@
+<!-- 文本产物预览（.md / .txt / .csv / .json）
+     视觉：云蓝主题（与「我的文件」同色板）· 一整块可滚动的纸面 + 底部双动作条 -->
+<view
+  class="qz-page th-files text"
+  bindtouchstart="onFxStart"
+  bindtouchmove="onFxMove"
+  bindtouchend="onFxEnd"
+  bindtouchcancel="onFxEnd"
+>
+  <view class="qz-deco">
+    <view class="qz-fx" style="{{fxStyle}}">
+      <!-- 签名：flow-soft + dot-a（安静阅读：一条极淡流线 + 一颗光点，刻意克制） -->
+      <view class="text-flow qz-flow qz-flow-soft"></view>
+      <view class="qz-dot qz-dot-a"></view>
+    </view>
+  </view>
+
+  <view class="qz-content">
+    <!-- 页头 -->
+    <view class="qz-head">
+      <view class="qz-head-row qz-an-in">
+        <view class="qz-ico qz-ico-l qz-ico-float">
+          <view class="qz-i qz-i-doc"></view>
+        </view>
+        <view class="qz-head-main">
+          <text class="qz-head-title">{{name}}</text>
+          <text class="qz-head-sub">已保存到小程序本地，可复制或转发导出</text>
+        </view>
+      </view>
+      <view class="qz-head-chips qz-an-in qz-d1">
+        <view wx:if="{{!loading}}" class="qz-chip qz-chip-on">{{lineCount}} 行</view>
+        <view wx:if="{{!loading}}" class="qz-chip">{{charCount}} 字</view>
+        <view wx:if="{{loading}}" class="qz-chip qz-chip-on">读取中…</view>
+      </view>
+      <view class="head-flow qz-flow"></view>
+    </view>
+
+    <view class="qz-container">
+      <!-- 错误条 -->
+      <view wx:if="{{error}}" class="qz-err qz-an-in">
+        <text class="qz-err-text">{{error}}</text>
+        <view class="qz-err-btn qz-press" bindtap="onRetry">重试</view>
+      </view>
+
+      <!-- 加载态：纸面骨架（以前这段时间整块空白，像"文件是坏的"） -->
+      <view wx:elif="{{loading}}" class="qz-card qz-card-line body">
+        <view class="qz-skeleton qz-skeleton-line"></view>
+        <view class="qz-skeleton qz-skeleton-line"></view>
+        <view class="qz-skeleton qz-skeleton-line qz-skeleton-line-short"></view>
+        <view class="qz-skeleton qz-skeleton-line"></view>
+        <view class="qz-skeleton qz-skeleton-line qz-skeleton-line-short"></view>
+      </view>
+
+      <!-- 正文纸面 -->
+      <view wx:elif="{{content}}" class="qz-card qz-card-line body qz-an-in qz-d2">
+        <scroll-view class="body-scroll" scroll-y>
+          <text class="body-text" user-select="{{true}}">{{content}}</text>
+        </scroll-view>
+      </view>
+
+      <!-- 读到了但内容是空的：明说，而不是给一张空白纸面 -->
+      <view wx:else class="qz-empty qz-an-in">
+        <view class="qz-empty-ico qz-ico qz-ico-xl qz-ico-float">
+          <view class="qz-i qz-i-empty"></view>
+        </view>
+        <text class="qz-empty-title">文件内容为空或暂不支持预览</text>
+        <text class="qz-empty-text">这个产物里没有可读的文本，可以用「转发文件」导出到微信再打开。</text>
+        <view class="qz-empty-flow qz-flow"></view>
+        <view class="qz-btn-main qz-press" bindtap="onBack">返回</view>
+      </view>
+    </view>
+
+    <!-- 底部动作条：复制全文只在有正文时给（否则复制的是空气）；
+         转发的是本地文件本身，正文读不出来时它更是唯一能把文件带出去的出口 -->
+    <view wx:if="{{!loading && path}}" class="bar">
+      <view wx:if="{{content}}" class="bar-btn qz-btn-sub qz-press" bindtap="onCopy">复制全文</view>
+      <view class="bar-btn qz-btn-main qz-press" bindtap="onShare">转发文件</view>
+    </view>
+  </view>
+</view>

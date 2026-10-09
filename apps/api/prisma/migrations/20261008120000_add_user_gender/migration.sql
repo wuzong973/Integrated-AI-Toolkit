@@ -1,0 +1,20 @@
+-- AlterTable
+-- 个人资料可编辑字段：性别（M0-20 的补充；本次把"我的"页做成可编辑的个人信息页）
+--
+-- ## 为什么用 VarChar 而不是 MySQL ENUM / TINYINT
+--
+-- 本库所有状态与枚举列都是 VarChar + 应用层约束（见 `schema.prisma` 文件头与
+-- `docs/db/README.md` 的命名规范），原因是 MySQL ENUM 改取值要 `ALTER TABLE`，
+-- 而应用层加一个取值（例如以后要支持自定义性别）不该被 DDL 绑住。
+-- 取值集合由 `packages/core` 的 `Gender` 枚举定义，`UpdateProfileSchema` 用
+-- `z.nativeEnum` 拦，DB 层只保证长度。
+--
+-- ## 为什么可空、又为什么要留 `unspecified` 这个值
+--
+-- `NULL` = 从没填过（界面可以提示"补全资料"）；
+-- `'unspecified'` = 用户看过选项后主动选了"不想说"（界面**不该**再追问）。
+-- 两者如果都压成 NULL，"不想说"的人会被永远当成"还没填"，
+-- 表现就是资料补全提示关不掉 —— 这是主动选择被当成缺失的典型误判。
+--
+-- 存量行全部为 NULL，等价于"没填过"，无需回填。
+ALTER TABLE `user` ADD COLUMN `gender` VARCHAR(12) NULL;

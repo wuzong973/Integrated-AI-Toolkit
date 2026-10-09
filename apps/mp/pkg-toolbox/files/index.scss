@@ -1,0 +1,56 @@
+@import '../../styles/tokens.scss';
+
+/* 我的文件 · 云蓝主题（模块色板见 styles/themes.scss 的 .th-files）
+   造型语言：圆角 18（小圆角，收纳感）+ 用量卡带流水条纹 + 描边列表卡 */
+
+.files { padding-bottom: 60rpx; }
+
+/* ---------- 页头 ---------- */
+.head-flow { margin-top: $sp-4; }
+
+/* ---------- 装饰签名：water + blob-b（云光流动） ----------
+   .qz-water 只带动效不带定位，横向水带的位置/高度在本页定义 */
+.files-water {
+  position: absolute; left: -60rpx; right: -60rpx; top: 34%; height: 220rpx;
+}
+
+/* ---------- 存储用量 ---------- */
+.storage { padding: $card-padding; }
+.storage-row {
+  display: flex; align-items: baseline; justify-content: space-between;
+  margin-bottom: $sp-3;
+}
+.storage-label { font-size: $fs-aux; color: $text-2; font-weight: $fw-medium; }
+.storage-num { font-size: $fs-h3; font-weight: $fw-bold; color: var(--mt); }
+.storage-bar {
+  position: relative; height: 18rpx; overflow: hidden;
+  background: var(--ms); border-radius: $radius-pill;
+}
+.storage-water { position: absolute; left: 0; top: 0; right: 0; bottom: 0; }
+.storage-fill {
+  position: relative; height: 100%;
+  background: linear-gradient(90deg, var(--m1), var(--m2));
+  border-radius: $radius-pill;
+  transition: width $dur-base $ease-out;
+}
+.storage-tip { display: block; margin-top: $sp-3; font-size: $fs-tag; color: $text-3; }
+
+/* ---------- 筛选胶囊 ---------- */
+.filters { white-space: nowrap; margin: $sp-4 0 $sp-3; }
+.filter { margin-right: $sp-3; }
+
+/* ---------- 文件列表（描边卡，密集列表用） ---------- */
+.file-list { padding: 0; }
+.file-list .qz-item { padding-left: $card-padding; padding-right: $card-padding; }
+
+/* ---------- 加载骨架（沿用列表的行形状，避免加载完"跳一下"） ---------- */
+.sk-row {
+  display: flex; align-items: center;
+  padding: $card-padding; border-bottom: 1rpx solid $border;
+}
+.sk-row:last-child { border-bottom: none; }
+.sk-ico { width: $ico-sm; height: $ico-sm; border-radius: $radius-md; flex-shrink: 0; }
+.sk-main { flex: 1; min-width: 0; margin-left: $sp-4; }
+
+/* ---------- 空态的次按钮（与主按钮叠放） ---------- */
+.empty-sub-btn { margin-top: $sp-3; }

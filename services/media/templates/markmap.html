@@ -1,0 +1,59 @@
+<!doctype html>
+<!--
+  Markdown → markmap 思维导图渲染模板（playwright 截图目标：#graph 容器）。
+
+  JS 库已本地化（离线/内网可用，禁止改回 CDN 引用）：
+    · vendor/d3.min.js          —— d3 7.9.0（ISC）
+      来源：https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js
+    · vendor/markmap-view.js    —— markmap-view 0.18.12（MIT）
+      来源：https://cdn.jsdelivr.net/npm/markmap-view@0.18.12/dist/browser/index.js
+    · vendor/markmap-lib.js     —— markmap-lib 0.18.12（MIT，IIFE 构建）
+      来源：https://cdn.jsdelivr.net/npm/markmap-lib@0.18.12/dist/browser/index.iife.js
+      ⚠️ 该构建把 katex（数学公式）留作外部全局 `window.katex`：思维导图场景
+      用不到公式，故不内置；若未来要渲染含公式的 Markdown，再补 katex 本地化。
+
+  约定：window.render(code) 注入图表并在布局完成后 resolve，
+  供 playwright `page.evaluate("code => window.render(code)", code)` 调用。
+-->
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<style>
+  body { margin: 0; background: #fff;
+         font-family: 'PingFang SC', 'Microsoft YaHei', 'Noto Sans CJK SC', sans-serif; }
+  #graph { display: inline-block; padding: 16px; }
+</style>
+</head>
+<body>
+<div id="graph"></div>
+<!-- 顺序即依赖：markmap-view 挂到全局 d3 上，markmap-lib 与 view 共用 markmap 命名空间 -->
+<script src="vendor/d3.min.js"></script>
+<script src="vendor/markmap-view.js"></script>
+<script src="vendor/markmap-lib.js"></script>
+<script>
+  window.render = async (code) => {
+    const { Transformer, Markmap } = markmap;
+    const { root } = new Transformer().transform(code);
+
+    const graph = document.getElementById('graph');
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.setAttribute('width', '1600');
+    svg.setAttribute('height', '1200');
+    graph.appendChild(svg);
+
+    // duration:0 关掉展开动画，截图才是最终布局
+    Markmap.create(svg, { autoFit: false, duration: 0 }, root);
+    await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+    await document.fonts.ready;
+
+    // markmap 的 fit 以容器为准；这里按内容真实包围盒收缩 svg，截图不带大片空白
+    const PAD = 24;
+    const bbox = svg.getBBox();
+    svg.setAttribute('viewBox', `${bbox.x - PAD} ${bbox.y - PAD} ${bbox.width + PAD * 2} ${bbox.height + PAD * 2}`);
+    svg.setAttribute('width', String(Math.ceil(bbox.width + PAD * 2)));
+    svg.setAttribute('height', String(Math.ceil(bbox.height + PAD * 2)));
+    return true;
+  };
+</script>
+</body>
+</html>
